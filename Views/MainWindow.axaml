@@ -3,10 +3,15 @@
         xmlns:vm="using:GottaManagePlus.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="720" d:DesignHeight="720"
         x:Class="GottaManagePlus.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
+        
+        Width="720"
+        Height="480"
+        MinHeight="250"
+        MinWidth="250"
         Title="GottaManagePlus">
 
     <Design.DataContext>
@@ -15,6 +20,23 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    
+    <!-- MAIN -->
+    <Grid
+    RowDefinitions="Auto,*"
+    ShowGridLines="True"
+     >
+         <!-- Top  -->
+        <Grid
+            ShowGridLines="True"
+            Grid.Row="0"
+            Margin="4"
+            ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Image HorizontalAlignment="Left" Source="{Binding GottaSweepLogo}" MaxWidth="128" MaxHeight="128" />
+                <TextBlock Margin="20" FontSize="32" Text="Gotta Manage Plus" HorizontalAlignment="Left" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+    </Grid>
 
 </Window>
