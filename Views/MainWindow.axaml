@@ -10,8 +10,8 @@
         
         Width="720"
         Height="480"
-        MinHeight="250"
-        MinWidth="250"
+        MinHeight="560"
+        MinWidth="480"
         Title="GottaManagePlus">
 
     <Design.DataContext>
@@ -20,23 +20,156 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
+    <!-- Styles to define -->
+    <Window.Styles>
+        <!--SIDE MENU BUTTON STYLING-->
+        <Style Selector="Button.SideMenu-Button">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="MinHeight" Value="65" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <!--MAIN GRID STYLING-->
+        <Style Selector="Grid.MainSection">
+            <Setter Property="Background">
+                <LinearGradientBrush 
+                             StartPoint="0%,0%" 
+                             EndPoint="0%,100%"> 
+                    <GradientStop Color="{DynamicResource CustomBackgroundColor}" Offset="0"/>
+                    <GradientStop Color="White" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+
+        <!-- Scrollbar modifications -->
+        <Style Selector="ScrollViewer#Scroll_ModList">
+            <Style Selector="^ ScrollBar">
+                <Style Selector="^:vertical">
+                    <!-- Some rectangle that covers up the whole scroll bar -->
+                    <Style Selector="^ /template/ Rectangle#TrackRect">
+                        <Setter Property="Fill" Value="Transparent" /> <!-- Allows seeing the actual bar -->
+                    </Style>
+                    
+                    <!-- Bar itself -->
+                    <Style Selector="^ Thumb">
+                        <Setter Property="MaxWidth" Value="7.5" />
+                        <Setter Property="MinHeight" Value="125" />
+                        <Setter Property="CornerRadius" Value="25" />
+                    </Style>
+                </Style>
+                <Style Selector="^ RepeatButton">
+                    <Setter Property="IsVisible" Value="False" />
+                </Style>
+            </Style>
+        </Style>
+
+        <Style Selector="TextBlock.Label">
+            
+        </Style>
+
+    </Window.Styles>
+
     
     <!-- MAIN -->
     <Grid
-    RowDefinitions="Auto,*"
-    ShowGridLines="True"
+    RowDefinitions="Auto, *"
+    Classes="MainSection"
      >
-         <!-- Top  -->
+         <!-- START of Top/Logo -->
+        <Border 
+        Grid.Row="0"
+        BorderThickness="0 0 0 5" 
+        BorderBrush="{DynamicResource ChromeGray}" 
+        Background="{DynamicResource ChromeBlackLow}" 
+        MinHeight="128" />
+
+        <DockPanel Grid.Row="0">
+            <Image HorizontalAlignment="Left" Source="{Binding GottaSweepLogo}" MaxWidth="100" MaxHeight="100" />
+            <TextBlock Margin="20" FontSize="32" Text="Gotta Manage Plus" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+        </DockPanel>
+        <!-- END of TOP -->
+
+        <!-- START of Body -->
         <Grid
-            ShowGridLines="True"
-            Grid.Row="0"
-            Margin="4"
-            ColumnDefinitions="*,Auto">
-            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <Image HorizontalAlignment="Left" Source="{Binding GottaSweepLogo}" MaxWidth="128" MaxHeight="128" />
-                <TextBlock Margin="20" FontSize="32" Text="Gotta Manage Plus" HorizontalAlignment="Left" VerticalAlignment="Center" />
+            ColumnDefinitions="200, *"
+            Grid.Row="1"
+        >
+            <!-- START of Nav Bar -->
+            <Border 
+            Background="" 
+            CornerRadius="0 25 0 0"  
+            Grid.Column="0" />
+
+            <StackPanel
+            Name="Panel_NavBar"
+            Grid.Column="0"
+            Orientation="Vertical"
+            Margin="10"
+            >
+                <Button
+                VerticalAlignment="Top"
+                Content="Home"
+                Classes="SideMenu-Button"
+                />
+                <Button 
+                Classes="SideMenu-Button"
+                VerticalAlignment="Top"
+                Content="Settings"
+                />
+                <Button 
+                Classes="SideMenu-Button"
+                VerticalAlignment="Top"
+                Content="About"
+                />
             </StackPanel>
+            <!-- END of Nav Bar -->
+            
+            <!-- START of Mod List-->
+            <Grid
+                Grid.Column="1"
+                RowDefinitions="Auto, *"
+            >
+                 <!-- Mod Label -->
+                <StackPanel
+                Grid.Row="0"
+                HorizontalAlignment="Stretch"
+                Margin="15">
+                    <TextBlock 
+                    Text="Your mods" 
+                    TextAlignment="Left"
+                    FontSize="40"/>
+                    <Rectangle Height="1" 
+                    Fill="" 
+                    Margin="0, 10, 0, 10" 
+                    HorizontalAlignment="Stretch" />
+                </StackPanel>
+
+                <!-- Actual Mod Scroll Viewer -->
+                <Border
+                Grid.Row="1"
+                CornerRadius="25 0 0 0"
+                ClipToBounds="True" 
+                >
+                    <!-- Border defined above for the ScrollViewer to be within the border's bounds -->
+                    <ScrollViewer
+                    Name="Scroll_ModList"
+                    Background=""
+                    AllowAutoHide="False"
+                    >
+                        <StackPanel>
+                        <TextBlock FontSize="22" Text="Mod 1" Height="200" Background="Blue" HorizontalAlignment="Stretch" TextAlignment="Center" />
+                        <TextBlock FontSize="22" Text="Mod 2" Height="200" Background="LightBlue" HorizontalAlignment="Stretch" TextAlignment="Center" />
+                        <TextBlock FontSize="22" Text="Mod 3" Height="200" Background="LightBlue" HorizontalAlignment="Stretch" TextAlignment="Center" />
+                        <TextBlock FontSize="22" Text="Mod 4" Height="200" Background="LightBlue" HorizontalAlignment="Stretch" TextAlignment="Center" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            <!-- END of Mod List -->
+            </Grid>
         </Grid>
+        <!-- END of Body -->
     </Grid>
 
 </Window>
