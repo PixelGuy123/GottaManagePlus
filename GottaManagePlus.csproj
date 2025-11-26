@@ -23,9 +23,7 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-
-    <!-- Embedded Resources -->
-    <EmbeddedResource Include="UI\SweepLogo.webp" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.6.2" />
 
   </ItemGroup>
 </Project>

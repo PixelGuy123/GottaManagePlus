@@ -13,22 +13,7 @@
         <FluentTheme />
     </Application.Styles>
 
-    <!-- <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                
-                <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="CustomBackgroundBrush" Color="#333333" />
-                    <Color x:Key="CustomBackgroundColor">#FFFFFF</Color>
-                </ResourceDictionary>
-                
-                <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="CustomBackgroundBrush" Color="#333333" />
-                    <Color x:Key="CustomBackgroundColor">#FFFFFF</Color>
-                </ResourceDictionary>
-                
-            </ResourceDictionary.ThemeDictionaries>
-        </ResourceDictionary>
-    </Application.Resources> -->
+    <Application.Resources>
+    </Application.Resources>
 
 </Application>
