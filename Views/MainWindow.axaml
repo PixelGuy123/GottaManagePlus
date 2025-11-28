@@ -8,10 +8,8 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         
-        Width="720"
-        Height="480"
-        MinHeight="560"
-        MinWidth="480"
+        MinHeight="720"
+        MinWidth="700"
         Title="GottaManagePlus">
 
     <Design.DataContext>
@@ -31,39 +29,107 @@
                     x:Key="MainWindowBgColor"
                     Center="50%, 50%" 
                     GradientOrigin="50%, 50%" 
-                    RadiusX="55%"
-                    RadiusY="55%">
+                    RadiusX="75%"
+                    RadiusY="75%">
                         <RadialGradientBrush.GradientStops>
                         <GradientStops>
-                            <GradientStop Color="rgba(182, 255, 190, 1)" Offset="0"/>
-                            <GradientStop Color="rgba(77, 164, 98, 1)" Offset="1"/>
+                            <GradientStop Color="rgba(95, 255, 162, 1)" Offset="0"/>
+                            <GradientStop Color="rgba(23, 79, 68, 1)" Offset="0.85"/>
                         </GradientStops>
                         </RadialGradientBrush.GradientStops>
                     </RadialGradientBrush>
 
                     <!-- All Menus -->
-                    <Color x:Key="MainMenus-Bg">rgba(0, 99, 56, 0.25)</Color>
-                    <SolidColorBrush x:Key="MainMenus-BorderBrush" Color="rgba(62, 62, 62, 0.25)" />
-                    <LinearGradientBrush 
+                    <RadialGradientBrush
+                    x:Key="MainMenus-Bg"
+                    Center="150%, -25%" 
+                    GradientOrigin="150%, -25%" 
+                    RadiusX="375%"
+                    RadiusY="285%">
+                        <RadialGradientBrush.GradientStops>
+                        <GradientStops>
+                            <GradientStop Color="rgba(104, 226, 155, 1)" Offset="0"/>
+                            <GradientStop Color="rgba(40, 101, 84, 1)" Offset="0.85"/>
+                        </GradientStops>
+                        </RadialGradientBrush.GradientStops>
+                    </RadialGradientBrush>
+
+                    <RadialGradientBrush
                     x:Key="TopMenu-Bg"
-                    StartPoint="0% 0%"
-                    EndPoint="0% 100%">
-                        <LinearGradientBrush.GradientStops>
-                            <GradientStop Color="rgba(0, 225, 53, 1)" Offset="0.95"/>
-                            <GradientStop Color="rgba(0, 66, 8, 0)" Offset="1"/>
-                        </LinearGradientBrush.GradientStops>
-                    </LinearGradientBrush>
+                    Center="11%, 5%" 
+                    GradientOrigin="11%, 5%" 
+                    RadiusX="100%"
+                    RadiusY="135%">
+                        <RadialGradientBrush.GradientStops>
+                        <GradientStops>
+                            <GradientStop Color="rgba(70, 187, 119, 1)" Offset="0"/>
+                            <GradientStop Color="rgba(59, 160, 101, 1)" Offset="0.12"/>
+                            <GradientStop Color="rgba(59, 150, 101, 1)" Offset="0.185"/>
+                            <GradientStop Color="rgba(54, 148, 93, 1)" Offset="0.25"/>
+                            <GradientStop Color="rgba(40, 115, 71, 1)" Offset="0.5"/>
+                            <GradientStop Color="rgba(40, 100, 71, 1)" Offset="0.59"/>
+                            <GradientStop Color="rgba(40, 95, 71, 1)" Offset="0.65"/>
+                            <GradientStop Color="rgba(40, 88, 71, 1)" Offset="0.75"/>
+                            <GradientStop Color="rgba(22, 77, 66, 1)" Offset="0.85"/>
+                        </GradientStops>
+                        </RadialGradientBrush.GradientStops>
+                    </RadialGradientBrush>
 
                     <!-- Side Menu Settings -->
-                    <SolidColorBrush x:Key="SideMenu-Btn-Home-Bg" Color="rgba(41, 214, 35, 1)" />
-                    <SolidColorBrush x:Key="SideMenu-Btn-Home-Border" Color="rgba(61, 255, 93, 1)" />
-                    <SolidColorBrush x:Key="SideMenu-Btn-Settings-Bg" Color="rgba(226, 58, 35, 1)" />
-                    <SolidColorBrush x:Key="SideMenu-Btn-Settings-Border" Color="rgba(255, 104, 104, 1)" />
-                    <SolidColorBrush x:Key="SideMenu-Btn-About-Bg" Color="rgba(221, 200, 12, 1)" />
-                    <SolidColorBrush x:Key="SideMenu-Btn-About-Border" Color="rgba(255, 238, 86, 1)" />
+                    <RadialGradientBrush
+                    x:Key="SideMenu-Btn-Home-Bg"
+                    Center="-25%, -25%" 
+                    GradientOrigin="-25%, -25%"
+                    RadiusX="235%"
+                    RadiusY="235%"
+                    >
+                        <RadialGradientBrush.GradientStops>
+                        <GradientStops>
+                            <GradientStop Color="rgba(136, 243, 83, 1)" Offset="0.25"/>
+                            <GradientStop Color="rgba(100, 183, 58, 1)" Offset="1"/>
+                        </GradientStops>
+                        </RadialGradientBrush.GradientStops>
+                    </RadialGradientBrush>
+                    <SolidColorBrush x:Key="SideMenu-Btn-Home-Bg-Hover" Color="rgba(35, 173, 31, 1)" />
+                    <SolidColorBrush x:Key="SideMenu-Btn-Home-Icon-Hover" Color="rgba(51, 208, 77, 1)" />
+                    <RadialGradientBrush
+                    x:Key="SideMenu-Btn-Settings-Bg"
+                    Center="-25%, -25%" 
+                    GradientOrigin="-25%, -25%"
+                    RadiusX="235%"
+                    RadiusY="235%"
+                    >
+                        <RadialGradientBrush.GradientStops>
+                        <GradientStops>
+                            <GradientStop Color="rgba(243, 83, 83, 1)" Offset="0.25"/>
+                            <GradientStop Color="rgba(183, 73, 58, 1)" Offset="1"/>
+                        </GradientStops>
+                        </RadialGradientBrush.GradientStops>
+                    </RadialGradientBrush>
+                    <SolidColorBrush x:Key="SideMenu-Btn-Settings-Bg-Hover" Color="rgba(173, 45, 28, 1)" />
+                    <RadialGradientBrush
+                    x:Key="SideMenu-Btn-About-Bg"
+                    Center="-25%, -25%" 
+                    GradientOrigin="-25%, -25%"
+                    RadiusX="235%"
+                    RadiusY="235%"
+                    >
+                        <RadialGradientBrush.GradientStops>
+                        <GradientStops>
+                            <GradientStop Color="rgba(239, 216, 66, 1)" Offset="0.25"/>
+                            <GradientStop Color="rgba(190, 179, 56, 1)" Offset="1"/>
+                        </GradientStops>
+                        </RadialGradientBrush.GradientStops>
+                    </RadialGradientBrush>
+
+                    <!-- Other Menu Resources -->
+                    <SolidColorBrush x:Key="Menu-Header-Bg" Color="rgba(47, 100, 65, 1)" />
 
                     <!-- MISC Colors -->
                     <SolidColorBrush x:Key="LongLineStruck-Color" Color="rgba(0, 0, 0, 0.35)" />
+                    <Color x:Key="ScrollBar-BgColor">rgba(50, 100, 65, 1)</Color>
+                    <Color x:Key="ScrollBar-ThumbColor">rgba(159, 220, 182, 1)</Color>
+                    <Color x:Key="LightenEffect-Color">rgba(214, 255, 204, 1)</Color>
 
                 </ResourceDictionary>
                 
@@ -86,22 +152,50 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="BorderThickness" Value="3.5" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="FontSize" Value="20" />
+            <Setter Property="Effect">
+                <DropShadowEffect 
+                Color="Black"
+                OffsetX="-3.5"
+                OffsetY="7"
+                BlurRadius="6"
+                Opacity="0.3"
+                />
+            </Setter>
 
             <!-- Home Button Styling -->
             <Style Selector="^#HomeBtn">
+                <Setter Property="Background" Value="{DynamicResource SideMenu-Btn-Home-Bg}" />
+
+                <!-- On Hover Style -->
+                <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                    <Setter Property="Background" Value="{DynamicResource SideMenu-Btn-Home-Bg-Hover}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource SideMenu-Btn-Home-Border-Hover}" />
+                </Style>
+            </Style>
+
+            <!-- Settings Button Styling -->
+            <Style Selector="^#SettingsBtn">
+                <Setter Property="BorderBrush" Value="{DynamicResource SideMenu-Btn-Settings-Border}" />
+                <Setter Property="Background" Value="{DynamicResource SideMenu-Btn-Settings-Bg}" />
+                
+                <!-- On Hover Style -->
+                <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                    <Setter Property="Background" Value="{DynamicResource SideMenu-Btn-Settings-Bg-Hover}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource SideMenu-Btn-Settings-Border-Hover}" />
+                </Style>
+            </Style>
+
+            <!-- About Button Styling -->
+            <Style Selector="^#AboutBtn">
                 <Setter Property="BorderBrush" Value="{DynamicResource SideMenu-Btn-Home-Border}" />
                 <Setter Property="Background" Value="{DynamicResource SideMenu-Btn-Home-Bg}" />
-                
-                <!-- Home Label -->
-                <Style Selector="^ TextBlock">
-                     <Setter Property="Text" Value="Mods" /> 
-                </Style>
 
+                <!-- On Hover Style -->
                 <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                    
+                    <Setter Property="Background" Value="{DynamicResource SideMenu-Btn-Home-Bg-Hover}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource SideMenu-Btn-Home-Border-Hover}" />
                 </Style>
             </Style>
         </Style>
@@ -110,6 +204,18 @@
             <Setter Property="Margin" Value="0 1.75" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="FontSize" Value="22" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect
+                    Color="Black"
+                    BlurRadius="18"
+                    OffsetX="0"
+                    OffsetY="2.5"
+                    Opacity="0.45"
+                    />
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!--MAIN GRID STYLING-->
@@ -119,8 +225,20 @@
 
         <!-- Image Icon Styling -->
         <Style Selector="Image.Icon">
-            <Setter Property="BlendMode" Value="Overlay" />
+            <Setter Property="Opacity" Value="0.6" />
             <Setter Property="MaxHeight" Value="64" />
+            <Setter Property="MaxWidth" Value="64" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Effect">
+                <DropShadowEffect
+                    Color="{DynamicResource LightenEffect-Color}"
+                    BlurRadius="20"
+                    OffsetX="0"
+                    OffsetY="0"
+                    Opacity="0.5"
+                    />
+            </Setter>
         </Style>
 
         <!-- Scrollbar modifications -->
@@ -129,14 +247,15 @@
                 <Style Selector="^:vertical">
                     <!-- Some rectangle that covers up the whole scroll bar -->
                     <Style Selector="^ /template/ Rectangle#TrackRect">
-                        <Setter Property="Fill" Value="Transparent" /> <!-- Allows seeing the actual bar -->
+                        <Setter Property="Fill" Value="{DynamicResource ScrollBar-BgColor}" /> <!-- Allows seeing the actual bar -->
                     </Style>
                     
                     <!-- Bar itself -->
                     <Style Selector="^ Thumb">
-                        <Setter Property="MaxWidth" Value="7.5" />
-                        <Setter Property="MinHeight" Value="125" />
-                        <Setter Property="CornerRadius" Value="12" />
+                        <Setter Property="MaxWidth" Value="9"/>
+                        <Setter Property="Margin" Value="0 3"/>
+                        <Setter Property="CornerRadius" Value="6"/>
+                        <Setter Property="Background" Value="{DynamicResource ScrollBar-ThumbColor}"/>
                     </Style>
                 </Style>
                 <Style Selector="^ RepeatButton">
@@ -154,28 +273,56 @@
         </Style>
 
         <!-- Header Settings -->
-        <Style>
+        <Style Selector=":is(Control).HeaderMargin">
+            <Setter Property="Margin" Value="12.5"/>
         </Style>
 
-        <!-- Border Style -->
-        <Style Selector="Border">
-            <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
-            <!-- Main Menus Border -->
-            <Style Selector="^.Menu_Border">
-                <Setter Property="Background" Value="{DynamicResource MainMenus-Bg}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource MainMenus-BorderBrush}" />
-                <Setter Property="BorderThickness" Value="2.5" />
-                <!-- Top Menu Overrides -->
-                <Style Selector="^.TopMenu_Border">
-                    <Setter Property="Background" Value="{DynamicResource TopMenu-Bg}" />
-                    <Setter Property="BorderBrush" Value="" />
-                </Style>
-
-                <!-- Top Menu Overrides -->
-                <Style Selector="^.LeftScreen_Thickness">
-                    <Setter Property="BorderThickness" Value="0 2.5 2.5 2.5" />
-                </Style>
+        <!-- Border Style -->       
+        <Style Selector="Border.Menu_Border">
+            <Setter Property="BackgroundSizing" Value="OuterBorderEdge"/> <!-- Shall fix improper border fitting -->
+            <Setter Property="Background" Value="{DynamicResource MainMenus-Bg}" />
+            <!-- Top Menu Overrides -->
+            <Style Selector="^.TopMenu_Border">
+                <Setter Property="Background" Value="{DynamicResource TopMenu-Bg}" />
             </Style>
+        </Style>
+
+        <Style Selector="Border">
+            <Style Selector="^.AllCornerRadius">
+                <Setter Property="CornerRadius" Value="15" />
+            </Style>
+            <Style Selector="^.RightCornerRadius">
+                <Setter Property="CornerRadius" Value="0 15 15 0" />
+            </Style>
+        </Style>
+
+        <!-- DropShadowEffect (for any user control) -->
+        <Style Selector=":is(Control).BorderDropShadow">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect
+                    Color="Black"
+                    BlurRadius="15"
+                    OffsetX="0"
+                    OffsetY="10"
+                    Opacity="0.5"
+                    />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style Selector=":is(Control).LightDropShadow">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect
+                    Color="{DynamicResource LightenEffect-Color}"
+                    BlurRadius="30"
+                    OffsetX="0"
+                    OffsetY="0"
+                    Opacity="0.625"
+                    />
+                </Setter.Value>
+            </Setter>
         </Style>
 
         
@@ -190,16 +337,17 @@
      >
          <!-- START of Top/Logo -->
         <Border 
-        
         Grid.Row="0"
-        Classes="Menu_Border TopMenu_Border"
-        MinHeight="128">
+        Classes="Menu_Border TopMenu_Border BorderDropShadow"
+        MinHeight="128"
+        Margin="0 0 0 10">
             <DockPanel>
                 <Image 
-                HorizontalAlignment="Left" 
-                Source="/Assets/UI/SweepLogo.webp"
-                MaxWidth="145" 
-                MaxHeight="145" Margin="0 10 0 20" />
+                HorizontalAlignment="Center" 
+                Source="/Assets/UI/Logo.png"
+                MaxWidth="256" 
+                MaxHeight="256" 
+                Classes="LightDropShadow" />
             </DockPanel>
         </Border>
         <!-- END of TOP -->
@@ -217,41 +365,42 @@
 
                 <!-- START of Nav Bar -->
                 <Border 
-                CornerRadius="{Binding AllMenus_CornerRadius_LeftScreen, Mode=OneTime}"  
-                Classes="Menu_Border LeftScreen_Thickness"
-                Grid.Column="0"
-                Margin="0 5 0 0"/>
-
-                <StackPanel
-                Name="Panel_NavBar"
-                Grid.Column="0"
-                Orientation="Vertical"
-                Margin="10"
-                >
-                    <Label Content="Navigation" Classes="SideMenu-Label" />
-                    <Rectangle Classes="Stroke" />
-                    <Button
-                    Classes="SideMenu-Button"
-                    Name="HomeBtn"
+                ClipToBounds="True"
+                Classes="Menu_Border BorderDropShadow RightCornerRadius"
+                Grid.Row="0">
+                    <Grid
+                    Name="Panel_NavBar"
+                    Grid.Row="0"
+                    RowDefinitions="Auto, *"
                     >
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{SvgImage /Assets/UI/Icon_Hammer.svg}" Classes="Icon" />
-                            <TextBlock />
+                        <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
+                            <Label Content="Navigation" Classes="SideMenu-Label HeaderMargin"/>
+                        </Border>
+                        
+                        <StackPanel Grid.Row="1" Margin="10" Orientation="Vertical">
+                            <Button
+                            Classes="SideMenu-Button"
+                            Name="HomeBtn"
+                            >
+                                <Image Source="/Assets/UI/Icon_Hammer.png" Classes="Icon" />
+                            </Button>
+                            <Button 
+                            Classes="SideMenu-Button"
+                            Name="SettingsBtn"
+                            >
+                                <Image Source="/Assets/UI/Icon_Gears.png" Classes="Icon" />
+                            </Button>
+                            <Button 
+                            Classes="SideMenu-Button"
+                            BorderBrush="{DynamicResource SideMenu-Btn-About-Border}"
+                            Background="{DynamicResource SideMenu-Btn-About-Bg}"
+                            Content="About"
+                            >
+                                <Image Source="/Assets/UI/Icon_Info.png" Classes="Icon" />
+                            </Button>
                         </StackPanel>
-                    </Button>
-                    <Button 
-                    Classes="SideMenu-Button"
-                    Content="Settings"
-                    BorderBrush="{DynamicResource SideMenu-Btn-Settings-Border}"
-                    Background="{DynamicResource SideMenu-Btn-Settings-Bg}"
-                    />
-                    <Button 
-                    Classes="SideMenu-Button"
-                    BorderBrush="{DynamicResource SideMenu-Btn-About-Border}"
-                    Background="{DynamicResource SideMenu-Btn-About-Bg}"
-                    Content="About"
-                    />
-                </StackPanel>
+                    </Grid>
+                </Border>
                 <!-- END of Nav Bar -->
             </Grid>
             <!-- END of Side Menu -->
@@ -260,21 +409,21 @@
             <Border
             ClipToBounds="True"
             Grid.Column="1"
-            Classes="Menu_Border"
-            Margin="25 5 10 10"
-            CornerRadius="{Binding AllMenus_CornerRadius_All, Mode=OneTime}"
+            Classes="Menu_Border BorderDropShadow AllCornerRadius"
+            Margin="25 0 10 10"
             >
                 <Grid RowDefinitions="Auto, *">
+                    <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" />
                     <!-- Mod Header -->
                     <StackPanel
                     Grid.Row="0"
                     HorizontalAlignment="Stretch"
-                    Margin="12.5">
-                        <TextBlock 
-                        Text="Installed Mods" 
-                        TextAlignment="Left"
-                        FontSize="18"/>
-                        <Rectangle Classes="Stroke" />
+                    Classes="HeaderMargin">
+                        <Label 
+                        Content="Installed Mods" 
+                        HorizontalAlignment="Left"
+                        FontSize="20"
+                        Classes="SideMenu-Label"/>
                     </StackPanel>
 
                 <!-- Actual Mod Scroll Viewer -->
@@ -283,11 +432,11 @@
                 Background="{DynamicResource MainMenus-Bg}"
                 AllowAutoHide="False"
                 Grid.Row="1"
-                Margin="15 5 15 15"
+                Margin="15"
                 >
                     <StackPanel>
                     <TextBlock FontSize="22" Text="Mod 1" Height="200" Background="Blue" HorizontalAlignment="Stretch" TextAlignment="Center" />
-                        <TextBlock FontSize="22" Text="Mod 2" Height="200" Background="LightBlue" HorizontalAlignment="Stretch" TextAlignment="Center" />
+                    <TextBlock FontSize="22" Text="Mod 2" Height="200" Background="LightBlue" HorizontalAlignment="Stretch" TextAlignment="Center" />
                     <TextBlock FontSize="22" Text="Mod 3" Height="200" Background="LightBlue" HorizontalAlignment="Stretch" TextAlignment="Center" />
                     <TextBlock FontSize="22" Text="Mod 4" Height="200" Background="LightBlue" HorizontalAlignment="Stretch" TextAlignment="Center" />
                     </StackPanel>
