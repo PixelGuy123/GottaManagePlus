@@ -129,7 +129,6 @@
                     <SolidColorBrush x:Key="LongLineStruck-Color" Color="rgba(0, 0, 0, 0.35)" />
                     <Color x:Key="ScrollBar-BgColor">rgba(50, 100, 65, 1)</Color>
                     <Color x:Key="ScrollBar-ThumbColor">rgba(159, 220, 182, 1)</Color>
-                    <Color x:Key="LightenEffect-Color">rgba(214, 255, 204, 1)</Color>
 
                 </ResourceDictionary>
                 
@@ -146,9 +145,13 @@
     <Window.Styles>
         <!--SIDE MENU STYLING-->
         <Style Selector="Button.SideMenu-Button">
+            <!--=======================-->
+            <!-- General Styling Below -->
+            <!--=======================-->
             <Setter Property="Margin" Value="0 3" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="MinHeight" Value="65" />
+            <Setter Property="MaxHeight" Value="75" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Top" />
@@ -163,6 +166,22 @@
                 Opacity="0.3"
                 />
             </Setter>
+
+            <!-- Text Styling -->
+            <Style Selector="^ TextBlock">
+                <Setter Property="FontSize" Value="25" />
+                <Setter Property="TextAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+            </Style>
+
+            <!--Icon Styling-->
+            <Style Selector="^ Image">
+                <Setter Property="Canvas.Right" Value="-35" />
+            </Style>
+
+            <!--=======================-->
+            <!-- Specific Styling Below -->
+            <!--=======================-->
 
             <!-- Home Button Styling -->
             <Style Selector="^#HomeBtn">
@@ -223,24 +242,6 @@
             <Setter Property="Background" Value="{DynamicResource MainWindowBgColor}" />
         </Style>
 
-        <!-- Image Icon Styling -->
-        <Style Selector="Image.Icon">
-            <Setter Property="Opacity" Value="0.6" />
-            <Setter Property="MaxHeight" Value="64" />
-            <Setter Property="MaxWidth" Value="64" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Effect">
-                <DropShadowEffect
-                    Color="{DynamicResource LightenEffect-Color}"
-                    BlurRadius="20"
-                    OffsetX="0"
-                    OffsetY="0"
-                    Opacity="0.5"
-                    />
-            </Setter>
-        </Style>
-
         <!-- Scrollbar modifications -->
         <Style Selector="ScrollViewer#Scroll_ModList">
             <Style Selector="^ ScrollBar">
@@ -283,7 +284,16 @@
             <Setter Property="Background" Value="{DynamicResource MainMenus-Bg}" />
             <!-- Top Menu Overrides -->
             <Style Selector="^.TopMenu_Border">
-                <Setter Property="Background" Value="{DynamicResource TopMenu-Bg}" />
+                <!-- Adds background -->
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush 
+                        Source="/Assets/UI/MainHeaderBG_OldGamebananaHeader.jpg"
+                        Stretch="None"
+                        AlignmentY="Top"
+                        />
+                    </Setter.Value>
+                </Setter>
             </Style>
         </Style>
 
@@ -310,22 +320,20 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <Style Selector=":is(Control).LightDropShadow">
+        
+        <Style Selector=":is(Control).GlowShadow">
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect
-                    Color="{DynamicResource LightenEffect-Color}"
-                    BlurRadius="30"
+                    Color="White"
+                    BlurRadius="20"
                     OffsetX="0"
                     OffsetY="0"
-                    Opacity="0.625"
+                    Opacity="0.4"
                     />
                 </Setter.Value>
             </Setter>
         </Style>
-
-        
 
     </Window.Styles>
 
@@ -340,15 +348,33 @@
         Grid.Row="0"
         Classes="Menu_Border TopMenu_Border BorderDropShadow"
         MinHeight="128"
-        Margin="0 0 0 10">
-            <DockPanel>
-                <Image 
-                HorizontalAlignment="Center" 
-                Source="/Assets/UI/Logo.png"
-                MaxWidth="256" 
-                MaxHeight="256" 
-                Classes="LightDropShadow" />
-            </DockPanel>
+        Margin="0 0 0 10"
+        ClipToBounds="True">
+            <Panel>
+                <Border 
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch">
+                    <Border.Background>
+                        <LinearGradientBrush
+                        StartPoint="0% 100%"
+                        EndPoint="0% 0%"
+                        >
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Color="rgba(0, 0, 0, 0.65)" Offset="0.0" />
+                                <GradientStop Color="rgba(0, 0, 0, 0)" Offset="1.0" />
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                <DockPanel>
+                    <Image 
+                    HorizontalAlignment="Center" 
+                    Source="/Assets/UI/Logo.png"
+                    MaxWidth="256" 
+                    MaxHeight="256" 
+                    Classes="GlowShadow" />
+                </DockPanel>
+            </Panel>
         </Border>
         <!-- END of TOP -->
 
@@ -382,13 +408,27 @@
                             Classes="SideMenu-Button"
                             Name="HomeBtn"
                             >
-                                <Image Source="/Assets/UI/Icon_Hammer.png" Classes="Icon" />
+                                <Panel>
+                                    <TextBlock Text="My Mods"/> <!-- Aligned Text -->
+                                    <Canvas> <!-- Free Icon -->
+                                        <Image
+                                        Source="/Assets/UI/Icon_Hammer.png" 
+                                        />
+                                    </Canvas>
+                                </Panel>
                             </Button>
                             <Button 
                             Classes="SideMenu-Button"
                             Name="SettingsBtn"
                             >
-                                <Image Source="/Assets/UI/Icon_Gears.png" Classes="Icon" />
+                                <Panel>
+                                    <TextBlock Text="Settings"/> <!-- Aligned Text -->
+                                    <Canvas> <!-- Free Icon -->
+                                        <Image
+                                        Source="/Assets/UI/Icon_Gears.png" 
+                                        />
+                                    </Canvas>
+                                </Panel>
                             </Button>
                             <Button 
                             Classes="SideMenu-Button"
@@ -396,7 +436,10 @@
                             Background="{DynamicResource SideMenu-Btn-About-Bg}"
                             Content="About"
                             >
-                                <Image Source="/Assets/UI/Icon_Info.png" Classes="Icon" />
+                                <Canvas>
+                                    <TextBlock Text="About"/>
+                                    <Image Source="/Assets/UI/Icon_Info.png"/>
+                                </Canvas>
                             </Button>
                         </StackPanel>
                     </Grid>
