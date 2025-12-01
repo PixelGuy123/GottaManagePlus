@@ -1,0 +1,74 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+    xmlns:models="using:GottaManagePlus.Models"
+    x:Class="GottaManagePlus.Views.MyModsView"
+    x:DataType="vm:MyModsViewModel"
+    >
+    <Design.DataContext>
+        <vm:MyModsViewModel/>
+    </Design.DataContext>
+    <Design.DesignStyle>
+        <StyleInclude Source="/Styles/style.axaml"/>
+    </Design.DesignStyle>
+
+    <!-- Content Below -->
+    <!-- START of Mod List-->
+    <Border
+    ClipToBounds="True"
+    Classes="Menu_Border BorderDropShadow AllCornerRadius"
+    Margin="25 0 10 10"
+    >
+        <Grid RowDefinitions="Auto, *">
+            <Border Grid.Row="0" Classes="Menu_Header">
+                <Border.Background>
+                    <ImageBrush
+                        Source="/Assets/UI/ModList_Header.png"
+                        Stretch="UniformToFill"
+                    />
+                </Border.Background>
+            </Border>
+            <!-- Mod Header -->
+            <StackPanel
+            Grid.Row="0"
+            HorizontalAlignment="Stretch"
+            Orientation="Horizontal"
+            Classes="HeaderMargin">
+                <Panel> <!-- Stack TextBlocks together -->
+                    <TextBlock 
+                    Text="Installed Mods" 
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Foreground="White"
+                    FontWeight="UltraBold"
+                    Classes="SideMenu-Label RightHeader GlowShadow"/>
+                    <TextBlock 
+                    Text="Installed Mods" 
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Classes="SideMenu-Label RightHeader"/>
+                </Panel>
+            </StackPanel>
+            <!-- Actual Mod Scroll Viewer -->
+            <ListBox
+            Name="Scroll_ModList"
+            ItemsSource="{Binding Mods}"
+            Background="{DynamicResource MainMenus-Bg}"
+            Grid.Row="1"
+            Margin="0"
+            >
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:ModItem}">
+                        <TextBlock Text="{Binding ModName}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Border>
+    <!-- END of Mod List -->
+
+</UserControl>
