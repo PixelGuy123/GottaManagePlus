@@ -1,8 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:GottaManagePlus.ViewModels"
-        xmlns:view="using:GottaManagePlus.Views"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
             <ResourceDictionary.ThemeDictionaries>
                 <!-- Note: By default, the light theme is used in preview! -->
                 <ResourceDictionary x:Key="Light">
@@ -20,6 +17,13 @@
                         Stretch="None"
                         DestinationRect="0,0,256,256"
                     />
+                    
+                    <ImageBrush x:Key="ModsListBg"
+                                Source="/Assets/UI/Light/MenuListBG.png"
+                                TileMode="Tile"
+                                Stretch="None"
+                                DestinationRect="0,0,256,256"
+                    />
 
                     <!-- All Menus -->
                     <RadialGradientBrush
@@ -30,8 +34,8 @@
                     RadiusY="285%">
                         <RadialGradientBrush.GradientStops>
                         <GradientStops>
-                            <GradientStop Color="rgba(104, 226, 155, 1)" Offset="0"/>
-                            <GradientStop Color="rgba(40, 101, 84, 1)" Offset="0.85"/>
+                            <GradientStop Color="#68e29b" Offset="0"/>
+                            <GradientStop Color="#286554" Offset="0.85"/>
                         </GradientStops>
                         </RadialGradientBrush.GradientStops>
                     </RadialGradientBrush>
@@ -44,23 +48,24 @@
                     RadiusY="135%">
                         <RadialGradientBrush.GradientStops>
                         <GradientStops>
-                            <GradientStop Color="rgba(70, 187, 119, 1)" Offset="0"/>
-                            <GradientStop Color="rgba(59, 160, 101, 1)" Offset="0.12"/>
-                            <GradientStop Color="rgba(59, 150, 101, 1)" Offset="0.185"/>
-                            <GradientStop Color="rgba(54, 148, 93, 1)" Offset="0.25"/>
-                            <GradientStop Color="rgba(40, 115, 71, 1)" Offset="0.5"/>
-                            <GradientStop Color="rgba(40, 100, 71, 1)" Offset="0.59"/>
-                            <GradientStop Color="rgba(40, 95, 71, 1)" Offset="0.65"/>
-                            <GradientStop Color="rgba(40, 88, 71, 1)" Offset="0.75"/>
-                            <GradientStop Color="rgba(22, 77, 66, 1)" Offset="0.85"/>
+                            <GradientStop Color="#46bb77" Offset="0"/>
+                            <GradientStop Color="#3ba065" Offset="0.12"/>
+                            <GradientStop Color="#3b9665" Offset="0.185"/>
+                            <GradientStop Color="#36945d" Offset="0.25"/>
+                            <GradientStop Color="#287347" Offset="0.5"/>
+                            <GradientStop Color="#286447" Offset="0.59"/>
+                            <GradientStop Color="#285f47" Offset="0.65"/>
+                            <GradientStop Color="#285847" Offset="0.75"/>
+                            <GradientStop Color="#164d42" Offset="0.85"/>
                         </GradientStops>
                         </RadialGradientBrush.GradientStops>
                     </RadialGradientBrush>
                     <!-- Other Menu Resources -->
-                    <SolidColorBrush x:Key="Menu-Header-Bg" Color="rgba(47, 100, 65, 1)"/>
+                    <SolidColorBrush x:Key="Menu-Header-Bg" Color="#2f6441"/>
+                    <SolidColorBrush x:Key="Generic-Border" Color="#22442C"/>
 
                     <!-- MISC Colors -->
-                    <SolidColorBrush x:Key="LongLineStruck-Color" Color="rgba(0, 0, 0, 0.35)"/>
+                    <SolidColorBrush x:Key="LongLineStruck-Color" Color="#00000059"/>
                     <Color x:Key="ScrollBar-BgColor">rgba(50, 100, 65, 1)</Color>
                     <Color x:Key="ScrollBar-ThumbColor">rgba(159, 220, 182, 1)</Color>
 

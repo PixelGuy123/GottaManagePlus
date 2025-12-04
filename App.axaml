@@ -14,8 +14,13 @@
     </Application.Styles>
 
     <Application.Resources>
-        <FontFamily x:Key="Baskerville">/Assets/Fonts/Baskervville/Baskervville-Regular.ttf#Baskervville</FontFamily>
-        <FontFamily x:Key="ComicRelief">/Assets/Fonts/Comic_Relief/ComicRelief-Regular.ttf#Comic Relief</FontFamily>
+        <ResourceDictionary>
+            <FontFamily x:Key="Baskerville">/Assets/Fonts/Baskervville/Baskervville-Regular.ttf#Baskervville</FontFamily>
+            <FontFamily x:Key="ComicRelief">/Assets/Fonts/Comic_Relief/ComicRelief-Regular.ttf#Comic Relief</FontFamily>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Styles/Themes/LightThemeResources.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 
 </Application>

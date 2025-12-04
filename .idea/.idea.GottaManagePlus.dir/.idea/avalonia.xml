@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="App.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/LightThemeResources.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/style.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/MainWindow.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/MyModsView.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/SettingsView.axaml" value="GottaManagePlus.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

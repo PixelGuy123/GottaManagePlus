@@ -15,6 +15,10 @@
     <Design.DesignStyle>
         <StyleInclude Source="/Styles/style.axaml"/>
     </Design.DesignStyle>
+    
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/style.axaml"/>
+    </UserControl.Styles>
 
     <!-- Content Below -->
     <!-- START of Mod List-->
@@ -24,20 +28,12 @@
     Margin="25 0 10 10"
     >
         <Grid RowDefinitions="Auto, *">
-            <Border Grid.Row="0" Classes="Menu_Header">
-                <Border.Background>
-                    <ImageBrush
-                        Source="/Assets/UI/ModList_Header.png"
-                        Stretch="UniformToFill"
-                    />
-                </Border.Background>
-            </Border>
+            <Border Grid.Row="0" Classes="Menu_Header"/> 
             <!-- Mod Header -->
             <StackPanel
             Grid.Row="0"
             HorizontalAlignment="Stretch"
-            Orientation="Horizontal"
-            Classes="HeaderMargin">
+            Orientation="Horizontal">
                 <Panel> <!-- Stack TextBlocks together -->
                     <TextBlock 
                     Text="Installed Mods" 
@@ -54,19 +50,63 @@
                 </Panel>
             </StackPanel>
             <!-- Actual Mod Scroll Viewer -->
-            <ListBox
-            Name="Scroll_ModList"
-            ItemsSource="{Binding Mods}"
-            Background="{DynamicResource MainMenus-Bg}"
+            <ScrollViewer 
             Grid.Row="1"
-            Margin="0"
-            >
-                <ListBox.ItemTemplate>
+            Name="ScrollModList"
+            Background="{DynamicResource ModsListBg}">
+
+            <ItemsControl ItemsSource="{Binding Mods}">
+                <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:ModItem}">
-                        <TextBlock Text="{Binding ModName}"/>
+                        
+                        <Border Margin="5 0 16 5"
+                                CornerRadius="50"
+                                ClipToBounds="True"
+                                BorderThickness="2"
+                                BorderBrush="{DynamicResource Generic-Border}">
+                            
+                            <Panel>
+                                <Border>
+                                    <Border.Background>
+                                        <ImageBrush Source="/Assets/UI/ModList_Header.png"
+                                                    Stretch="UniformToFill"
+                                                    AlignmentX="Center"
+                                                    AlignmentY="Center"/>
+                                    </Border.Background>
+                                </Border>
+
+                                <Border>
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0%, 100%" EndPoint="0% 0%">
+                                            <GradientStop Color="#CB000000" Offset="0.0"/>
+                                            <GradientStop Color="#00000000" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+
+                                <Grid ColumnDefinitions="Auto, *" 
+                                      HorizontalAlignment="Stretch" 
+                                      VerticalAlignment="Stretch"
+                                      Margin="30"> <TextBlock HorizontalAlignment="Left"
+                                               Grid.Column="0"
+                                               Text="{Binding ModName}"
+                                               FontSize="24"
+                                               Foreground="White"/>
+                                    
+                                    <StackPanel Grid.Column="1" 
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Right"
+                                                Spacing="10"> <Button>Check for Update</Button>
+                                        <Button>Test</Button>
+                                        <Button>Test</Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Panel>
+                        </Border>
                     </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
         </Grid>
     </Border>
     <!-- END of Mod List -->

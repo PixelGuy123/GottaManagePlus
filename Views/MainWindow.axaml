@@ -1,7 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:GottaManagePlus.ViewModels"
-        xmlns:view="using:GottaManagePlus.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1720" d:DesignHeight="720"
@@ -20,14 +19,6 @@
     <Design.DesignStyle>
         <StyleInclude Source="/Styles/style.axaml"/>
     </Design.DesignStyle>
-
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="/Styles/Themes/LightThemeResources.axaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
 
     <!-- Styles to define -->
     <Window.Styles>
@@ -56,8 +47,8 @@
                         EndPoint="0% 0%"
                         >
                             <LinearGradientBrush.GradientStops>
-                                <GradientStop Color="rgba(0, 0, 0, 0.65)" Offset="0.0"/>
-                                <GradientStop Color="rgba(0, 0, 0, 0)" Offset="1.0"/>
+                                <GradientStop Color="#000000a6" Offset="0.0"/>
+                                <GradientStop Color="#00000000" Offset="1.0"/>
                             </LinearGradientBrush.GradientStops>
                         </LinearGradientBrush>
                     </Border.Background>
@@ -99,8 +90,6 @@
                         />
                     </Border.Background>
                     <Grid
-                    Name="Panel_NavBar"
-                    Grid.Row="0"
                     RowDefinitions="Auto, *"
                     >
                         <Border Grid.Row="0" Classes="Menu_Header">
@@ -109,7 +98,7 @@
                                 Text="Navigation" 
                                 Foreground="White" 
                                 FontSize="28" 
-                                Classes="SideMenu-Label HeaderMargin" 
+                                Classes="SideMenu-Label" 
                                 Margin="0 25 0 0"/>
                             </Panel>
                         </Border>

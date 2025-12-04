@@ -14,6 +14,9 @@
     <Design.DesignStyle>
         <StyleInclude Source="/Styles/style.axaml"/>
     </Design.DesignStyle>
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/style.axaml"/>
+    </UserControl.Styles>
 
      <!-- START of Settings-->
     <Border
@@ -27,8 +30,7 @@
             Grid.Row="0"
             HorizontalAlignment="Stretch"
             Orientation="Vertical"
-            Background="{DynamicResource MainMenus-Bg}"
-            Classes="HeaderMargin">
+            Background="{DynamicResource MainMenus-Bg}">
                 <TextBlock
                 Text="Settings" 
                 FontSize="46"

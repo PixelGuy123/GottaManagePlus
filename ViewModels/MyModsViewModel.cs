@@ -12,7 +12,10 @@ public partial class MyModsViewModel : PageViewModel
     public MyModsViewModel() : base(PageNames.Home)
     {
         _mods = [];
-        for (int i = 0; i < 16; i++)
-            _mods.Add(new() { ModName = $"Mod {i + 1}" });
+        for (var i = 0; i < 3; i++)
+            _mods.Add(new ModItem { ModName = $"Mod {i + 1}" });
+        _mods.Add(new ModItem { ModName = "Baldi\'s Basics Times" });
+        _mods.Add(new ModItem { ModName = "Baldi\'s Basics Advanced Edition" });
+        _mods.Add(new ModItem { ModName = "Basics of Plus - The one best mod that has been given the reward for the longest name to ever exist." });
     }
 }

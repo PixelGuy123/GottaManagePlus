@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Factories;
 
@@ -7,7 +6,7 @@ namespace GottaManagePlus.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    readonly private PageFactory _pageFactory;
+    private readonly PageFactory _pageFactory;
 
     [ObservableProperty]
     private PageViewModel _currentPage;
