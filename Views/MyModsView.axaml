@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    mc:Ignorable="d" d:DesignWidth="1720" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     xmlns:models="using:GottaManagePlus.Models"
     x:Class="GottaManagePlus.Views.MyModsView"
@@ -16,8 +16,92 @@
         <StyleInclude Source="/Styles/style.axaml"/>
     </Design.DesignStyle>
     
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <LinearGradientBrush
+                x:Key="YctpBg"
+                StartPoint="0% 100%"
+                EndPoint="0% 0%"
+            >
+                    <LinearGradientBrush.GradientStops>
+                        <GradientStop Color="#118500" Offset="0.0" />
+                        <GradientStop Color="#12FF00" Offset="0.5" />
+                    </LinearGradientBrush.GradientStops>
+                </LinearGradientBrush>
+            </ResourceDictionary>
+    </UserControl.Resources>
+    
     <UserControl.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
+        <Style Selector="AutoCompleteBox">
+            <Setter Property="Background" Value="Green"/>
+            <Setter Property="BorderBrush" Value="White"/>
+        </Style>
+        <Style Selector="AutoCompleteBox TextBox">
+            <Setter Property="Background" Value="Green"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="AutoCompleteBox TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Green"/> 
+            <Setter Property="BorderBrush" Value="White"/> 
+        </Style>
+
+        <Style Selector="AutoCompleteBox TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Green"/>
+            <Setter Property="BorderBrush" Value="LightGreen"/>
+        </Style>
+        
+        <!--YCTP BORDER STYLE-->
+        <Style Selector="Border.YCTP">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Background" Value="{DynamicResource YctpBg}"/>
+        </Style>
+        <!--MOD NAME STYLING-->
+        <Style Selector="TextBlock.ModLabel" x:DataType="models:ModItem">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <!--BUTTON STYLING-->
+        <Style Selector="Button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <ImageBrush
+                        Source="/Assets/UI/ModList_ButtonBG.png"
+                        Stretch="Uniform"
+                        />
+                </Setter.Value>
+            </Setter>
+            <Style Selector="^ Image">
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="MaxWidth" Value="48"/>
+                <Setter Property="MaxHeight" Value="48"/>
+            </Style>
+            <!--Disable click sizing from Pressed-->
+            <Style Selector="^:pressed">
+                <Setter Property="RenderTransform" Value="none" />
+            </Style>
+            <!-- Image Update -->
+            <Style Selector="^:pointerover Image">
+                <Setter Property="BlendMode" Value="Hue"/>
+            </Style>
+            <!--Pointer over style consistency-->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush
+                            Source="/Assets/UI/ModList_ButtonBG_Selected.png"
+                            Stretch="Uniform"
+                        />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style>
     </UserControl.Styles>
 
     <!-- Content Below -->
@@ -40,81 +124,113 @@
                 </Border.Background>
             </Border> 
             <!-- Mod Header -->
-            <StackPanel
-            Grid.Row="0"
-            HorizontalAlignment="Stretch"
-            Orientation="Horizontal">
-                <Panel> <!-- Stack TextBlocks together -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+                <Panel Grid.Column="0"> <!-- Stack TextBlocks together -->
+                    <!--TEMP COMMENT: USE LANGUAGE HERE-->
                     <TextBlock 
-                    Text="Installed Mods" 
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Foreground="White"
-                    FontWeight="UltraBold"
-                    Classes="SideMenu-Label RightHeader GlowShadow"/>
+                        Text="Installed Mods" 
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Foreground="White"
+                        FontWeight="UltraBold"
+                        Classes="SideMenu-Label RightHeader GlowShadow"/>
                     <TextBlock 
-                    Text="Installed Mods" 
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Classes="SideMenu-Label RightHeader"/>
+                        Text="Installed Mods" 
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Classes="SideMenu-Label RightHeader"/>
                 </Panel>
-            </StackPanel>
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    Margin="10 0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <!--TEMP COMMENT: USE LANGUAGE HERE-->
+                    <AutoCompleteBox Width="250" Watermark="Search">
+                    </AutoCompleteBox>
+
+
+                </StackPanel>
+            </Grid>
+            
             <!-- Actual Mod Scroll Viewer -->
             <ScrollViewer 
             Grid.Row="1"
             Name="ScrollModList"
             Background="{DynamicResource ModsListBg}">
 
-            <ItemsControl ItemsSource="{Binding Mods}">
-                
-                <ItemsControl.Styles>
-                </ItemsControl.Styles>
+            <ItemsControl Name="ModList" ItemsSource="{Binding Mods}">
                 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:ModItem}">
-                        
-                        <Border Margin="5 0 16 5"
-                                CornerRadius="35"
-                                ClipToBounds="True"
-                                BorderThickness="2"
-                                BorderBrush="{DynamicResource Generic-Border}">
-                                <Border.Background>
-                                    <ImageBrush Source="/Assets/UI/ModList_Header.png"
-                                                Stretch="UniformToFill"
-                                                AlignmentX="Center"
-                                                AlignmentY="Center"/>
-                                </Border.Background>
-                            
                             <Panel>
                                 <!--Background for the shade effect-->
-                                <Border>
+                                <Border Margin="5 0 5 5"
+                                        CornerRadius="35"
+                                        ClipToBounds="True"
+                                        BorderThickness="5"
+                                        BoxShadow="inset 50 -25 125 0 Black"
+                                        BorderBrush="{DynamicResource YctpBg}">
                                     <Border.Background>
-                                        <LinearGradientBrush StartPoint="0%, 100%" EndPoint="0% 0%">
-                                            <GradientStop Color="#CB000000" Offset="0.0"/>
-                                            <GradientStop Color="#00000000" Offset="1.0"/>
-                                        </LinearGradientBrush>
+                                        <ImageBrush Source="/Assets/UI/ModList_Header.png"
+                                                    Stretch="UniformToFill"
+                                                    AlignmentX="Center"
+                                                    AlignmentY="Center"/>
                                     </Border.Background>
                                 </Border>
-
+                                
                                 <Grid ColumnDefinitions="Auto, *" 
                                       HorizontalAlignment="Stretch" 
                                       VerticalAlignment="Stretch"
-                                      Margin="30"> <TextBlock HorizontalAlignment="Left"
-                                               Grid.Column="0"
-                                               Text="{Binding ModName}"
-                                               FontSize="24"
-                                               Foreground="White"/>
-                                    
+                                      Margin="30">
+                                    <!--Mod Name Layout-->
+                                    <Panel Grid.Column="0">
+                                         <Border
+                                             Classes="YCTP">
+                                             <Border
+                                                 HorizontalAlignment="{Binding $parent.HorizontalAlignment}"
+                                                 VerticalAlignment="{Binding $parent.VerticalAlignment}"
+                                                 CornerRadius="{Binding $parent.CornerRadius}"
+                                                 Margin="5"
+                                                 Background="Black">
+                                             </Border>
+                                         </Border>
+                                        <StackPanel Margin="15 10" Orientation="Vertical">
+                                            <TextBlock 
+                                                Text="{Binding ModName}"
+                                                FontSize="24"
+                                                Classes="ModLabel"/>
+                                            <TextBlock 
+                                                Text="{Binding ModVersionString}"
+                                                FontSize="12"
+                                                HorizontalAlignment="Left"
+                                                Classes="ModLabel"/>
+                                        </StackPanel>
+                                    </Panel>
+                                    <!--Mod Buttons/Options-->
                                     <StackPanel Grid.Column="1" 
                                                 Orientation="Horizontal"
                                                 HorizontalAlignment="Right"
-                                                Spacing="10"> <Button>Check for Update</Button>
-                                        <Button>Test</Button>
-                                        <Button>Test</Button>
+                                                Spacing="10">
+                                        <Button>
+                                            <Image
+                                                Source="/Assets/UI/Icon_ProfilesBtn.png"
+                                                />
+                                        </Button>
+                                        <Button>
+                                            <Image
+                                                Source="/Assets/UI/Icon_ProfilesBtn.png"
+                                            />
+                                        </Button>
+                                        <Button>
+                                            <Image
+                                                Source="/Assets/UI/Icon_ProfilesBtn.png"
+                                            />
+                                        </Button>
                                     </StackPanel>
                                 </Grid>
                             </Panel>
-                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

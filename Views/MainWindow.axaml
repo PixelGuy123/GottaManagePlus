@@ -6,6 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1720" d:DesignHeight="720"
         x:Class="GottaManagePlus.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        WindowStartupLocation="CenterScreen"
 
         Icon="/Assets/avalonia-logo.ico"
         
@@ -95,12 +96,13 @@
                     >
                         <Border Grid.Row="0" Classes="Menu_Header">
                             <Panel>
+                                <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock 
-                                Text="Navigation" 
-                                Foreground="White" 
-                                FontSize="28" 
-                                Classes="SideMenu-Label" 
-                                Margin="0 25 0 0"/>
+                                    Text="Navigation" 
+                                    Foreground="White" 
+                                    FontSize="28" 
+                                    Classes="SideMenu-Label" 
+                                    Margin="0 25 0 0"/>
                             </Panel>
                         </Border>
                         
@@ -110,17 +112,20 @@
                                 Command="{Binding GoToHomeCommand}"
                                 HorizontalContentAlignment="Center"
                             >
+                                <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock HorizontalAlignment="Center" Text="My Mods"/> <!-- Aligned Text -->
                             </Button>
                             <Button
                             Classes="SideMenu-Button"
                             Command="{Binding GoToSettingsCommand}"
                             >
+                                <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock Text="Settings"/> <!-- Aligned Text -->
                             </Button>
                             <Button 
                             Classes="SideMenu-Button"
                             >
+                                <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock Text="Profiles"/> <!-- Aligned Text -->
                             </Button>
                         </StackPanel>
@@ -129,7 +134,8 @@
                 <!-- END of Nav Bar -->
             </Grid>
             <!-- END of Side Menu -->
-
+            
+            <!-- Current Page Control -->
             <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
         </Grid>
         <!-- END of Body -->
