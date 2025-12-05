@@ -9,8 +9,8 @@
 
         Icon="/Assets/avalonia-logo.ico"
         
-        MinHeight="720"
-        MinWidth="700"
+        MinHeight="700"
+        MinWidth="1080"
         Title="GottaManagePlus">
 
     <Design.DataContext>
@@ -43,12 +43,13 @@
                 VerticalAlignment="Stretch">
                     <Border.Background>
                         <LinearGradientBrush
-                        StartPoint="0% 100%"
+                        StartPoint="50% 0%"
                         EndPoint="0% 0%"
+                        SpreadMethod="Reflect"
                         >
                             <LinearGradientBrush.GradientStops>
-                                <GradientStop Color="#000000a6" Offset="0.0"/>
-                                <GradientStop Color="#00000000" Offset="1.0"/>
+                                <GradientStop Color="#AA000000" Offset="0.65"/>
+                                <GradientStop Color="#00000000" Offset="1"/>
                             </LinearGradientBrush.GradientStops>
                         </LinearGradientBrush>
                     </Border.Background>
@@ -105,39 +106,22 @@
                         
                         <StackPanel Grid.Row="1" Margin="10" Orientation="Vertical">
                             <Button
-                            Classes="SideMenu-Button"
-                            Command="{Binding GoToHomeCommand}"
+                                Classes="SideMenu-Button"
+                                Command="{Binding GoToHomeCommand}"
+                                HorizontalContentAlignment="Center"
                             >
-                                <Panel 
-                                HorizontalAlignment="Center">
-                                    <Image
-                                        Source="/Assets/UI/Icon_ModsBtn.png"
-                                    />
-                                    <TextBlock Text="My Mods"/> <!-- Aligned Text -->
-                                </Panel>
+                                <TextBlock HorizontalAlignment="Center" Text="My Mods"/> <!-- Aligned Text -->
                             </Button>
                             <Button
                             Classes="SideMenu-Button"
                             Command="{Binding GoToSettingsCommand}"
                             >
-                                <Panel 
-                                HorizontalAlignment="Center">
-                                    <Image
-                                    Source="/Assets/UI/Icon_Gears.png"
-                                   />
-                                    <TextBlock Text="Settings"/> <!-- Aligned Text -->
-                                </Panel>
+                                <TextBlock Text="Settings"/> <!-- Aligned Text -->
                             </Button>
                             <Button 
                             Classes="SideMenu-Button"
                             >
-                                <Panel 
-                                HorizontalAlignment="Center">
-                                    <Image
-                                    Source="/Assets/UI/Icon_ProfilesBtn.png"
-                                   />
-                                    <TextBlock Text="Profiles"/> <!-- Aligned Text -->
-                                </Panel>
+                                <TextBlock Text="Profiles"/> <!-- Aligned Text -->
                             </Button>
                         </StackPanel>
                     </Grid>

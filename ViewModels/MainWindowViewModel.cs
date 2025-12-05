@@ -6,11 +6,13 @@ namespace GottaManagePlus.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private readonly PageFactory _pageFactory;
+    private readonly PageFactory? _pageFactory;
 
     [ObservableProperty]
-    private PageViewModel _currentPage;
+    private PageViewModel? _currentPage;
 
+    // Parameterless constructor for previewer purposes
+    public MainWindowViewModel() { }
     // Constructor
     public MainWindowViewModel(PageFactory pageFactory)
     {
@@ -21,13 +23,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void GoToHome()
     {
-        CurrentPage = _pageFactory.GetPageViewModel(PageNames.Home);
+        CurrentPage = _pageFactory!.GetPageViewModel(PageNames.Home);
     }
 
     [RelayCommand]
     private void GoToSettings()
     {
-        CurrentPage = _pageFactory.GetPageViewModel(PageNames.Settings);
+        CurrentPage = _pageFactory!.GetPageViewModel(PageNames.Settings);
     }
 
 }
