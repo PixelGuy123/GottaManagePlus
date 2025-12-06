@@ -113,6 +113,30 @@
         <Setter Property="Margin" Value="10 6" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
+    <!-- AutoCompleteBox Styling -->
+    <Style Selector="AutoCompleteBox">
+        <Setter Property="Background" Value="#004D10"/>
+        <Setter Property="BorderBrush" Value="#063112"/>
+        <Setter Property="Foreground" Value="#5EC458"/>
+        <Style Selector="^ TextBox">
+            <!--OnPointOver-->
+            <Style Selector="^:pointerover /template/ TextBlock">
+                <Setter Property="Foreground" Value="#40BE2C"/>
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="#026012"/>
+                <Setter Property="BorderBrush" Value="#10591D"/>
+            </Style>
+            <!--OnFocus-->
+            <Style Selector="^:focus /template/ TextBlock">
+                <Setter Property="Foreground" Value="#81DB7F"/>
+            </Style>
+            <Style Selector="^:focus /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="Green"/>
+                <Setter Property="BorderBrush" Value="LightGreen"/>
+            </Style>
+        </Style>
+    </Style>
 
     <!-- Border Style -->
     <Style Selector="Border">

@@ -8,6 +8,8 @@ public partial class MyModsViewModel : PageViewModel
 {
     [ObservableProperty]
     private ObservableCollection<ModItem> _mods;
+    [ObservableProperty] 
+    private ModItem? _searchSelectedModItem;
 
     public MyModsViewModel() : base(PageNames.Home)
     {
@@ -17,5 +19,7 @@ public partial class MyModsViewModel : PageViewModel
         _mods.Add(new ModItem { ModName = "Baldi\'s Basics Times" });
         _mods.Add(new ModItem { ModName = "Baldi\'s Basics Advanced Edition" });
         _mods.Add(new ModItem { ModName = "Basics of Plus - The one best mod that has been given the reward for the longest name to ever exist." });
+
+        _searchSelectedModItem = _mods[0];
     }
 }

@@ -33,25 +33,6 @@
     
     <UserControl.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
-        <Style Selector="AutoCompleteBox">
-            <Setter Property="Background" Value="Green"/>
-            <Setter Property="BorderBrush" Value="White"/>
-        </Style>
-        <Style Selector="AutoCompleteBox TextBox">
-            <Setter Property="Background" Value="Green"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-
-        <Style Selector="AutoCompleteBox TextBox:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Green"/> 
-            <Setter Property="BorderBrush" Value="White"/> 
-        </Style>
-
-        <Style Selector="AutoCompleteBox TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Green"/>
-            <Setter Property="BorderBrush" Value="LightGreen"/>
-        </Style>
-        
         <!--YCTP BORDER STYLE-->
         <Style Selector="Border.YCTP">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -147,7 +128,12 @@
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
                     <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                    <AutoCompleteBox Width="250" Watermark="Search">
+                    <AutoCompleteBox 
+                        Width="250"
+                        Watermark="Search"
+                        ItemsSource="{Binding Mods}"
+                        ValueMemberBinding="{Binding FullModName, DataType=models:ModItem}">
+                        
                     </AutoCompleteBox>
 
 
