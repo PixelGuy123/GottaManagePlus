@@ -19,7 +19,7 @@
                     />
                     
                     <ImageBrush x:Key="ModsListBg"
-                                Source="/Assets/UI/Light/MenuListBG.png"
+                                Source="/Assets/UI/Light/ModViewBG.png"
                                 TileMode="Tile"
                                 Stretch="None"
                                 DestinationRect="0,0,256,256"

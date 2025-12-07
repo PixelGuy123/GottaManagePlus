@@ -31,5 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         CurrentPage = _pageFactory!.GetPageViewModel(PageNames.Settings);
     }
+    
+    
 
 }

@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" d:DesignWidth="1720" d:DesignHeight="720"
+    mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     xmlns:models="using:GottaManagePlus.Models"
     x:Class="GottaManagePlus.Views.MyModsView"
@@ -128,26 +128,25 @@
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
                     <!--TEMP COMMENT: USE LANGUAGE HERE-->
+                    <!--Scroll viewer search box-->
                     <AutoCompleteBox 
                         Width="250"
                         Watermark="Search"
                         ItemsSource="{Binding Mods}"
-                        ValueMemberBinding="{Binding FullModName, DataType=models:ModItem}">
-                        
-                    </AutoCompleteBox>
-
-
+                        ValueMemberBinding="{Binding FullModName, DataType=models:ModItem}"
+                        />
                 </StackPanel>
             </Grid>
             
             <!-- Actual Mod Scroll Viewer -->
             <ScrollViewer 
             Grid.Row="1"
-            Name="ScrollModList"
             Background="{DynamicResource ModsListBg}">
 
-            <ItemsControl Name="ModList" ItemsSource="{Binding Mods}">
-                
+            <ItemsControl 
+                Name="ModList" 
+                ItemsSource="{Binding Mods}" 
+                SizeChanged="HandleSizeChange">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:ModItem}">
                             <Panel>
