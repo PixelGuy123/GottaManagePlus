@@ -135,7 +135,7 @@
                         Watermark="Search"
                         ItemsSource="{Binding ImmutableModList}"
                         SelectedItem="{Binding CurrentModItem}"
-                        TextSelector="{Binding Text}"
+                        Text="{Binding Text}"
                         ValueMemberBinding="{Binding ModName, DataType=models:ModItem}"
                         FilterMode="Contains"
                     />

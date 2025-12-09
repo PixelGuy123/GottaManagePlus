@@ -25,11 +25,8 @@ public partial class MyModsViewModel : PageViewModel
     
     
     [RelayCommand]
-    public void ResetSearch()
-    {
-        CurrentModItem = null;
-        Text = null;
-    }
+    public void ResetSearch() => Text = null;
+    
     
     // Constructor
     public MyModsViewModel() : base(PageNames.Home)
