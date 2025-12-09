@@ -9,10 +9,10 @@
         WindowStartupLocation="CenterScreen"
 
         Icon="/Assets/avalonia-logo.ico"
-        
+        WindowState="Normal"
         MinHeight="700"
         MinWidth="1080"
-        Title="GottaManagePlus">
+        Title="Gotta Manage Plus">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>

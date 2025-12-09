@@ -6,6 +6,7 @@
     mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     xmlns:models="using:GottaManagePlus.Models"
+    xmlns:local="using:GottaManagePlus.Styles"
     x:Class="GottaManagePlus.Views.MyModsView"
     x:DataType="vm:MyModsViewModel"
     >
@@ -41,12 +42,16 @@
             <Setter Property="Background" Value="{DynamicResource YctpBg}"/>
         </Style>
         <!--MOD NAME STYLING-->
-        <Style Selector="TextBlock.ModLabel" x:DataType="models:ModItem">
+        <Style Selector=":is(TextBlock).ModLabel" x:DataType="models:ModItem">
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="local|OutlinedTextBlock.ModLabel">
+            <Setter Property="OutlineColor" Value="Black"/>
+            <Setter Property="OutlineWidth" Value="1.5"/>
         </Style>
         <!--BUTTON STYLING-->
         <Style Selector="Button">
@@ -180,7 +185,7 @@
                                       HorizontalAlignment="Stretch" 
                                       VerticalAlignment="Stretch"
                                       Margin="30">
-                                    <Border
+                                    <!--<Border
                                         Classes="YCTP">
                                         <Border
                                             HorizontalAlignment="{Binding $parent.HorizontalAlignment}"
@@ -189,19 +194,20 @@
                                             Margin="5"
                                             Background="Black">
                                         </Border>
-                                    </Border>
+                                    </Border>-->
                                     <!--Mod Name Layout-->
                                     <Panel Grid.Column="0">
                                         <StackPanel Margin="15 10" Orientation="Vertical">
-                                            <TextBlock
+                                            <local:OutlinedTextBlock
                                                 Text="{Binding ModName}"
-                                                FontSize="24"
+                                                FontSize="32"
                                                 TextTrimming="CharacterEllipsis"
                                                 Classes="ModLabel"/>
-                                            <TextBlock 
+                                            <local:OutlinedTextBlock 
                                                 Text="{Binding ModVersion}"
-                                                FontSize="12"
+                                                FontSize="20"
                                                 HorizontalAlignment="Left"
+                                                OutlineWidth="0.65"
                                                 Classes="ModLabel"/>
                                         </StackPanel>
                                     </Panel>

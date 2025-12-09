@@ -10,7 +10,6 @@
   <ItemGroup>
     <Folder Include="Models\"/>
     <AvaloniaResource Include="Assets\**"/>
-    <Folder Include="Modules\Utils\" />
   </ItemGroup>
 
   <ItemGroup>
