@@ -1,27 +1,73 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using System.Linq;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
+using System.Collections.Generic;
+using CommunityToolkit.Mvvm.Input;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class MyModsViewModel : PageViewModel
 {
+    private readonly List<ModItem> _allMods;
+    
+    // Observable Properties
     [ObservableProperty]
     private ObservableCollection<ModItem> _mods;
-    [ObservableProperty] 
-    private ModItem? _searchSelectedModItem;
-
+    public ObservableCollection<ModItem> ImmutableModList { get; }
+    [ObservableProperty]
+    private ModItem? _currentModItem = null;
+    [ObservableProperty]
+    private string? _text = null;
+    
+    // From the generator. https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/observableproperty
+    partial void OnCurrentModItemChanged(ModItem? value) => UpdateModsList(value); 
+    
+    
+    [RelayCommand]
+    public void ResetSearch()
+    {
+        CurrentModItem = null;
+        Text = null;
+    }
+    
+    // Constructor
     public MyModsViewModel() : base(PageNames.Home)
     {
-        _mods = [];
-        for (var i = 0; i < 3; i++)
-            _mods.Add(new ModItem { ModName = $"Mod {i + 1}" });
-        _mods.Add(new ModItem { ModName = "Baldi\'s Basics Times" });
-        _mods.Add(new ModItem { ModName = "Baldi\'s Basics Advanced Edition" });
-        _mods.Add(new ModItem { ModName = "Basics of Plus - The one best mod that has been given the reward for the longest name to ever exist." });
+        // Initialize Data
+        _allMods =
+        [
+            new ModItem("Mod 1"),
+            new ModItem("Mod 2"),
+            new ModItem("Mod 3"),
+            new ModItem("Baldi's Basics Times"),
+            new ModItem("Baldi's Basics Advanced Edition"),
+            new ModItem("Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu.")
+        ];
 
-        _searchSelectedModItem = _mods[0];
+        // Initialize collections
+        Mods = new ObservableCollection<ModItem>(_allMods);
+        ImmutableModList = new ObservableCollection<ModItem>(_allMods);
+    }
+
+    // Private methods
+    private void UpdateModsList(ModItem? highlightedItem)
+    {
+        IEnumerable<ModItem> sortedList;
+
+        if (highlightedItem == null)
+        {
+            sortedList = _allMods;
+        }
+        else
+        {
+            sortedList = _allMods.OrderByDescending(x => x == highlightedItem);
+        }
+        
+        Mods.Clear();
+        foreach (var item in sortedList)
+        {
+            Mods.Add(item);
+        }
     }
 }

@@ -131,10 +131,23 @@
                     <!--Scroll viewer search box-->
                     <AutoCompleteBox 
                         Width="250"
+                        VerticalAlignment="{Binding $parent.VerticalAlignment}"
                         Watermark="Search"
-                        ItemsSource="{Binding Mods}"
-                        ValueMemberBinding="{Binding FullModName, DataType=models:ModItem}"
+                        ItemsSource="{Binding ImmutableModList}"
+                        SelectedItem="{Binding CurrentModItem}"
+                        TextSelector="{Binding Text}"
+                        ValueMemberBinding="{Binding ModName, DataType=models:ModItem}"
+                        FilterMode="Contains"
+                    />
+                    <Button 
+                        VerticalAlignment="{Binding $parent.VerticalAlignment}"
+                        Command="{Binding ResetSearch}">
+                        <Image
+                            Source="/Assets/UI/Icon_ProfilesBtn.png"
+                            Width="16"
+                            Height="16"
                         />
+                    </Button>
                 </StackPanel>
             </Grid>
             
@@ -143,10 +156,8 @@
             Grid.Row="1"
             Background="{DynamicResource ModsListBg}">
 
-            <ItemsControl 
-                Name="ModList" 
-                ItemsSource="{Binding Mods}" 
-                SizeChanged="HandleSizeChange">
+            <ItemsControl
+                ItemsSource="{Binding Mods}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:ModItem}">
                             <Panel>
@@ -165,29 +176,30 @@
                                     </Border.Background>
                                 </Border>
                                 
-                                <Grid ColumnDefinitions="Auto, *" 
+                                <Grid ColumnDefinitions="*, Auto" 
                                       HorizontalAlignment="Stretch" 
                                       VerticalAlignment="Stretch"
                                       Margin="30">
+                                    <Border
+                                        Classes="YCTP">
+                                        <Border
+                                            HorizontalAlignment="{Binding $parent.HorizontalAlignment}"
+                                            VerticalAlignment="{Binding $parent.VerticalAlignment}"
+                                            CornerRadius="{Binding $parent.CornerRadius}"
+                                            Margin="5"
+                                            Background="Black">
+                                        </Border>
+                                    </Border>
                                     <!--Mod Name Layout-->
                                     <Panel Grid.Column="0">
-                                         <Border
-                                             Classes="YCTP">
-                                             <Border
-                                                 HorizontalAlignment="{Binding $parent.HorizontalAlignment}"
-                                                 VerticalAlignment="{Binding $parent.VerticalAlignment}"
-                                                 CornerRadius="{Binding $parent.CornerRadius}"
-                                                 Margin="5"
-                                                 Background="Black">
-                                             </Border>
-                                         </Border>
                                         <StackPanel Margin="15 10" Orientation="Vertical">
-                                            <TextBlock 
+                                            <TextBlock
                                                 Text="{Binding ModName}"
                                                 FontSize="24"
+                                                TextTrimming="CharacterEllipsis"
                                                 Classes="ModLabel"/>
                                             <TextBlock 
-                                                Text="{Binding ModVersionString}"
+                                                Text="{Binding ModVersion}"
                                                 FontSize="12"
                                                 HorizontalAlignment="Left"
                                                 Classes="ModLabel"/>
