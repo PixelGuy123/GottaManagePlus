@@ -1,0 +1,26 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <TextBlock
+                Classes="SideMenu-Label"
+                Text="This is a header" 
+                Background="White"/>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- SideMenu TextBlock Styling -->
+    <Style Selector="TextBlock.SideMenu-Label">
+        <Setter Property="Margin" Value="0 1.75" />
+        <Setter Property="FontFamily" Value="{DynamicResource Baskerville}"/>
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="Foreground" Value="Black"/>
+
+        <Style Selector="^.RightHeader">
+            <Setter Property="Margin" Value="10 1.75 0 0" />
+        </Style>
+    </Style>
+</Styles>

@@ -63,11 +63,21 @@
                     <!-- Other Menu Resources -->
                     <SolidColorBrush x:Key="Menu-Header-Bg" Color="#2f6441"/>
                     <SolidColorBrush x:Key="Generic-Border" Color="#22442C"/>
+                    
+                    <!-- Buttons -->
+                    <SolidColorBrush x:Key="Generic-Button" Color="#1A7B23"/>
+                    <SolidColorBrush x:Key="Generic-Button-Pointed" Color="#318828"/>
+                    <SolidColorBrush x:Key="Generic-Button-Pressed" Color="#2B572B"/>
+                    <SolidColorBrush x:Key="Danger-Button" Color="#B90004"/>
+                    <SolidColorBrush x:Key="Danger-Button-Pointed" Color="#E22E10"/>
+                    <SolidColorBrush x:Key="Danger-Button-Pressed" Color="#570013"/>
 
                     <!-- MISC Colors -->
                     <SolidColorBrush x:Key="LongLineStruck-Color" Color="#00000059"/>
                     <Color x:Key="ScrollBar-BgColor">rgba(50, 100, 65, 1)</Color>
                     <Color x:Key="ScrollBar-ThumbColor">rgba(159, 220, 182, 1)</Color>
+                    <Color x:Key="WhiteColor">#FFFFFFFF</Color>
+                    <Color x:Key="BlackColor">#000000</Color>
 
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>

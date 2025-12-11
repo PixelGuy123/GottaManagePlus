@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             x:DataType="vm:ConfirmDialogViewModel"
+             x:Class="GottaManagePlus.Views.ConfirmDialogView"
+             
+             MinWidth="300"
+             MinHeight="200"
+             >
+    
+    <Design.DataContext><vm:ConfirmDialogViewModel/></Design.DataContext>
+    
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/ReusableEffects.axaml"/>
+        <StyleInclude Source="/Styles/Buttons.axaml"/>
+    </UserControl.Styles>
+    
+    <Border 
+        Background="{DynamicResource MainMenus-Bg}" 
+        CornerRadius="10"
+        ClipToBounds="True"
+        BorderBrush="{DynamicResource Generic-Border}"
+        BorderThickness="2"
+        Margin="10"
+        Classes="BorderDropShadow">
+        <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+            <!-- Title -->
+            <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" 
+                    CornerRadius="8 8 0 0">
+                <TextBlock 
+                    Foreground="{DynamicResource BlackColor}"
+                    Text="{CompiledBinding Title}"
+                    HorizontalAlignment="Center"
+                    Padding="10"
+                    FontSize="25"
+                    FontWeight="ExtraLight"
+                    FontFamily="{DynamicResource WorkSans}"/>
+            </Border>
+            
+            <!-- Description -->
+            <Border Grid.Row="1" Padding="10">
+                <TextBlock 
+                    Text="{CompiledBinding Message}"
+                    MaxWidth="350"
+                    TextWrapping="Wrap"
+                    FontSize="18"
+                    FontFamily="{DynamicResource ComicRelief}"
+                    />
+            </Border>
+            
+            <!-- Buttons -->
+            <StackPanel 
+                Orientation="Horizontal" 
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                Spacing="20"
+                Margin="10">
+                <Button 
+                    Padding="20 5" 
+                    Content="{CompiledBinding CancelText}" 
+                    Classes="DialogBtn DangerDialogBtn"
+                    Command="{Binding Cancel}"/>
+                <Button 
+                    Padding="20 5" 
+                    Content="{CompiledBinding ConfirmText}" 
+                    Classes="DialogBtn GenericDialogBtn"
+                    Command="{Binding Confirm}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

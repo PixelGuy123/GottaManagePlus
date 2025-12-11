@@ -4,8 +4,15 @@
     <option name="projectPerEditor">
       <map>
         <entry key="App.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/AutoCompleteBox.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Borders.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Buttons.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ReusableEffects.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ScrollBarViewer.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/TextBlock.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Themes/LightThemeResources.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/style.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/ConfirmDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MainWindow.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MyModsView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/SettingsView.axaml" value="GottaManagePlus.csproj" />

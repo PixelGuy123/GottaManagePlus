@@ -1,0 +1,65 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="25" Width="500" Height="250">
+            <ScrollViewer>
+                <ListBox>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Panel Background="Red">
+                                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Red">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                        <TextBlock HorizontalAlignment="Right" Foreground="Black" Text="Test!"/>
+                                        <Button HorizontalAlignment="Right" Foreground="Black">Test</Button>
+                                    </StackPanel>
+                                </Border>
+                            </Panel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                    <ListBoxItem/>
+                </ListBox>
+            </ScrollViewer>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- Scrollbar modifications -->
+    <Style Selector="ScrollViewer">
+        <Setter Property="AllowAutoHide" Value="False"/>
+        <Style Selector="^ ScrollBar">
+            <Style Selector="^:vertical">
+                <!-- Some rectangle that covers up the whole scroll bar -->
+                <Style Selector="^ /template/ Rectangle#TrackRect">
+                    <Setter Property="Fill" Value="{DynamicResource ScrollBar-BgColor}" /> <!-- Allows seeing the actual bar -->
+                </Style>
+                
+                <!-- Bar itself -->
+                <Style Selector="^ Thumb">
+                    <Setter Property="CornerRadius" Value="6"/>
+                    <Setter Property="Background" Value="{DynamicResource ScrollBar-ThumbColor}"/>
+                    <Setter Property="Template">
+                        <ControlTemplate>
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="{TemplateBinding CornerRadius}"
+                                    Margin="0,3" 
+                                    Width="9"
+                                    HorizontalAlignment="Center"/> 
+                        </ControlTemplate>
+                    </Setter>
+                </Style>
+            </Style>
+            <Style Selector="^ RepeatButton">
+                <Setter Property="IsVisible" Value="False" />
+            </Style>
+        </Style>
+    </Style>
+</Styles>

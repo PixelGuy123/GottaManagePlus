@@ -41,6 +41,10 @@
             <Setter Property="CornerRadius" Value="15"/>
             <Setter Property="Background" Value="{DynamicResource YctpBg}"/>
         </Style>
+        <!--MOD VIEWER STYLING-->
+        <Style Selector=":is(Control).ModViewerHeader">
+            <Setter Property="VerticalAlignment" Value="{Binding $parent[StackPanel].VerticalAlignment}" />
+        </Style>
         <!--MOD NAME STYLING-->
         <Style Selector=":is(TextBlock).ModLabel" x:DataType="models:ModItem">
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -134,18 +138,26 @@
                     Orientation="Horizontal">
                     <!--TEMP COMMENT: USE LANGUAGE HERE-->
                     <!--Scroll viewer search box-->
-                    <AutoCompleteBox 
+                    <Button 
+                        Classes="ModViewerHeader">
+                        <Image
+                            Source="/Assets/UI/Icon_ProfilesBtn.png"
+                            Width="16"
+                            Height="16"
+                        />
+                    </Button>
+                    <AutoCompleteBox
+                        Classes="ModViewerHeader"
                         Width="250"
-                        VerticalAlignment="{Binding $parent.VerticalAlignment}"
                         Watermark="Search"
-                        ItemsSource="{Binding ImmutableModList}"
+                        ItemsSource="{Binding ModList}"
                         SelectedItem="{Binding CurrentModItem}"
                         Text="{Binding Text}"
                         ValueMemberBinding="{Binding ModName, DataType=models:ModItem}"
                         FilterMode="Contains"
                     />
                     <Button 
-                        VerticalAlignment="{Binding $parent.VerticalAlignment}"
+                        Classes="ModViewerHeader"
                         Command="{Binding ResetSearch}">
                         <Image
                             Source="/Assets/UI/Icon_ProfilesBtn.png"
@@ -162,7 +174,7 @@
             Background="{DynamicResource ModsListBg}">
 
             <ItemsControl
-                ItemsSource="{Binding Mods}">
+                ItemsSource="{Binding ObservableMods}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:ModItem}">
                             <Panel>

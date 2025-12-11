@@ -10,6 +10,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private PageViewModel? _currentPage;
+    
+    [ObservableProperty]
+    private DialogViewModel _currentDialog;
 
     // Parameterless constructor for previewer purposes
     public MainWindowViewModel() { }

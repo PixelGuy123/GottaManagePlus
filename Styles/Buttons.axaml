@@ -1,0 +1,117 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <Design.PreviewWith>
+        <Border Background="Black" MinWidth="500" MinHeight="400" Padding="20">
+            <Grid 
+                ColumnDefinitions="Auto, Auto"
+                Margin="30 10">
+                <!-- Left Side -->
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <Button BorderThickness="2" Padding="30 0" BorderBrush="White" Classes="SideMenu-Button">
+                        <TextBlock Text="I am a navigation button!"/>
+                    </Button>
+                    
+                    <Border 
+                        Background="{DynamicResource MainMenus-Bg}"
+                        Padding="20">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Margin="10" Classes="DialogBtn GenericDialogBtn">
+                                <TextBlock Text="I am a Dialog button!"/>
+                            </Button>
+                            <Button Margin="10" Classes="DialogBtn DangerDialogBtn">
+                                <TextBlock Text="I am a Dangerous Dialog button!"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Design.PreviewWith>
+    
+    <!--SIDE MENU STYLING-->
+    <Style Selector="Button.SideMenu-Button">
+        <!--=======================-->
+        <!-- General Styling Below -->
+        <!--=======================-->
+        <Setter Property="Margin" Value="0 3" />
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="MinHeight" Value="65" />
+        <Setter Property="MaxHeight" Value="75" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <!-- Text Styling -->
+        <Style Selector="^ TextBlock">
+            <Setter Property="FontSize" Value="25" />
+            <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <!-- Animation -->
+        <Style Selector="^:pointerover TextBlock">
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+        <!--Icon Styling-->
+        <Style Selector="^ Image">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Opacity" Value="0.35" />
+            <Setter Property="MinHeight" Value="64" />
+            <Setter Property="MinWidth" Value="64" />
+        </Style>
+
+        <!-- Default Animation Disable -->
+        <Setter Property="Transitions" Value="{x:Null}" />
+        <Setter Property="RenderTransform" Value="none" />
+        <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 
+            <Setter Property="RenderTransform" Value="none" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter"> 
+            <Setter Property="RenderTransform" Value="none" />
+            <Setter Property="Background" Value="Transparent" />
+            <Style Selector="^ TextBlock">
+                <Setter Property="TextDecorations" Value="Underline" />
+            </Style>
+        </Style>
+    </Style>
+    
+    <!-- Dialog Styling -->
+    <Style Selector="Button.DialogBtn">
+        <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="BorderThickness" Value="0" />
+        
+        <!-- Generic One -->
+        <Style Selector="^.GenericDialogBtn">
+            <Setter Property="Background" Value="{DynamicResource Generic-Button}"/>
+            <!-- Default Animation Disable -->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="Background" Value="{DynamicResource Generic-Button-Pointed}"/>
+            </Style>
+            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="Background" Value="{DynamicResource Generic-Button-Pressed}"/>
+            </Style>
+        </Style>
+        
+        <!-- Danger One -->
+        <Style Selector="^.DangerDialogBtn">
+            <Setter Property="Background" Value="{DynamicResource Danger-Button}"/>
+            <!-- Default Animation Disable -->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="Background" Value="{DynamicResource Danger-Button-Pointed}"/>
+            </Style>
+            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="Background" Value="{DynamicResource Danger-Button-Pressed}"/>
+            </Style>
+        </Style>
+    </Style>
+</Styles>

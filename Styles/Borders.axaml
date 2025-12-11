@@ -1,0 +1,59 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- Border Style -->
+    <Style Selector="Border">
+        <!-- Menu Header Borders -->
+        <Style Selector="^.Menu_Header">
+            <Setter Property="MaxHeight" Value="96"/> 
+        </Style>
+        
+        <!-- Menu Border -->
+        <Style Selector="^.Menu_Border">
+            <Setter Property="BackgroundSizing" Value="OuterBorderEdge"/> <!-- Shall fix improper border fitting -->
+            <Setter Property="Background" Value="{DynamicResource MainMenus-Bg}" />
+            <!-- Top Menu Overrides -->
+            <Style Selector="^.TopMenu_Border">
+                <!-- Adds background -->
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush 
+                            Source="/Assets/UI/MainHeaderBG_OldGamebananaHeader.jpg"
+                            Stretch="None"
+                            AlignmentY="Top"
+                        />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- Top Menu Behind Border -->
+            <Style Selector="^.TopMenu_Behind_Border">
+                <!-- Adds background -->
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush 
+                            Source="/Assets/UI/MainHeaderBG_OldGamebananaHeader.jpg"
+                            Stretch="UniformToFill"
+                            AlignmentY="Top"
+                        
+                        />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style>
+    </Style>
+    
+    <!-- Corner Radius Feature for Borders -->
+    <Style Selector="Border">
+        <Style Selector="^.AllCornerRadius">
+            <Setter Property="CornerRadius" Value="15" />
+        </Style>
+        <Style Selector="^.RightCornerRadius">
+            <Setter Property="CornerRadius" Value="0 15 15 0" />
+        </Style>
+    </Style>
+</Styles>
