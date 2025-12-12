@@ -4,7 +4,6 @@ using GottaManagePlus.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
 
 namespace GottaManagePlus.ViewModels;
@@ -14,7 +13,6 @@ public partial class MyModsViewModel : PageViewModel
     private readonly List<ModItem> _allMods;
     private ModItem? _lastSelectedItem;
     private readonly DialogService _dialogService = null!;
-    private readonly IDialogProvider _dialogProvider = null!;
     
     // Public readonly properties
     public IReadOnlyList<ModItem> ModList => _allMods;
@@ -55,10 +53,10 @@ public partial class MyModsViewModel : PageViewModel
         
         // Initialize collections
         ObservableMods = new ObservableCollection<ModItem>(_allMods);
-    } 
+    }
     
     // Constructor
-    public MyModsViewModel(DialogService dialogService, MainWindowViewModel dialogProvider) : base(PageNames.Home)
+    public MyModsViewModel(DialogService dialogService) : base(PageNames.Home)
     {
         // Initialize Data
         _allMods =
@@ -76,7 +74,6 @@ public partial class MyModsViewModel : PageViewModel
         
         // Dialog Service
         _dialogService = dialogService;
-        _dialogProvider = dialogProvider;
     }
 
     // Private methods
@@ -132,12 +129,12 @@ public partial class MyModsViewModel : PageViewModel
         var confirmViewModel = new ConfirmDialogViewModel()
         {
             Title = $"Delete {_allMods[index].ModName}?",
-            Message = "Are you sure you want to delete this print?",
+            Message = "Are you sure you want to delete this mod?",
             ConfirmText = "Yes",
             CancelText = "No"
         };
 
-        await _dialogService.ShowDialog(_dialogProvider, confirmViewModel);
+        await _dialogService.ShowDialog(confirmViewModel);
         
         // Do not if not accepted
         if (!confirmViewModel.Confirmed)

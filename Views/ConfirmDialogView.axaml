@@ -7,7 +7,7 @@
              x:DataType="vm:ConfirmDialogViewModel"
              x:Class="GottaManagePlus.Views.ConfirmDialogView"
              
-             MinWidth="300"
+             MinWidth="350"
              MinHeight="200"
              >
     
@@ -39,9 +39,11 @@
                 <TextBlock 
                     Foreground="{DynamicResource BlackColor}"
                     Text="{CompiledBinding Title}"
+                    MaxWidth="650"
                     HorizontalAlignment="Center"
                     Padding="10"
                     FontSize="25"
+                    TextTrimming="CharacterEllipsis"
                     FontWeight="ExtraLight"
                     FontFamily="{DynamicResource WorkSans}"/>
             </Border>
@@ -50,7 +52,7 @@
             <Border Grid.Row="1" Padding="10">
                 <TextBlock 
                     Text="{CompiledBinding Message}"
-                    MaxWidth="350"
+                    MaxWidth="650"
                     TextWrapping="Wrap"
                     FontSize="18"
                     FontFamily="{DynamicResource ComicRelief}"
@@ -64,13 +66,11 @@
                 HorizontalAlignment="Center"
                 Spacing="20"
                 Margin="10">
-                <Button 
-                    Padding="20 5" 
+                <Button
                     Content="{CompiledBinding CancelText}" 
                     Classes="DialogBtn DangerDialogBtn"
                     Command="{Binding Cancel}"/>
-                <Button 
-                    Padding="20 5" 
+                <Button
                     Content="{CompiledBinding ConfirmText}" 
                     Classes="DialogBtn GenericDialogBtn"
                     Command="{Binding Confirm}"/>
