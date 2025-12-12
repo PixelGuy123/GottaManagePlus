@@ -1,9 +1,8 @@
-using System;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using GottaManagePlus.Modules.Utils;
+using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Styles;
 

@@ -15,7 +15,7 @@ public partial class DialogViewModel : ViewModelBase
         await CloseTask.Task;
     }
 
-    protected void Show()
+    public void Show()
     {
         if (CloseTask.Task.IsCompleted)
             CloseTask = new TaskCompletionSource();
@@ -23,7 +23,7 @@ public partial class DialogViewModel : ViewModelBase
         IsDialogOpen = true;
     }
 
-    protected void Close()
+    public void Close()
     {
         IsDialogOpen = false;
 

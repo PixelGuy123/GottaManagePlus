@@ -6,9 +6,11 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using GottaManagePlus.Factories;
+using GottaManagePlus.Services;
 using GottaManagePlus.ViewModels;
 using GottaManagePlus.Views;
 using Microsoft.Extensions.DependencyInjection;
+using SkiaSharp;
 
 namespace GottaManagePlus;
 
@@ -22,10 +24,12 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         var collection = new ServiceCollection();
-        collection.AddSingleton<MainWindowViewModel>(); // Singlet
+        // View Models
+        collection.AddSingleton<MainWindowViewModel>(); // Singleton
         collection.AddTransient<MyModsViewModel>(); // Transient means the instance only exists when requested and destroys itself when not used
         collection.AddTransient<SettingsViewModel>();
-
+        
+        // Factory Function
         collection.AddSingleton<Func<PageNames, PageViewModel>>(
             serviceProvider =>
             name =>
@@ -35,8 +39,10 @@ public partial class App : Application
                 PageNames.Settings => serviceProvider.GetRequiredService<SettingsViewModel>(),
                 _ => throw new NotImplementedException("PageNames value is not supported!")
             });
-
+        
+        // Services
         collection.AddSingleton<PageFactory>();
+        collection.AddSingleton<DialogService>();
 
         var services = collection.BuildServiceProvider();
 

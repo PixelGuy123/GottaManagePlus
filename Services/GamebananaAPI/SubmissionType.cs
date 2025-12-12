@@ -1,4 +1,4 @@
-namespace GottaManagePlus.Modules.GamebananaAPI;
+namespace GottaManagePlus.Services.GamebananaAPI;
 
 /// <summary>
 /// All section types that are useful for finding submissions.

@@ -24,8 +24,14 @@
         ClipToBounds="True"
         BorderBrush="{DynamicResource Generic-Border}"
         BorderThickness="2"
-        Margin="10"
-        Classes="BorderDropShadow">
+        Margin="10 20">
+        <Border.Effect>
+            <DropShadowEffect
+                OffsetX="0"
+                OffsetY="5"
+                BlurRadius="15"
+                />
+        </Border.Effect>
         <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
             <!-- Title -->
             <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" 

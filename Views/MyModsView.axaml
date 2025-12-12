@@ -228,17 +228,22 @@
                                                 Orientation="Horizontal"
                                                 HorizontalAlignment="Right"
                                                 Spacing="10">
+                                        <!-- Open Folder Button -->
                                         <Button>
                                             <Image
                                                 Source="/Assets/UI/Icon_ProfilesBtn.png"
                                                 />
                                         </Button>
+                                        <!-- Update Button -->
                                         <Button>
                                             <Image
                                                 Source="/Assets/UI/Icon_ProfilesBtn.png"
                                             />
                                         </Button>
-                                        <Button>
+                                        <!-- Delete Button -->
+                                        <Button 
+                                            Command="{Binding ((vm:MyModsViewModel)DataContext).DeleteModItem, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding Id}">
                                             <Image
                                                 Source="/Assets/UI/Icon_ProfilesBtn.png"
                                             />

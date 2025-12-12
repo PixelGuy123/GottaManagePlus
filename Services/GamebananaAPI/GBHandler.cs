@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace GottaManagePlus.Modules.GamebananaAPI;
+namespace GottaManagePlus.Services.GamebananaAPI;
 
 /// <summary>
 /// This class will be responsable for handling all interactions with the GameBanana API, while also manipulating the retrieved <see cref="JsonObject"/> instances for collecting useful data.

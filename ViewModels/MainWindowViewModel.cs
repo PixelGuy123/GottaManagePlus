@@ -1,21 +1,24 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Factories;
+using GottaManagePlus.Interfaces;
 
 namespace GottaManagePlus.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 {
     private readonly PageFactory? _pageFactory;
 
     [ObservableProperty]
     private PageViewModel? _currentPage;
-    
-    [ObservableProperty]
-    private DialogViewModel _currentDialog;
 
-    // Parameterless constructor for previewer purposes
+    [ObservableProperty] 
+    private DialogViewModel? _dialog;
+    
+    // For Designer only
     public MainWindowViewModel() { }
+    
     // Constructor
     public MainWindowViewModel(PageFactory pageFactory)
     {
@@ -34,7 +37,4 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         CurrentPage = _pageFactory!.GetPageViewModel(PageNames.Settings);
     }
-    
-    
-
 }

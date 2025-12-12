@@ -1,6 +1,6 @@
 using System;
 
-namespace GottaManagePlus.Modules.Utils;
+namespace GottaManagePlus.Utils;
 
 public static class PrecisionMath
 {
