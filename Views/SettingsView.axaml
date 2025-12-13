@@ -24,25 +24,47 @@
     Classes="Menu_Border BorderDropShadow AllCornerRadius"
     Margin="25 0 10 10"
     >
-        <Grid RowDefinitions="Auto, *" Background="{DynamicResource SettingsBg}">
+        <Grid RowDefinitions="Auto, *">
+            <Border Grid.Row="0"
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch"
+                    Classes="Menu_Header">
+                <Border.Background>
+                    <ImageBrush
+                        Source="/Assets/UI/Icon_GearsBg.png"
+                        TileMode="Tile"
+                        Stretch="None"
+                        DestinationRect="-32 34 64 64"
+                        Opacity="0.175"
+                    />
+                </Border.Background>
+            </Border>
             <!-- Settings Header -->
             <StackPanel
             Grid.Row="0"
+            Margin="0 5"
             HorizontalAlignment="Stretch"
-            Orientation="Vertical"
-            Background="{DynamicResource MainMenus-Bg}">
-                <TextBlock
-                Text="Settings" 
-                FontSize="46"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Classes="SideMenu-Label RightHeader"/>
-                <Rectangle Classes="Stroke" Fill="Black" Margin="10 6" Opacity="0.35" />
+            Orientation="Horizontal">
+                <Panel>
+                    <TextBlock 
+                        Text="Settings" 
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Foreground="White"
+                        FontWeight="UltraBold"
+                        Classes="SideMenu-Label RightHeader GlowShadow"/>
+                    <TextBlock 
+                        Text="Settings" 
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Classes="SideMenu-Label RightHeader"/>
+                </Panel>
             </StackPanel>
 
-            <!-- Settings Body -->    
-            <Grid 
+            <!-- Settings Body -->   
+            <Grid
             Grid.Row="1"
+            Background="{DynamicResource SettingsBg}"
             ColumnDefinitions="2"
             ShowGridLines="True">
                 <Button Content="HEllo!" />

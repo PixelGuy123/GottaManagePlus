@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using GottaManagePlus.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Services;
 
@@ -10,7 +11,7 @@ namespace GottaManagePlus.ViewModels;
 
 public partial class MyModsViewModel : PageViewModel
 {
-    private readonly List<ModItem> _allMods;
+    private readonly List<ModItem> _allMods = null!;
     private ModItem? _lastSelectedItem;
     private readonly DialogService _dialogService = null!;
     
@@ -19,7 +20,7 @@ public partial class MyModsViewModel : PageViewModel
     
     // Observable Properties
     [ObservableProperty]
-    private ObservableCollection<ModItem> _observableMods;
+    private ObservableCollection<ModItem> _observableMods = null!;
     [ObservableProperty]
     private ModItem? _currentModItem;
     [ObservableProperty]
@@ -32,14 +33,14 @@ public partial class MyModsViewModel : PageViewModel
     public void ResetSearch() => Text = null;
 
     [RelayCommand]
-    public void DeleteModItem(int id)
-    {
-        DeleteModItemUiAsync(id);
-    }
+    public async Task DeleteModItem(int id) => await DeleteModItemUiAsync(id);
+    
     
     // For designer
     public MyModsViewModel() : base(PageNames.Home)
     {
+        if (!Design.IsDesignMode) return;
+        
         // Initialize Data
         _allMods =
         [

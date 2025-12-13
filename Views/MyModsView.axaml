@@ -102,10 +102,13 @@
     Margin="25 0 10 10"
     >
         <Grid RowDefinitions="Auto, *">
-            <Border Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Classes="Menu_Header">
+            <Border Grid.Row="0" 
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch"
+                    Classes="Menu_Header">
                 <Border.Background>
                     <ImageBrush
-                        Source="/Assets/UI/Icon_ModsBtn.png"
+                        Source="/Assets/UI/Icon_ModsBg.png"
                         TileMode="Tile"
                         Stretch="None"
                         DestinationRect="-32 34 64 64"
@@ -114,7 +117,9 @@
                 </Border.Background>
             </Border> 
             <!-- Mod Header -->
-            <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <Grid Grid.Row="0" 
+                  Margin="0 5" 
+                  ColumnDefinitions="Auto, *">
                 <Panel Grid.Column="0"> <!-- Stack TextBlocks together -->
                     <!--TEMP COMMENT: USE LANGUAGE HERE-->
                     <TextBlock 
@@ -139,11 +144,12 @@
                     <!--TEMP COMMENT: USE LANGUAGE HERE-->
                     <!--Scroll viewer search box-->
                     <Button 
+                        Margin="10 0"
                         Classes="ModViewerHeader">
                         <Image
-                            Source="/Assets/UI/Icon_ProfilesBtn.png"
-                            Width="16"
-                            Height="16"
+                            Source="/Assets/UI/Icon_AddModContainer.png"
+                            Width="32"
+                            Height="32"
                         />
                     </Button>
                     <AutoCompleteBox
@@ -158,11 +164,12 @@
                     />
                     <Button 
                         Classes="ModViewerHeader"
-                        Command="{Binding ResetSearch}">
+                        Margin="5 0 0 0"
+                        Command="{CompiledBinding ResetSearch}">
                         <Image
-                            Source="/Assets/UI/Icon_ProfilesBtn.png"
-                            Width="16"
-                            Height="16"
+                            Source="/Assets/UI/Icon_Cancel_Generic.png"
+                            Width="32"
+                            Height="32"
                         />
                     </Button>
                 </StackPanel>
@@ -230,23 +237,17 @@
                                                 Spacing="10">
                                         <!-- Open Folder Button -->
                                         <Button>
-                                            <Image
-                                                Source="/Assets/UI/Icon_ProfilesBtn.png"
-                                                />
+                                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
                                         </Button>
                                         <!-- Update Button -->
                                         <Button>
-                                            <Image
-                                                Source="/Assets/UI/Icon_ProfilesBtn.png"
-                                            />
+                                            <Image Source="/Assets/UI/Icon_UpdateMod.png"/>
                                         </Button>
                                         <!-- Delete Button -->
                                         <Button 
-                                            Command="{Binding ((vm:MyModsViewModel)DataContext).DeleteModItem, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
+                                            Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModItem, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding Id}">
-                                            <Image
-                                                Source="/Assets/UI/Icon_ProfilesBtn.png"
-                                            />
+                                            <Image Source="/Assets/UI/Icon_DeleteMod.png"/>
                                         </Button>
                                     </StackPanel>
                                 </Grid>

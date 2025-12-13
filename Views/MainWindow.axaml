@@ -20,10 +20,64 @@
     <Design.DesignStyle>
         <StyleInclude Source="/Styles/style.axaml"/>
     </Design.DesignStyle>
+    <Window.Resources>
+        <LinearGradientBrush x:Key="OthersBtnBg"
+                             StartPoint="0% 100%"
+                             EndPoint="25% 0%">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Color="#5E5E5E" Offset="0.0"/>
+                <GradientStop Color="#919191" Offset="1.0"/>
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+    </Window.Resources>
 
     <!-- Styles to define -->
     <Window.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
+        
+        <Style Selector="Button.OthersBtn">
+            <Setter Property="Background" Value="{StaticResource OthersBtnBg}" />
+            <Setter Property="VerticalAlignment" Value="Bottom"/>
+            <Setter Property="MaxWidth" Value="64"/>
+            <Setter Property="MaxHeight" Value="64"/>
+            <Setter Property="CornerRadius" Value="45"/>
+            
+            <!--Icon Styling-->
+            <Style Selector="^ Image">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect
+                            OffsetY="1"
+                            OffsetX="0"
+                            BlurRadius="10"
+                            />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- Animation -->
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition
+                        Property="RenderTransform"
+                        Duration="0:0:0.25"
+                        Easing="QuadraticEaseOut"
+                    />
+                </Transitions>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="RenderTransform" Value="scale(1.05)"/>
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="RenderTransform" Value="scale(0.99)"/>
+            </Style>
+            <!-- Background override -->
+            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="Background" Value="{StaticResource OthersBtnBg}" />
+            </Style>
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="Background" Value="{StaticResource OthersBtnBg}" />
+            </Style>
+        </Style>
     </Window.Styles>
 
     <!-- MAIN -->
@@ -108,29 +162,44 @@
                         
                         <StackPanel Grid.Row="1" Margin="10" Orientation="Vertical">
                             <Button
-                                Classes="SideMenu-Button"
-                                Command="{Binding GoToHomeCommand}"
+                                Classes="SideMenu-Btn"
+                                Command="{CompiledBinding GoToHomeCommand}"
                                 HorizontalContentAlignment="Center"
                             >
                                 <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock HorizontalAlignment="Center" Text="My Mods"/> <!-- Aligned Text -->
                             </Button>
                             <Button
-                            Classes="SideMenu-Button"
-                            Command="{Binding GoToSettingsCommand}"
+                            Classes="SideMenu-Btn"
+                            Command="{CompiledBinding GoToSettingsCommand}"
                             >
                                 <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock Text="Settings"/> <!-- Aligned Text -->
                             </Button>
                             <Button 
-                            Classes="SideMenu-Button"
+                            Classes="SideMenu-Btn"
                             >
                                 <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock Text="Profiles"/> <!-- Aligned Text -->
                             </Button>
                         </StackPanel>
+                        
                     </Grid>
                 </Border>
+                <!-- START of Below Nav Bar -->
+                <StackPanel
+                    Margin="5 15"
+                    Orientation="Horizontal"
+                    Grid.Row="1">
+                    <Button 
+                        Classes="OthersBtn"
+                        Command="{CompiledBinding RevealAboutSection}">
+                        <Image 
+                            Source="/Assets/UI/Icon_Info.png"
+                            Stretch="Uniform"/>
+                    </Button>
+                </StackPanel>
+                <!-- END of Below Nav Bar -->
                 <!-- END of Nav Bar -->
             </Grid>
             <!-- END of Side Menu -->
@@ -142,10 +211,21 @@
         
         <!-- Dialog Element -->
         <Grid
-            IsVisible="{Binding Dialog.IsDialogOpen, FallbackValue=False}"
+            Name="DialogOverlay"
+            IsVisible="{Binding #DialogOverlay.Opacity}"
+            Opacity="{Binding Dialog.IsDialogOpen, FallbackValue=0}"
             Grid.Row="0" 
             Grid.RowSpan="2"
             >
+            <Grid.Transitions>
+                <Transitions>
+                    <DoubleTransition
+                        Property="Opacity"
+                        Duration="0:0:0.1"
+                        Easing="SineEaseInOut"
+                        />
+                </Transitions>
+            </Grid.Transitions>
             <Border Background="Black" Opacity="0.5"/>
             <ContentControl 
                 Content="{Binding Dialog}"

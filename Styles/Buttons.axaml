@@ -29,8 +29,13 @@
         </Border>
     </Design.PreviewWith>
     
+    <!-- Default Button -->
+    <Style Selector="Button">
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+    
     <!--SIDE MENU STYLING-->
-    <Style Selector="Button.SideMenu-Button">
+    <Style Selector="Button.SideMenu-Btn">
         <!--=======================-->
         <!-- General Styling Below -->
         <!--=======================-->
@@ -44,7 +49,6 @@
         <Setter Property="FontSize" Value="20" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="0" />
         <!-- Text Styling -->
         <Style Selector="^ TextBlock">
             <Setter Property="FontSize" Value="25" />

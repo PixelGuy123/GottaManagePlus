@@ -14,7 +14,6 @@
     <Design.DataContext><vm:ConfirmDialogViewModel/></Design.DataContext>
     
     <UserControl.Styles>
-        <StyleInclude Source="/Styles/ReusableEffects.axaml"/>
         <StyleInclude Source="/Styles/Buttons.axaml"/>
     </UserControl.Styles>
     
@@ -69,11 +68,11 @@
                 <Button
                     Content="{CompiledBinding CancelText}" 
                     Classes="DialogBtn DangerDialogBtn"
-                    Command="{Binding Cancel}"/>
+                    Command="{CompiledBinding Cancel}"/>
                 <Button
                     Content="{CompiledBinding ConfirmText}" 
                     Classes="DialogBtn GenericDialogBtn"
-                    Command="{Binding Confirm}"/>
+                    Command="{CompiledBinding Confirm}"/>
             </StackPanel>
         </Grid>
     </Border>
