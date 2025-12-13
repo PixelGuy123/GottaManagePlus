@@ -421,4 +421,6 @@ FodyWeavers.xsd
 ConceptImage.png
 
 # Jetbrains IDE
+=======
+# Jetbrains Folders
 .idea/
