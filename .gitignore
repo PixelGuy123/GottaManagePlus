@@ -423,4 +423,4 @@ ConceptImage.png
 # Jetbrains IDE
 =======
 # Jetbrains Folders
-.idea/
+.idea/*
