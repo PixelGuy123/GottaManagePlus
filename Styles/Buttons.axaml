@@ -7,8 +7,8 @@
                 ColumnDefinitions="Auto, Auto"
                 Margin="30 10">
                 <!-- Left Side -->
-                <StackPanel Grid.Column="0" Orientation="Vertical">
-                    <Button BorderThickness="2" Padding="30 0" BorderBrush="White" Classes="SideMenu-Button">
+                <StackPanel Grid.Column="0" Spacing="10" Orientation="Vertical">
+                    <Button BorderThickness="2" Padding="30 0" BorderBrush="White" Classes="SideMenu-Btn">
                         <TextBlock Text="I am a navigation button!"/>
                     </Button>
                     
@@ -24,6 +24,12 @@
                             </Button>
                         </StackPanel>
                     </Border>
+                    
+                    <Border>
+                        <Button Classes="YCTPButton">
+                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                        </Button>
+                    </Border>
                 </StackPanel>
             </Grid>
         </Border>
@@ -32,6 +38,42 @@
     <!-- Default Button -->
     <Style Selector="Button">
         <Setter Property="Padding" Value="0"/>
+    </Style>
+    
+    <!--BUTTON STYLING-->
+    <Style Selector="Button.YCTPButton">
+        <Setter Property="Background">
+            <Setter.Value>
+                <ImageBrush
+                    Source="/Assets/UI/Button_Normal_48x48.png"
+                    Stretch="Uniform"
+                />
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^ Image">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MaxWidth" Value="48"/>
+            <Setter Property="MaxHeight" Value="48"/>
+        </Style>
+        <!--Disable click sizing from Pressed-->
+        <Style Selector="^:pressed">
+            <Setter Property="RenderTransform" Value="none" />
+        </Style>
+        <!-- Image Update -->
+        <Style Selector="^:pointerover Image">
+            <Setter Property="BlendMode" Value="Hue"/>
+        </Style>
+        <!--Pointer over style consistency-->
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <ImageBrush
+                        Source="/Assets/UI/Button_Normal_Selected_48x48.png"
+                        Stretch="Uniform"
+                    />
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Style>
     
     <!--SIDE MENU STYLING-->
@@ -95,7 +137,8 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="MinWidth" Value="100" />
+        <Setter Property="MinWidth" Value="100"/>
+        <Setter Property="Padding" Value="5"/>
         
         <!-- Generic One -->
         <Style Selector="^.GenericDialogBtn">

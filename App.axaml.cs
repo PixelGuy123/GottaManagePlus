@@ -5,9 +5,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using GottaManagePlus.Factories;
+using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 using GottaManagePlus.ViewModels;
 using GottaManagePlus.Views;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GottaManagePlus;
@@ -23,9 +25,19 @@ public partial class App : Application
     {
         var collection = new ServiceCollection();
         
+        // Configuration Setup
+        var config = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("AppSettings.json", optional: false, reloadOnChange: true)
+            .Build();
+        collection.AddSingleton<IConfiguration>(config);
+        collection.Configure<AppSettings>(config.GetSection(nameof(AppSettings)));
+        
         // Services
         collection.AddSingleton<PageFactory>();
         collection.AddSingleton<DialogService>();
+        collection.AddSingleton<FilesService>();
+        collection.AddSingleton<SettingsService>();
         
         // View Models
         collection.AddSingleton<MainWindowViewModel>(); // Singleton
@@ -33,15 +45,11 @@ public partial class App : Application
         collection.AddTransient<SettingsViewModel>();
         
         // Factory Function
-        collection.AddSingleton<Func<PageNames, PageViewModel>>(
-            serviceProvider =>
-            name =>
-            name switch
-            {
-                PageNames.Home => serviceProvider.GetRequiredService<MyModsViewModel>(),
-                PageNames.Settings => serviceProvider.GetRequiredService<SettingsViewModel>(),
-                _ => throw new NotImplementedException("PageNames value is not supported!")
-            });
+        collection.AddSingleton<Func<Type, PageViewModel>>(
+            serviceProvider => type =>
+                !type.IsAssignableTo(typeof(PageViewModel)) ? 
+                    throw new NotImplementedException("Non PageViewModel supported.") :
+                    (PageViewModel)serviceProvider.GetRequiredService(type));
 
         var services = collection.BuildServiceProvider();
         
@@ -59,6 +67,10 @@ public partial class App : Application
             {
                 DataContext = services.GetRequiredService<MainWindowViewModel>(),
             };
+            
+            // Assign services dependent on the MainWindow
+            services.GetRequiredService<FilesService>()
+                .RegisterProvider(desktop.MainWindow.StorageProvider);
         }
 
         base.OnFrameworkInitializationCompleted();

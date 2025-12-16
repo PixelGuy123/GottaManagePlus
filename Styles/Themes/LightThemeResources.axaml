@@ -73,7 +73,6 @@
                     <SolidColorBrush x:Key="Danger-Button-Pressed" Color="#570013"/>
 
                     <!-- MISC Colors -->
-                    <SolidColorBrush x:Key="LongLineStruck-Color" Color="#00000059"/>
                     <Color x:Key="ScrollBar-BgColor">rgba(50, 100, 65, 1)</Color>
                     <Color x:Key="ScrollBar-ThumbColor">rgba(159, 220, 182, 1)</Color>
                     <Color x:Key="WhiteColor">#FFFFFFFF</Color>

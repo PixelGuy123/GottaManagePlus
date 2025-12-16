@@ -8,19 +8,13 @@
     <StyleInclude Source="AutoCompleteBox.axaml"/>
     <StyleInclude Source="Borders.axaml"/>
     <StyleInclude Source="ReusableEffects.axaml"/>
+    <StyleInclude Source="Labels.axaml"/>
     
     <!-- MISC styling that's way too specific to get its own .axaml -->
 
     <!--MAIN GRID STYLING-->
     <Style Selector="Grid.MainSection">
         <Setter Property="Background" Value="{DynamicResource MainWindowBg}" />
-    </Style>
-    <!-- Line Strokes -->
-    <Style Selector="Rectangle.Stroke">
-        <Setter Property="Height" Value="1" />
-        <Setter Property="Fill" Value="{DynamicResource LongLineStruck-Color}" />
-        <Setter Property="Margin" Value="10 6" />
-        <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
     
 </Styles>

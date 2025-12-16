@@ -23,13 +23,13 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     [RelayCommand]
     public void GoToHome()
     {
-        CurrentPage = _pageFactory!.GetPageViewModel(PageNames.Home);
+        CurrentPage = _pageFactory!.GetPageViewModel<MyModsViewModel>();
     }
 
     [RelayCommand]
     public void GoToSettings()
     {
-        CurrentPage = _pageFactory!.GetPageViewModel(PageNames.Settings);
+        CurrentPage = _pageFactory!.GetPageViewModel<SettingsViewModel>();
     }
 
     [RelayCommand]
@@ -48,7 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     {
         _pageFactory = pageFactory;
         _dialogService = dialogService;
-        CurrentPage = _pageFactory.GetPageViewModel(PageNames.Home);
+        CurrentPage = _pageFactory.GetPageViewModel<MyModsViewModel>();
     }
     
     // Private methods

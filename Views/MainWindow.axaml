@@ -188,7 +188,7 @@
                 </Border>
                 <!-- START of Below Nav Bar -->
                 <StackPanel
-                    Margin="5 15"
+                    Margin="10"
                     Orientation="Horizontal"
                     Grid.Row="1">
                     <Button 

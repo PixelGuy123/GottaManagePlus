@@ -16,6 +16,36 @@
     </Design.DesignStyle>
     <UserControl.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
+        
+        <Style Selector="Border.PageSeparator">
+            <Setter Property="BorderBrush" Value="{DynamicResource BlackColor}"/>
+            <Setter Property="Opacity" Value="0.1"/>
+            <Setter Property="BorderThickness" Value="0 0 2 0"/>
+        </Style>
+        
+        <Style Selector="Button.YCTPButton">
+            <Setter Property="MaxWidth" Value="32"/>
+            <Setter Property="MaxHeight" Value="32"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <ImageBrush
+                        Source="/Assets/UI/Button_Normal_32x32.png"
+                        Stretch="Uniform"
+                    />
+                </Setter.Value>
+            </Setter>
+            <!--Pointer over style consistency-->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush
+                            Source="/Assets/UI/Button_Normal_Selected_32x32.png"
+                            Stretch="Uniform"
+                        />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style>
     </UserControl.Styles>
 
      <!-- START of Settings-->
@@ -62,13 +92,75 @@
             </StackPanel>
 
             <!-- Settings Body -->   
-            <Grid
-            Grid.Row="1"
-            Background="{DynamicResource SettingsBg}"
-            ColumnDefinitions="2"
-            ShowGridLines="True">
-                <Button Content="HEllo!" />
-            </Grid>
+            <Border Grid.Row="1" 
+                    Background="{DynamicResource SettingsBg}">
+                <Grid
+                    Margin="10 10 10 0"
+                    ColumnDefinitions="*, *"
+                    RowDefinitions="*, Auto">
+                    
+                    <!-- Visible Separator -->
+                    <Border 
+                        Grid.Row="0" 
+                        Grid.Column="0" 
+                        Classes="PageSeparator"/>
+                    <!-- FIRST COLUMN -->
+                    <StackPanel
+                        Grid.Row="0" 
+                        Grid.Column="0" 
+                        Margin="0 0 10 0"
+                        Orientation="Vertical">
+                            <Label Content="Baldi's Basics Plus' Folder Path:"/>
+                            <DockPanel HorizontalSpacing="5">
+                                <!-- Select file Dialog -->
+                                <Button
+                                    Classes="YCTPButton"
+                                    DockPanel.Dock="Right"
+                                    Command="{CompiledBinding SetFilePathForPlusFolder}">
+                                    <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                                </Button>
+                                <TextBox
+                                    IsReadOnly="True"
+                                    Text="{Binding CurrentSaveState.GameFolderPath}"
+                                    Watermark="Select a path"/>
+                            </DockPanel>
+                            
+                    </StackPanel>
+                    <!-- END OF FIRST COLUMN -->
+                    
+                    <!-- START of Bottom Row (Buttons)-->
+                    <StackPanel 
+                        Grid.Column="0" 
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        Name="SavePanel"
+                        HorizontalAlignment="Right"
+                        Spacing="15"
+                        Orientation="Horizontal"
+                        IsHitTestVisible="{Binding CurrentSaveState.HasChanged}"
+                        Opacity="{Binding CurrentSaveState.HasChanged}"
+                        Margin="10">
+                        <StackPanel.Transitions>
+                            <Transitions>
+                                <DoubleTransition
+                                    Property="Opacity"
+                                    Duration="0:0:0.07"
+                                    Easing="SineEaseInOut"
+                                />
+                            </Transitions>
+                        </StackPanel.Transitions>
+                        <Button
+                            Classes="DialogBtn DangerDialogBtn"
+                            Content="Cancel"
+                            Command="{CompiledBinding CancelSaveState}"/>
+                        <Button
+                            Classes="DialogBtn GenericDialogBtn"
+                            Content="Save"
+                            Command="{CompiledBinding SaveState}"/>
+                    </StackPanel>
+                    <!-- END of Bottom Row -->
+                </Grid>
+            </Border>
         </Grid>
     </Border>
     <!-- END of Settings -->

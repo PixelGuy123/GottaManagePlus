@@ -57,41 +57,6 @@
             <Setter Property="OutlineColor" Value="Black"/>
             <Setter Property="OutlineWidth" Value="1.5"/>
         </Style>
-        <!--BUTTON STYLING-->
-        <Style Selector="Button">
-            <Setter Property="Background">
-                <Setter.Value>
-                    <ImageBrush
-                        Source="/Assets/UI/ModList_ButtonBG.png"
-                        Stretch="Uniform"
-                        />
-                </Setter.Value>
-            </Setter>
-            <Style Selector="^ Image">
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="MaxWidth" Value="48"/>
-                <Setter Property="MaxHeight" Value="48"/>
-            </Style>
-            <!--Disable click sizing from Pressed-->
-            <Style Selector="^:pressed">
-                <Setter Property="RenderTransform" Value="none" />
-            </Style>
-            <!-- Image Update -->
-            <Style Selector="^:pointerover Image">
-                <Setter Property="BlendMode" Value="Hue"/>
-            </Style>
-            <!--Pointer over style consistency-->
-            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/ModList_ButtonBG_Selected.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </Style>
     </UserControl.Styles>
 
     <!-- Content Below -->
@@ -145,7 +110,7 @@
                     <!--Scroll viewer search box-->
                     <Button 
                         Margin="10 0"
-                        Classes="ModViewerHeader">
+                        Classes="ModViewerHeader YCTPButton">
                         <Image
                             Source="/Assets/UI/Icon_AddModContainer.png"
                             Width="32"
@@ -163,7 +128,7 @@
                         FilterMode="Contains"
                     />
                     <Button 
-                        Classes="ModViewerHeader"
+                        Classes="ModViewerHeader YCTPButton"
                         Margin="5 0 0 0"
                         Command="{CompiledBinding ResetSearch}">
                         <Image
@@ -236,15 +201,16 @@
                                                 HorizontalAlignment="Right"
                                                 Spacing="10">
                                         <!-- Open Folder Button -->
-                                        <Button>
+                                        <Button Classes="YCTPButton">
                                             <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
                                         </Button>
                                         <!-- Update Button -->
-                                        <Button>
+                                        <Button Classes="YCTPButton">
                                             <Image Source="/Assets/UI/Icon_UpdateMod.png"/>
                                         </Button>
                                         <!-- Delete Button -->
-                                        <Button 
+                                        <Button
+                                            Classes="YCTPButton"
                                             Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModItem, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding Id}">
                                             <Image Source="/Assets/UI/Icon_DeleteMod.png"/>
