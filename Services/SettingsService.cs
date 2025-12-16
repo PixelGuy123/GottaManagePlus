@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.JsonContext;
 using Microsoft.Extensions.Options;
@@ -20,10 +21,20 @@ public class SettingsService(IOptions<AppSettings> initialOptions)
     public AppSettings CurrentSettings { get; } = initialOptions.Value;
 
 
-    public void Save()
+    public async Task<bool> Save()
     {
-        var json = JsonSerializer.Serialize(CurrentSettings, DefaultSerializerOptions);
-        using var writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
-        writer.Write(json);
+        // The wrapper will add that "AppSettings" section into the JSON
+        var wrapper = new AppSettingsWrapper { AppSettings = CurrentSettings };
+        var json = JsonSerializer.Serialize(wrapper, DefaultSerializerOptions);
+        try
+        {
+            await using var writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
+            await writer.WriteAsync(json);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

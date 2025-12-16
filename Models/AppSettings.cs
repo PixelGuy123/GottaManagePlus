@@ -1,7 +1,11 @@
 namespace GottaManagePlus.Models;
 
+public class AppSettingsWrapper
+{
+    public required AppSettings AppSettings { get; init; }
+}
 public class AppSettings
 {
-    public string BaldiPlusFilePath { get; set; } = string.Empty;
-    public string BookmarkId { get; set; } = string.Empty;
+    public required string BaldiPlusFilePath { get; set; }
+    public required string BookmarkId { get; set; }
 }

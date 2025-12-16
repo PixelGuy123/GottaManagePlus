@@ -43,7 +43,7 @@ public partial class SettingsViewModel : PageViewModel
     }
 
     [RelayCommand]
-    public void SaveState()
+    public async Task SaveState()
     {
         CurrentSaveState.UpdateSavedState();
         
@@ -53,7 +53,11 @@ public partial class SettingsViewModel : PageViewModel
             settings.BaldiPlusFilePath = CurrentSaveState.GameFolderPath;
         // TODO: Save bookmark
         
-        _settingsService.Save();
+        // TODO: Display Saving... Popup
+        var status = await _settingsService.Save();
+        if (status) return;
+        
+        // TODO: Display save failed POPUP
     }
 
     [RelayCommand]
