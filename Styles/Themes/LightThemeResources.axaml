@@ -12,10 +12,17 @@
                     />
 
                     <ImageBrush x:Key="SettingsBg"
-                        Source="/Assets/UI/Light/SettingsBG.png"
+                        Source="/Assets/UI/Light/SettingsBG.webp"
                         TileMode="Tile"
                         Stretch="None"
                         DestinationRect="0,0,256,256"
+                    />
+                    
+                    <ImageBrush x:Key="ProfilesBg"
+                                Source="/Assets/UI/Light/ProfilesBG.webp"
+                                TileMode="Tile"
+                                Stretch="None"
+                                DestinationRect="0,0,256,256"
                     />
                     
                     <ImageBrush x:Key="ModsListBg"
@@ -47,17 +54,17 @@
                     RadiusX="100%"
                     RadiusY="135%">
                         <RadialGradientBrush.GradientStops>
-                        <GradientStops>
-                            <GradientStop Color="#46bb77" Offset="0"/>
-                            <GradientStop Color="#3ba065" Offset="0.12"/>
-                            <GradientStop Color="#3b9665" Offset="0.185"/>
-                            <GradientStop Color="#36945d" Offset="0.25"/>
-                            <GradientStop Color="#287347" Offset="0.5"/>
-                            <GradientStop Color="#286447" Offset="0.59"/>
-                            <GradientStop Color="#285f47" Offset="0.65"/>
-                            <GradientStop Color="#285847" Offset="0.75"/>
-                            <GradientStop Color="#164d42" Offset="0.85"/>
-                        </GradientStops>
+                            <GradientStops>
+                                <GradientStop Color="#46bb77" Offset="0"/>
+                                <GradientStop Color="#3ba065" Offset="0.12"/>
+                                <GradientStop Color="#3b9665" Offset="0.185"/>
+                                <GradientStop Color="#36945d" Offset="0.25"/>
+                                <GradientStop Color="#287347" Offset="0.5"/>
+                                <GradientStop Color="#286447" Offset="0.59"/>
+                                <GradientStop Color="#285f47" Offset="0.65"/>
+                                <GradientStop Color="#285847" Offset="0.75"/>
+                                <GradientStop Color="#164d42" Offset="0.85"/>
+                            </GradientStops>
                         </RadialGradientBrush.GradientStops>
                     </RadialGradientBrush>
                     <!-- Other Menu Resources -->

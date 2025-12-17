@@ -17,6 +17,8 @@
         <entry key="Views/ConfirmDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MainWindow.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MyModsView.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/PreviewProfileDialogView.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/ProfilesView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/SettingsView.axaml" value="GottaManagePlus.csproj" />
       </map>
     </option>

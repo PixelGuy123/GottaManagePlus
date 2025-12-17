@@ -1,0 +1,167 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             xmlns:models="clr-namespace:GottaManagePlus.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GottaManagePlus.Views.PreviewProfileDialogView"
+             x:DataType="vm:PreviewProfileDialogViewModel"
+             MinWidth="350"
+             MinHeight="200">
+    
+    <Design.DataContext>
+        <vm:PreviewProfileDialogViewModel/>
+    </Design.DataContext>
+ 
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <LinearGradientBrush
+                x:Key="ListInnerBg"
+                StartPoint="50% 100%"
+                EndPoint="50% 0%">
+                <LinearGradientBrush.GradientStops>
+                    <GradientStops>
+                        <GradientStop Color="#46bb77" Offset="0"/>
+                        <GradientStop Color="#285847" Offset="0.8"/>
+                        <GradientStop Color="#164d42" Offset="1"/>
+                    </GradientStops>
+                </LinearGradientBrush.GradientStops>
+            </LinearGradientBrush>
+            
+            <LinearGradientBrush
+                x:Key="YctpBg"
+                StartPoint="0% 100%"
+                EndPoint="0% 0%"
+            >
+                <LinearGradientBrush.GradientStops>
+                    <GradientStop Color="#118500" Offset="0.0" />
+                    <GradientStop Color="#12FF00" Offset="0.5" />
+                </LinearGradientBrush.GradientStops>
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/Buttons.axaml"/>
+        
+        <!--YCTP BORDER STYLE-->
+        <Style Selector="Border.YCTP">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Background" Value="{DynamicResource YctpBg}"/>
+        </Style>
+        
+        <!--MOD NAME STYLING-->
+        <Style Selector="TextBlock.ModLabel">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </UserControl.Styles>
+    
+    <Border 
+        Background="{DynamicResource MainMenus-Bg}" 
+        CornerRadius="10"
+        ClipToBounds="True"
+        BorderBrush="{DynamicResource Generic-Border}"
+        BorderThickness="2"
+        Margin="10 20">
+        <Border.Effect>
+            <DropShadowEffect
+                OffsetX="0"
+                OffsetY="5"
+                BlurRadius="15"
+                />
+        </Border.Effect>
+        <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+            <!-- Title -->
+            <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" 
+                    CornerRadius="8 8 0 0">
+                <TextBlock 
+                    Foreground="{DynamicResource BlackColor}"
+                    Text="{Binding Profile.ProfileName}"
+                    MaxWidth="650"
+                    HorizontalAlignment="Center"
+                    Padding="10"
+                    FontSize="25"
+                    TextTrimming="CharacterEllipsis"
+                    FontWeight="ExtraLight"
+                    FontFamily="{DynamicResource WorkSans}"/>
+            </Border>
+            
+            <!-- Description -->
+            <Border Grid.Row="1" Padding="10">
+                <Grid ColumnDefinitions="*, *, *" ShowGridLines="True">
+                    <!-- Mod Displayer -->
+                    <StackPanel Grid.Column="0" Margin="10 0">
+                        <TextBlock Text="Mods"
+                                   HorizontalAlignment="Center"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   FontFamily="{DynamicResource WorkSans}"
+                                   />
+                        <Border
+                            BorderBrush="{DynamicResource Menu-Header-Bg}"
+                            BorderThickness="5"
+                            Background="{DynamicResource ListInnerBg}"
+                            CornerRadius="10"
+                            ClipToBounds="True">
+                            <ScrollViewer
+                                Margin="5">
+                                <ItemsControl
+                                    ItemsSource="{Binding Profile.ModMetaDataList}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:ModItem">
+                                            <Panel>
+                                                <StackPanel Margin="0 2" Orientation="Vertical">
+                                                    <Border
+                                                        Classes="YCTP">
+                                                        <Panel>
+                                                            <Border
+                                                                HorizontalAlignment="{Binding $parent[Border].HorizontalAlignment}"
+                                                                VerticalAlignment="{Binding $parent[Border].VerticalAlignment}"
+                                                                CornerRadius="{Binding $parent[Border].CornerRadius}"
+                                                                Margin="3"
+                                                                Background="Black">
+                                                            </Border>
+                                                            <TextBlock
+                                                                Margin="8"
+                                                                Text="{Binding ModName}"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                Classes="ModLabel"/>
+                                                        </Panel>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Panel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Buttons -->
+            <StackPanel 
+                Orientation="Horizontal" 
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                Spacing="20"
+                Margin="10">
+                <Button
+                    Content="{CompiledBinding DeleteText}" 
+                    Classes="DialogBtn DangerDialogBtn"
+                    Command="{CompiledBinding CloseAndDeleteProfile}"/>
+                <Button
+                    Content="{CompiledBinding CloseText}" 
+                    Classes="DialogBtn GenericDialogBtn"
+                    Command="{CompiledBinding CloseWithoutChanges}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

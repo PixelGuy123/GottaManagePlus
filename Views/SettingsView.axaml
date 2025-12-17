@@ -99,6 +99,13 @@
                     ColumnDefinitions="*, *"
                     RowDefinitions="*, Auto">
                     
+                    <!-- Body SubBorder -->
+                    <Border 
+                        Grid.Row="0"
+                        Grid.ColumnSpan="2"
+                        Grid.Column="0"
+                        CornerRadius="10"
+                        Background="{DynamicResource Generic-Border}"/>
                     <!-- Visible Separator -->
                     <Border 
                         Grid.Row="0" 
@@ -108,12 +115,13 @@
                     <StackPanel
                         Grid.Row="0" 
                         Grid.Column="0" 
-                        Margin="0 0 10 0"
+                        Margin="10 5"
                         Orientation="Vertical">
                             <Label Content="Baldi's Basics Plus' Folder Path:"/>
                             <DockPanel HorizontalSpacing="5">
                                 <!-- Select file Dialog -->
                                 <Button
+
                                     Classes="YCTPButton"
                                     DockPanel.Dock="Right"
                                     Command="{CompiledBinding SetFilePathForPlusFolder}">

@@ -22,8 +22,7 @@
             <LinearGradientBrush
                 x:Key="YctpBg"
                 StartPoint="0% 100%"
-                EndPoint="0% 0%"
-            >
+                EndPoint="0% 0%">
                     <LinearGradientBrush.GradientStops>
                         <GradientStop Color="#118500" Offset="0.0" />
                         <GradientStop Color="#12FF00" Offset="0.5" />
@@ -34,13 +33,6 @@
     
     <UserControl.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
-        <!--YCTP BORDER STYLE-->
-        <Style Selector="Border.YCTP">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment" Value="Stretch"/>
-            <Setter Property="CornerRadius" Value="15"/>
-            <Setter Property="Background" Value="{DynamicResource YctpBg}"/>
-        </Style>
         <!--MOD VIEWER STYLING-->
         <Style Selector=":is(Control).ModViewerHeader">
             <Setter Property="VerticalAlignment" Value="{Binding $parent[StackPanel].VerticalAlignment}" />

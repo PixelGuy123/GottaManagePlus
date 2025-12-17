@@ -37,7 +37,7 @@ public partial class MyModsViewModel : PageViewModel
     
     
     // For designer
-    public MyModsViewModel() : base(PageNames.Home)
+    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!))
     {
         if (!Design.IsDesignMode) return;
         
@@ -57,7 +57,7 @@ public partial class MyModsViewModel : PageViewModel
     }
     
     // Constructor
-    public MyModsViewModel(DialogService dialogService) : base(PageNames.Home)
+    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel) : base(PageNames.Home, profilesViewModel)
     {
         // Initialize Data
         _allMods =

@@ -6,7 +6,7 @@ using Avalonia;
 
 namespace GottaManagePlus.ViewModels;
 
-public partial class DialogViewModel : ViewModelBase
+public abstract partial class DialogViewModel : ViewModelBase
 {
     // To display app version if required (static to be run once)
     private static readonly Version ConstAppVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version("0.0.0.0"),
@@ -19,7 +19,7 @@ public partial class DialogViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isDialogOpen;
 
-    protected TaskCompletionSource CloseTask = new TaskCompletionSource();
+    protected TaskCompletionSource CloseTask = new();
 
     public async Task WaitAsync()
     {
