@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace GottaManagePlus.Services;
 
-public class SettingsService(IOptions<AppSettings> initialOptions)
+public class SettingsService(IOptions<AppSettings> initialOptions) // Doesn't use an interface and I doubt this project would ever need a secondary configurations service
 {
     private static readonly JsonSerializerOptions DefaultSerializerOptions = new() 
     { 
@@ -19,7 +19,7 @@ public class SettingsService(IOptions<AppSettings> initialOptions)
     private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
     
     public AppSettings CurrentSettings { get; } = initialOptions.Value;
-
+    public event Action? OnSaveSettings;
 
     public async Task<bool> Save()
     {
@@ -30,6 +30,7 @@ public class SettingsService(IOptions<AppSettings> initialOptions)
         {
             await using var writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
             await writer.WriteAsync(json);
+            OnSaveSettings?.Invoke();
             return true;
         }
         catch

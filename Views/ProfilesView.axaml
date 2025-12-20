@@ -22,38 +22,10 @@
             <Setter Property="VerticalAlignment" Value="{Binding $parent[StackPanel].VerticalAlignment}" />
         </Style>
         
-        <!-- YCTP Override -->
-        <Style Selector="Button.YCTPButton">
-            <Setter Property="Background">
-                <Setter.Value>
-                    <ImageBrush
-                        Source="/Assets/UI/Button_Normal_32x32.png"
-                        Stretch="Uniform"
-                    />
-                </Setter.Value>
-            </Setter>
-            <Style Selector="^ Image">
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="MaxWidth" Value="16"/>
-                <Setter Property="MaxHeight" Value="16"/>
-            </Style>
-            <!--Pointer over style consistency-->
-            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_Selected_32x32.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </Style>
-        
         <!-- Styled Labels -->
         <Style Selector="TextBlock.ProfileLabel">
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}"/>
+            <Setter Property="FontFamily" Value="{StaticResource ComicRelief}"/>
             <Setter Property="FontSize" Value="12"/>
         </Style>
     </UserControl.Styles>
@@ -114,7 +86,7 @@
                         FilterMode="Contains"
                     />
                     <Button 
-                        Classes="ModViewerHeader YCTPButton"
+                        Classes="ModViewerHeader YCTPButton SmallYCTPButton"
                         Margin="5 0 0 0"
                         Command="{CompiledBinding ResetSearch}">
                         <Image
@@ -165,7 +137,7 @@
                                                 Spacing="5">
                                         <!-- Info Button -->
                                         <Button
-                                            Classes="YCTPButton"
+                                            Classes="YCTPButton SmallYCTPButton"
                                             Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding Id}">
                                             <Image Source="/Assets/UI/Icon_ProfilesBtn.png"/>

@@ -43,7 +43,7 @@
                     FontSize="25"
                     TextTrimming="CharacterEllipsis"
                     FontWeight="ExtraLight"
-                    FontFamily="{DynamicResource WorkSans}"/>
+                    FontFamily="{StaticResource WorkSans}"/>
             </Border>
             
             <!-- Description -->
@@ -53,7 +53,7 @@
                     MaxWidth="650"
                     TextWrapping="Wrap"
                     FontSize="18"
-                    FontFamily="{DynamicResource ComicRelief}"
+                    FontFamily="{StaticResource ComicRelief}"
                     />
             </Border>
             

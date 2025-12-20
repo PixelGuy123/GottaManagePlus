@@ -38,43 +38,72 @@
     <!-- Default Button -->
     <Style Selector="Button">
         <Setter Property="Padding" Value="0"/>
-    </Style>
-    
-    <!--BUTTON STYLING-->
-    <Style Selector="Button.YCTPButton">
-        <Setter Property="Background">
-            <Setter.Value>
-                <ImageBrush
-                    Source="/Assets/UI/Button_Normal_48x48.png"
-                    Stretch="Uniform"
-                />
-            </Setter.Value>
-        </Setter>
-        <Style Selector="^ Image">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="MaxWidth" Value="48"/>
-            <Setter Property="MaxHeight" Value="48"/>
-        </Style>
-        <!--Disable click sizing from Pressed-->
-        <Style Selector="^:pressed">
-            <Setter Property="RenderTransform" Value="none" />
-        </Style>
-        <!-- Image Update -->
-        <Style Selector="^:pointerover Image">
-            <Setter Property="BlendMode" Value="Hue"/>
-        </Style>
-        <!--Pointer over style consistency-->
-        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        
+        <!--BUTTON STYLING-->
+        <Style Selector="^.YCTPButton">
             <Setter Property="Background">
                 <Setter.Value>
                     <ImageBrush
-                        Source="/Assets/UI/Button_Normal_Selected_48x48.png"
+                        Source="/Assets/UI/Button_Normal_48x48.png"
                         Stretch="Uniform"
                     />
                 </Setter.Value>
             </Setter>
+            <Style Selector="^ Image">
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="MaxWidth" Value="48"/>
+                <Setter Property="MaxHeight" Value="48"/>
+            </Style>
+            <!--Disable click sizing from Pressed-->
+            <Style Selector="^:pressed">
+                <Setter Property="RenderTransform" Value="none" />
+            </Style>
+            <!-- Image Update -->
+            <Style Selector="^:pointerover Image">
+                <Setter Property="BlendMode" Value="Hue"/>
+            </Style>
+            <!--Pointer over style consistency-->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush
+                            Source="/Assets/UI/Button_Normal_Selected_48x48.png"
+                            Stretch="Uniform"
+                        />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            
+            <!-- YCTP 32x32 -->
+            <Style Selector="^.SmallYCTPButton">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush
+                            Source="/Assets/UI/Button_Normal_32x32.png"
+                            Stretch="Uniform"
+                        />
+                    </Setter.Value>
+                </Setter>
+                <Style Selector="^ Image">
+                    <Setter Property="Margin" Value="5"/>
+                    <Setter Property="MaxWidth" Value="16"/>
+                    <Setter Property="MaxHeight" Value="16"/>
+                </Style>
+                <!--Pointer over style consistency-->
+                <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <ImageBrush
+                                Source="/Assets/UI/Button_Normal_Selected_32x32.png"
+                                Stretch="Uniform"
+                            />
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Style>
         </Style>
     </Style>
+    
     
     <!--SIDE MENU STYLING-->
     <Style Selector="Button.SideMenu-Btn">
@@ -94,7 +123,7 @@
         <!-- Text Styling -->
         <Style Selector="^ TextBlock">
             <Setter Property="FontSize" Value="25" />
-            <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}" />
+            <Setter Property="FontFamily" Value="{StaticResource ComicRelief}" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -132,7 +161,7 @@
     
     <!-- Dialog Styling -->
     <Style Selector="Button.DialogBtn">
-        <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}"/>
+        <Setter Property="FontFamily" Value="{StaticResource ComicRelief}"/>
         <Setter Property="FontSize" Value="16"/>
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />

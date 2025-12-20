@@ -57,9 +57,25 @@
         <Style Selector="TextBlock.ModLabel">
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}" />
+            <Setter Property="FontFamily" Value="{StaticResource ComicRelief}" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="Foreground" Value="White" />
+        </Style>
+        
+        <!-- Body Styling -->
+        <!-- Normal Text Formatting -->
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource WorkSans}"/>
+        </Style>
+        <Style Selector="Label">
+            <Setter Property="FontFamily" Value="{StaticResource WorkSans}"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        
+        <Style Selector="TextBlock.ColumnTitle">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Bold"/>
         </Style>
     </UserControl.Styles>
     
@@ -90,20 +106,15 @@
                     FontSize="25"
                     TextTrimming="CharacterEllipsis"
                     FontWeight="ExtraLight"
-                    FontFamily="{DynamicResource WorkSans}"/>
+                    FontFamily="{StaticResource WorkSans}"/>
             </Border>
             
-            <!-- Description -->
-            <Border Grid.Row="1" Padding="10">
-                <Grid ColumnDefinitions="*, *, *" ShowGridLines="True">
+            <!-- Body -->
+            <Border Grid.Row="1" Padding="5">
+                <UniformGrid Columns="3">
                     <!-- Mod Displayer -->
-                    <StackPanel Grid.Column="0" Margin="10 0">
-                        <TextBlock Text="Mods"
-                                   HorizontalAlignment="Center"
-                                   FontSize="24"
-                                   FontWeight="Bold"
-                                   FontFamily="{DynamicResource WorkSans}"
-                                   />
+                    <StackPanel Margin="10 0">
+                        <TextBlock Text="Mods" Classes = "ColumnTitle"/>
                         <Border
                             BorderBrush="{DynamicResource Menu-Header-Bg}"
                             BorderThickness="5"
@@ -113,6 +124,7 @@
                             <ScrollViewer
                                 Margin="5">
                                 <ItemsControl
+                                    Padding="5"
                                     ItemsSource="{Binding Profile.ModMetaDataList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="models:ModItem">
@@ -142,8 +154,95 @@
                                 </ItemsControl>
                             </ScrollViewer>
                         </Border>
+                        <TextBlock FontWeight="Bold"> <!-- Mod Count -->
+                            <Run Text="Mod Count:"/>
+                            <Run Text="{Binding Profile.ModMetaDataList.Count}"/>
+                        </TextBlock>
                     </StackPanel>
-                </Grid>
+                    <!-- Metadata Displayer -->
+                    <Panel>
+                        <!-- Separators -->
+                        <Path Data="M 0,0 L 0,100 M 50,0 L 50,100" 
+                              Stretch="Fill"
+                              Stroke="Black" StrokeThickness="4" 
+                              StrokeDashArray="5, 1" Opacity="0.25" 
+                        />
+                        <StackPanel Margin="10 0">
+                            <TextBlock Text="Info" Classes = "ColumnTitle"/>
+                            <Border
+                                BorderBrush="{DynamicResource Menu-Header-Bg}"
+                                BorderThickness="0 2 0 0"/>
+                            
+                            <!-- Creation date -->
+                            <Label Content="Created at:"/>
+                            <TextBlock Text="{Binding Profile.CreationDate}"/>
+                            <!-- Update date -->
+                            <Label Content="Last modified:"/>
+                            <TextBlock Text="{Binding Profile.UpdateDate}"/>
+                            <!-- Profile Path -->
+                            <Label Content="Profile Path:"/>
+                            <TextBox
+                                IsReadOnly="True"
+                                Text="{Binding Profile.FullOsPath}"
+                                Watermark="Path missing!"/>
+                        </StackPanel>
+                    </Panel>
+                    <!-- Configs Displayer -->
+                    <StackPanel Margin="10 0">
+                            <TextBlock Text="Configurations" Classes="ColumnTitle"/>
+                            <Border
+                                BorderBrush="{DynamicResource Menu-Header-Bg}"
+                                BorderThickness="5"
+                                Background="{DynamicResource ListInnerBg}"
+                                CornerRadius="10"
+                                ClipToBounds="True">
+                                <ScrollViewer
+                                    Margin="5">
+                                    <ItemsControl
+                                        Padding="5"
+                                        ItemsSource="{Binding Profile.ConfigsMetaDataList}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="models:ItemWithPath">
+                                                <Panel>
+                                                    <StackPanel Margin="0 2" Orientation="Vertical">
+                                                        <Border
+                                                            Classes="YCTP">
+                                                            <DockPanel Margin="5">
+                                                                <!-- Edit Button -->
+                                                                <Button DockPanel.Dock="Right" Margin="0 2"
+                                                                    Classes="YCTPButton SmallYCTPButton">
+                                                                    <Image Source="/Assets/UI/Icon_ProfilesBtn.png"/>
+                                                                </Button>
+                                                                <Panel>
+                                                                    <Border
+                                                                        HorizontalAlignment="{Binding $parent[Border].HorizontalAlignment}"
+                                                                        VerticalAlignment="{Binding $parent[Border].VerticalAlignment}"
+                                                                        CornerRadius="{Binding $parent[Border].CornerRadius}"
+                                                                        Margin="3"
+                                                                        Background="Black">
+                                                                    </Border>
+                                                                    <TextBlock
+                                                                        Margin="8"
+                                                                        Text="{Binding FileName}"
+                                                                        FontSize="11"
+                                                                        TextTrimming="CharacterEllipsis"
+                                                                        Classes="ModLabel"/>
+                                                                </Panel>
+                                                            </DockPanel>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Panel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+                            <TextBlock FontWeight="Bold"> <!-- Mod Count -->
+                                <Run Text="Configs Count:"/>
+                                <Run Text="{Binding Profile.ConfigsMetaDataList.Count}"/>
+                            </TextBlock>
+                        </StackPanel>
+                </UniformGrid>
             </Border>
             
             <!-- Buttons -->

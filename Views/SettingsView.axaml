@@ -117,7 +117,7 @@
                         Grid.Column="0" 
                         Margin="10 5"
                         Orientation="Vertical">
-                            <Label Content="Baldi's Basics Plus' Folder Path:"/>
+                            <Label Content="Baldi's Basics Plus' Executable Path:"/>
                             <DockPanel HorizontalSpacing="5">
                                 <!-- Select file Dialog -->
                                 <Button
@@ -129,7 +129,7 @@
                                 </Button>
                                 <TextBox
                                     IsReadOnly="True"
-                                    Text="{Binding CurrentSaveState.GameFolderPath}"
+                                    Text="{Binding CurrentSaveState.GameExecutablePath}"
                                     Watermark="Select a path"/>
                             </DockPanel>
                             

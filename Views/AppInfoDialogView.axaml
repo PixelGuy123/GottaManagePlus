@@ -72,7 +72,7 @@
                     FontSize="25"
                     TextTrimming="CharacterEllipsis"
                     FontWeight="ExtraLight"
-                    FontFamily="{DynamicResource WorkSans}"/>
+                    FontFamily="{StaticResource WorkSans}"/>
             </Border>
             
             <!-- Description -->
@@ -87,7 +87,7 @@
                         TextWrapping="Wrap"
                         FontSize="18"
                         TextAlignment="Center"
-                        FontFamily="{DynamicResource ComicRelief}"
+                        FontFamily="{StaticResource ComicRelief}"
                     >
                         <Run Foreground="Yellow" FontStyle="Italic" Text="Gotta Manage Plus"/>
                         <Run Text="was carefully created by"/>
@@ -106,7 +106,7 @@
                         Opacity="0.65"
                         FontSize="16"
                         FontStyle="Italic"
-                        FontFamily="{DynamicResource ComicRelief}">
+                        FontFamily="{StaticResource ComicRelief}">
                         <Run Text="Build:"/>
                         <Run Text="{CompiledBinding AppVersion}"/>
                         <LineBreak/>

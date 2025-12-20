@@ -13,7 +13,7 @@
     <!-- SideMenu TextBlock Styling -->
     <Style Selector="TextBlock.SideMenu-Label">
         <Setter Property="Margin" Value="0 1.75" />
-        <Setter Property="FontFamily" Value="{DynamicResource Baskerville}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Baskerville}"/>
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="FontSize" Value="28"/>

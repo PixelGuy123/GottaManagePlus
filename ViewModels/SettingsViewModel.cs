@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 
@@ -13,18 +15,18 @@ public partial class SettingsViewModel : PageViewModel
         // For designer
     }
 
-    public SettingsViewModel(FilesService filesService, SettingsService settingsService) : base(PageNames.Settings)
+    public SettingsViewModel(FilesService filesService, SettingsService settingsService, IGameFolderViewer gameFolderViewer) : base(PageNames.Settings)
     {
         _filesService = filesService;
         _settingsService = settingsService;
         CurrentSaveState = Models.SaveState.InitializeState(settingsService);
+        _gameFolderViewer = gameFolderViewer;
     }
     
     // Private members
-    
     private readonly FilesService _filesService = null!;
     private readonly SettingsService _settingsService = null!;
-    // private readonly IPlusService = null!; // Service to communicate with the BB+ Folder in general
+    private readonly IGameFolderViewer _gameFolderViewer = null!;
     
     // Observable Members
     [ObservableProperty] 
@@ -34,24 +36,39 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     public async Task SetFilePathForPlusFolder()
     {
-        // TODO: Communicate with the IPlusService to validate the Plus folder & bookmark it
-        var folder = await _filesService.OpenFolderAsync();
+        var file = await _filesService.OpenFileAsync();
         
-        // TEMP ASSIGNMENT
-        if (folder != null)
-            CurrentSaveState.GameFolderPath = folder.Path.AbsolutePath;
+        // If the file is null, leave
+        if (file == null) return;
+        
+        // Get local path
+        var fileLocalPath = file.TryGetLocalPath();
+
+        if (!string.IsNullOrEmpty(fileLocalPath) &&
+            _gameFolderViewer.ValidateFolder(fileLocalPath, setPathIfTrue: false)) // Do not set path until confirmed by Save action
+        {
+            CurrentSaveState.GameExecutablePath = fileLocalPath;
+            return;
+        }
+        
+        // TODO: Display dialog for failure
     }
 
     [RelayCommand]
     public async Task SaveState()
     {
+        // Serialize saved state
         CurrentSaveState.UpdateSavedState();
         
-        // Actually save settings
         var settings = _settingsService.CurrentSettings;
-        if (!string.IsNullOrEmpty(CurrentSaveState.GameFolderPath))
-            settings.BaldiPlusFilePath = CurrentSaveState.GameFolderPath;
-        // TODO: Save bookmark
+        // Saving executable path
+        if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath))
+            settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
+
+        // Saving executable path to the folder validator
+        _gameFolderViewer.ValidateFolder(settings.BaldiPlusExecutablePath);
+        
+        // TODO: Add and save bookmark
         
         // TODO: Display Saving... Popup
         var status = await _settingsService.Save();

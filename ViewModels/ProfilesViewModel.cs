@@ -6,7 +6,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
-using GottaManagePlus.Views;
 
 namespace GottaManagePlus.ViewModels;
 

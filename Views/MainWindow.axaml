@@ -162,9 +162,12 @@
                         
                         <StackPanel Grid.Row="1" Margin="10" Orientation="Vertical">
                             <Button
+                                Name="MyModsBtn"
                                 Classes="SideMenu-Btn"
                                 Command="{CompiledBinding GoToHomeCommand}"
                                 HorizontalContentAlignment="Center"
+                                Opacity="{Binding ExecutablePathSet}"
+                                IsHitTestVisible="{Binding ExecutablePathSet}"
                             >
                                 <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock HorizontalAlignment="Center" Text="My Mods"/> <!-- Aligned Text -->

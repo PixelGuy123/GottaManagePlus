@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using GottaManagePlus.Factories;
+using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 using GottaManagePlus.ViewModels;
@@ -38,6 +39,7 @@ public partial class App : Application
         collection.AddSingleton<DialogService>();
         collection.AddSingleton<FilesService>();
         collection.AddSingleton<SettingsService>();
+        collection.AddSingleton<IGameFolderViewer, PlusFolderViewer>();
         
         // View Models
         collection.AddSingleton<MainWindowViewModel>(); // Singleton

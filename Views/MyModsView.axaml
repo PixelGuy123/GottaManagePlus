@@ -41,7 +41,7 @@
         <Style Selector=":is(TextBlock).ModLabel" x:DataType="models:ModItem">
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontFamily" Value="{DynamicResource ComicRelief}" />
+            <Setter Property="FontFamily" Value="{StaticResource ComicRelief}" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="Foreground" Value="White" />
         </Style>

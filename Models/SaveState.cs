@@ -7,7 +7,8 @@ using GottaManagePlus.Services;
 
 namespace GottaManagePlus.Models;
 
-public class SaveState : INotifyPropertyChanged // An "observable" AppSettings; Manually implements INotify due to source generators issue (https://github.com/AvaloniaUI/Avalonia/discussions/18593)
+public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
+                                                // Manually implements INotify due to source generators issue (https://github.com/AvaloniaUI/Avalonia/discussions/18593)
 {
     private static readonly JsonSerializerOptions DefaultOptions = new()
     {
@@ -30,7 +31,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings; 
         
         // Update State Fields
         var currentSettings = settingsService.CurrentSettings;
-        state.GameFolderPath = currentSettings.BaldiPlusFilePath;
+        state.GameExecutablePath = currentSettings.BaldiPlusExecutablePath;
         
         // Serialize last saved state
         state._savedState = JsonSerializer.Serialize(state, DefaultOptions);
@@ -39,12 +40,12 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings; 
     
     // *** Observables ***
     // Observable Private Members
-    private string? _gameFolderPath;
+    private string? _gameExecutablePath;
     // Observable Properties
-    public string? GameFolderPath
+    public string? GameExecutablePath
     {
-        get => _gameFolderPath;
-        set { _gameFolderPath = value; OnPropertyChanged(nameof(GameFolderPath)); OnPropertyChanged(nameof(HasChanged)); }
+        get => _gameExecutablePath;
+        set { _gameExecutablePath = value; OnPropertyChanged(nameof(GameExecutablePath)); OnPropertyChanged(nameof(HasChanged)); }
     }
     
     // Public members
