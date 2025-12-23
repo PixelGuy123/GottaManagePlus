@@ -6,8 +6,15 @@ using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Services;
 
+/// <summary>
+/// A cross-platform implementation of <see cref="IGameFolderViewer"/> tailored for specific OS requirements.
+/// </summary>
 public class PlusFolderViewer : IGameFolderViewer
 {
+    /// <summary>
+    /// Validates the game executable based on the current Operating System (Windows, macOS, or Linux).
+    /// </summary>
+    /// <inheritdoc/>
     public bool ValidateFolder(string executablePath, bool setPathIfTrue = true)
     {
         if (string.IsNullOrWhiteSpace(executablePath))
@@ -15,26 +22,32 @@ public class PlusFolderViewer : IGameFolderViewer
             Debug.WriteLine("executablePath is empty.", Constants.DebugWarning);
             return false;
         }
+
+        // Make it a long path and full if possible
+        executablePath = FileUtils.GetLongPath(Path.GetFullPath(executablePath));
         
         if (!File.Exists(executablePath))
         {
-            Debug.WriteLine($"Failed to find the executable file ({Path.GetFullPath(executablePath)}).", Constants.DebugWarning);
+            Debug.WriteLine($"Failed to find the executable file ({executablePath}).", Constants.DebugWarning);
             return false;
         }
 
-        var rootPath = Path.GetDirectoryName(Path.GetFullPath(executablePath));
+        var rootPath = Path.GetDirectoryName(executablePath);
         if (string.IsNullOrEmpty(rootPath))
         {
-            Debug.WriteLine($"Failed to get the directory name from path ({Path.GetFullPath(executablePath)}).", Constants.DebugWarning);
+            Debug.WriteLine($"Failed to get the directory name from path ({executablePath}).", Constants.DebugWarning);
             return false;
         }
+        
+        // Convert to long path if possible
+        rootPath = FileUtils.GetLongPath(rootPath);
         
         if (OperatingSystem.IsWindows())
         {
             // If executable is BALDI.exe
             if (Path.GetFileName(executablePath) != "BALDI.exe")
             {
-                Debug.WriteLine($"Executable path is not BALDI.exe ({Path.GetFullPath(executablePath)}).", Constants.DebugWarning);
+                Debug.WriteLine($"Executable path is not BALDI.exe ({executablePath}).", Constants.DebugWarning);
                 return false;
             }
 
@@ -51,15 +64,16 @@ public class PlusFolderViewer : IGameFolderViewer
             
             _baldiDataFolder = baldiDataFolder;
             RootPath = rootPath;
+            
             return true;
         }
 
         if (OperatingSystem.IsMacOS())
         {
             // if executable is BALDI.app
-            if (Path.GetFileName(executablePath) != "BALDI.app" || !UnixUtils.CheckIfUnixFileIsExecutable(executablePath))
+            if (Path.GetFileName(executablePath) != "BALDI.app" || !FileUtils.CheckIfUnixFileIsExecutable(executablePath))
             {
-                Debug.WriteLine($"Executable path is not BALDI.app or not an executable ({Path.GetFullPath(executablePath)}).", Constants.DebugWarning);
+                Debug.WriteLine($"Executable path is not BALDI.app or not an executable ({executablePath}).", Constants.DebugWarning);
                 return false;
             }
 
@@ -82,9 +96,9 @@ public class PlusFolderViewer : IGameFolderViewer
         if (OperatingSystem.IsLinux())
         {
             // if executable is BALDI.app
-            if (Path.GetFileName(executablePath) != "BALDI.x86_64" || !UnixUtils.CheckIfUnixFileIsExecutable(executablePath))
+            if (Path.GetFileName(executablePath) != "BALDI.x86_64" || !FileUtils.CheckIfUnixFileIsExecutable(executablePath))
             {
-                Debug.WriteLine($"Executable path is not BALDI.x86_64 or not an executable ({Path.GetFullPath(executablePath)}).", Constants.DebugWarning);
+                Debug.WriteLine($"Executable path is not BALDI.x86_64 or not an executable ({executablePath}).", Constants.DebugWarning);
                 return false;
             }
 
@@ -107,21 +121,64 @@ public class PlusFolderViewer : IGameFolderViewer
         return false;
     }
 
-    public Version GetGameVersion()
+    /// <summary>
+    /// Combines paths and verifies that the resulting path does not escape the <see cref="RootPath"/>.
+    /// </summary>
+    /// <param name="paths">The path in sequence to be followed.</param>
+    /// <inheritdoc/>
+    public string SearchPath(params string[] paths)
     {
-        throw new NotImplementedException();
+        if (paths.Length < 1)
+            throw new ArgumentOutOfRangeException(nameof(paths));
+        
+        var formedPath = paths.Length != 1 ? Path.Combine(paths) : paths[0];
+        var absolutePath = Path.Combine(RootPath, formedPath);
+
+        return !absolutePath.StartsWith(RootPath) ? 
+            throw new InvalidOperationException($"AbsolutePath attempts to leave the RootPath. ({formedPath})") : 
+            FileUtils.GetLongPath(absolutePath);
+    }
+    /// <summary>
+    /// Try to combine paths and guarantee the resulting path does not escape the <see cref="RootPath"/>.
+    /// </summary>
+    /// <param name="absolutePath">The absolute path created by the search</param>
+    /// <param name="paths">The path in sequence to be followed.</param>
+    /// <returns><see langword="true"/> if the search was done successfully and within the game's root folder; otherwise, <see langword="false"/>.</returns>
+    public bool TrySearchPath(out string absolutePath, params string[] paths) 
+        // If returns false, whatever tried to search it is definitely trying to leave the RootPath!
+    {
+        absolutePath = string.Empty;
+        try
+        {
+            absolutePath = SearchPath(paths);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
-    public string? GetBaldiDataPath() => _baldiDataFolder;
-    
-    
-    public string? GetBepInExPath()
+    /// <summary>
+    /// Resolves common directories using the local configuration.
+    /// </summary>
+    /// <inheritdoc/>
+    public string GetPathFrom(IGameFolderViewer.CommonDirectory directoryType) => directoryType switch
     {
-        var bepinexPath = Path.Combine(RootPath, "BepInEx");
-        return Directory.Exists(bepinexPath) ? bepinexPath : null;
-    }
+        IGameFolderViewer.CommonDirectory.BaldiData => _baldiDataFolder,
+        IGameFolderViewer.CommonDirectory.BepInEx => SearchPath("BepInEx"),
+        IGameFolderViewer.CommonDirectory.ManagerRoot => SearchPath(Constants.AppRootFolder),
+        _ => throw new ArgumentException(directoryType.ToString())
+    };
+    /// <inheritdoc/>
+    public string GetGameRootPath() => RootPath;
+    
 
     // Public getters
+    /// <summary>
+    /// Gets the current validated root path of the game.
+    /// </summary>
+    /// <exception cref="NullReferenceException">Thrown if the root path has not been set via validation.</exception>
     public string RootPath
     {
         get => string.IsNullOrEmpty(_rootPath) ? throw new NullReferenceException("RootPath is undefined.") : _rootPath;

@@ -5,7 +5,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using GottaManagePlus.Factories;
-using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 using GottaManagePlus.ViewModels;
@@ -39,7 +38,8 @@ public partial class App : Application
         collection.AddSingleton<DialogService>();
         collection.AddSingleton<FilesService>();
         collection.AddSingleton<SettingsService>();
-        collection.AddSingleton<IGameFolderViewer, PlusFolderViewer>();
+        collection.AddSingleton<PlusFolderViewer>();
+        collection.AddSingleton<ProfileProvider>();
         
         // View Models
         collection.AddSingleton<MainWindowViewModel>(); // Singleton
@@ -72,8 +72,14 @@ public partial class App : Application
             };
             
             // Assign services dependent on the MainWindow
-            services.GetRequiredService<FilesService>()
-                .RegisterProvider(desktop.MainWindow.StorageProvider);
+            var filesService = services.GetRequiredService<FilesService>();
+            filesService.RegisterProvider(desktop.MainWindow.StorageProvider);
+            filesService.RegisterLauncher(desktop.MainWindow.Launcher);
+            
+            // Assigns the necessary components to the Profile Provider
+            var profilesProvider = services.GetRequiredService<ProfileProvider>();
+            profilesProvider.RegisterViewer(services.GetRequiredService<PlusFolderViewer>()); // IGameFolderViewer
+            
         }
 
         base.OnFrameworkInitializationCompleted();

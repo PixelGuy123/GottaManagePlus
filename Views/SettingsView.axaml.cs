@@ -12,7 +12,7 @@ public partial class SettingsView : UserControl
     }
 
     // Opacity update to not be specifically 0
-    private static void SavePanelOnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
+    private void SavePanelOnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
     {
         if (sender is not StackPanel stackPanel) return;
         // If opacity 0, change to something different

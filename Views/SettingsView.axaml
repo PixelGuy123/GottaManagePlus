@@ -22,30 +22,6 @@
             <Setter Property="Opacity" Value="0.1"/>
             <Setter Property="BorderThickness" Value="0 0 2 0"/>
         </Style>
-        
-        <Style Selector="Button.YCTPButton">
-            <Setter Property="MaxWidth" Value="32"/>
-            <Setter Property="MaxHeight" Value="32"/>
-            <Setter Property="Background">
-                <Setter.Value>
-                    <ImageBrush
-                        Source="/Assets/UI/Button_Normal_32x32.png"
-                        Stretch="Uniform"
-                    />
-                </Setter.Value>
-            </Setter>
-            <!--Pointer over style consistency-->
-            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_Selected_32x32.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </Style>
     </UserControl.Styles>
 
      <!-- START of Settings-->
@@ -121,8 +97,7 @@
                             <DockPanel HorizontalSpacing="5">
                                 <!-- Select file Dialog -->
                                 <Button
-
-                                    Classes="YCTPButton"
+                                    Classes="YCTPButton SmallYCTPButton"
                                     DockPanel.Dock="Right"
                                     Command="{CompiledBinding SetFilePathForPlusFolder}">
                                     <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>

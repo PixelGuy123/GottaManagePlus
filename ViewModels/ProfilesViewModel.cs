@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 
@@ -12,15 +15,15 @@ namespace GottaManagePlus.ViewModels;
 public partial class ProfilesViewModel : ViewModelBase
 {
     private readonly DialogService _dialogService = null!;
-    private readonly List<ProfileItem> _allProfiles = null!;
+    private readonly IProfileProvider _profileProvider = null!;
+    private readonly IFilesService _filesService = null!;
+    private readonly List<ProfileItem> _allProfiles = [];
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private ProfileItem? _lastSelectedItem;
     
-    // Public readonly properties
-    public IReadOnlyList<ProfileItem> ProfilesList => _allProfiles;
-    
     // Observable Properties
-    [ObservableProperty]
-    private ObservableCollection<ProfileItem> _observableProfiles = null!;
+    [ObservableProperty] 
+    private ObservableCollection<ProfileItem> _observableProfiles = [];
     [ObservableProperty]
     private ProfileItem? _currentProfileItem;
     [ObservableProperty]
@@ -34,6 +37,12 @@ public partial class ProfilesViewModel : ViewModelBase
 
     [RelayCommand]
     public async Task OpenProfileMetadata(int id) => await OpenProfileMetaDataAndHandleActions(id);
+
+    [RelayCommand]
+    public async Task CreateProfileUi() => await CreateProfileUiAsync();
+
+    [RelayCommand]
+    public async Task SwitchToProfile(int id) => await SwitchProfileUiAsync(id);
 
     // Previewer Constructor
     public ProfilesViewModel()
@@ -56,24 +65,27 @@ public partial class ProfilesViewModel : ViewModelBase
     }
     
     // DI Constructor
-    public ProfilesViewModel(DialogService dialogService)
+    public ProfilesViewModel(DialogService dialogService, ProfileProvider profileProvider, FilesService filesService)
+    {
+        if (Design.IsDesignMode) return;
+        
+        // Services
+        _dialogService = dialogService;
+        _filesService = filesService;
+        _profileProvider = profileProvider;
+        _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
+        
+        // Update profile data
+        _profileProvider.UpdateProfilesData();
+    }
+    
+    private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
     {
         // Initialize Data
-        _allProfiles =
-        [
-            new ProfileItem(0, "Profile 1"),
-            new ProfileItem(1, "Profile 2"),
-            new ProfileItem(2, "Profile 3"),
-            new ProfileItem(3, "The Ultimate ModPack"),
-            new ProfileItem(4, "Biggest Modpack ever"),
-            new ProfileItem(5, "Funny mod pack with the longest trollest biggest hugest name that you've ever seen.")
-        ];
-        
-        // Initialize collections
-        ObservableProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
-        
-        // Dialog Service
-        _dialogService = dialogService;
+        _allProfiles.Clear();
+        _allProfiles.AddRange(_profileProvider.GetLoadedProfiles());
+
+        ResetListVisibleConfigurations();
     }
     
     // Private methods
@@ -125,7 +137,13 @@ public partial class ProfilesViewModel : ViewModelBase
             return;
         }
 
-        var profileViewer = new PreviewProfileDialogViewModel(_allProfiles[index]);
+        // Create profile viewer
+        var profileViewer = new PreviewProfileDialogViewModel(
+            _allProfiles[index], 
+            _allProfiles.Count > 1, 
+            _filesService);
+        
+        // Loop until the dialog is truly closed
         while (true)
         {
             profileViewer.ResetState(); // Reset dialog state (IsDialogOpen, for example)
@@ -145,7 +163,7 @@ public partial class ProfilesViewModel : ViewModelBase
     
     private async Task<bool> DeleteProfileItemUiAsync(int index) // Delete asynchronously the items
     {
-        var confirmViewModel = new ConfirmDialogViewModel()
+        var confirmViewModel = new ConfirmDialogViewModel
         {
             Title = $"Delete {_allProfiles[index].ProfileName}?",
             Message = "Are you sure you want to delete this profile?",
@@ -153,14 +171,64 @@ public partial class ProfilesViewModel : ViewModelBase
             CancelText = "No"
         };
 
+        // Show confirmation dialog
         await _dialogService.ShowDialog(confirmViewModel);
         
         // Do not if not accepted
         if (!confirmViewModel.Confirmed)
             return false;
-        
-        _allProfiles.RemoveAt(index);
-        ResetListVisibleConfigurations();
+
+        // TODO: Display a progress bar dialog for this process
+        if (!await _profileProvider.DeleteProfile(index))
+        {
+            // TODO: Show dialog warning something went wrong during deletion! And cancel, of course.
+            return false;
+        }
         return true;
+    }
+
+    private async Task CreateProfileUiAsync()
+    {
+        // TODO: Display a progress bar dialog for this process
+        await _profileProvider.AddProfile(new ProfileItemMetaData
+        {
+            ProfileName = "SomeRandomProfile_" + new System.Random().Next(0, 256),
+            AllUsedDirectoryPaths = []
+        });
+    }
+
+    private async Task SwitchProfileUiAsync(int id)
+    {
+        if (id < 0 || id >= _allProfiles.Count)
+            throw new IndexOutOfRangeException($"Profile ID ({id}) is out of range.");
+
+        if (_profileProvider.GetActiveProfile() == _allProfiles[id]) // Ignores completely
+            return;
+    
+        var confirmViewModel = new ConfirmDialogViewModel
+        {
+            Title = $"Switch to {_allProfiles[id].ProfileName}?",
+            Message = "Are you sure you want to switch to this profile?\nAll data from your previous profile will be saved first.",
+            ConfirmText = "Yes",
+            CancelText = "No"
+        };
+
+        // Show confirmation dialog
+        await _dialogService.ShowDialog(confirmViewModel);
+        
+        // Do not if not accepted
+        if (!confirmViewModel.Confirmed)
+            return;
+        
+        // Save previous profile
+        if (!await _profileProvider.SaveActiveProfile())
+        {
+            // If failed, show a dialog
+            // TODO: Create a dialog to warn it failed.
+            return;
+        }
+        
+        // Switch profile
+        await _profileProvider.SetActiveProfile(id);
     }
 }

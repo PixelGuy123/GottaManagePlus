@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="using:GottaManagePlus.Models"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="650"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="650"
              x:Class="GottaManagePlus.Views.ProfilesView"
              x:DataType="vm:ProfilesViewModel">
     
@@ -15,6 +15,29 @@
         <StyleInclude Source="/Styles/style.axaml"/>
     </Design.DesignStyle>
     
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <LinearGradientBrush
+                x:Key="YctpBg"
+                StartPoint="0% 100%"
+                EndPoint="0% 0%">
+                <LinearGradientBrush.GradientStops>
+                    <GradientStop Color="#118500" Offset="0.0" />
+                    <GradientStop Color="#12FF00" Offset="0.5" />
+                </LinearGradientBrush.GradientStops>
+            </LinearGradientBrush>
+            <LinearGradientBrush
+                x:Key="YctpBg-Selected"
+                StartPoint="0% 100%"
+                EndPoint="0% 0%">
+                <LinearGradientBrush.GradientStops>
+                    <GradientStop Color="#85820A" Offset="0.0" />
+                    <GradientStop Color="#FFF900" Offset="0.5" />
+                </LinearGradientBrush.GradientStops>
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <UserControl.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
         
@@ -54,9 +77,8 @@
             <StackPanel 
                 Margin="0 0 0 5"
                 Grid.Row="0"
-                HorizontalAlignment="Center"
                 Orientation="Vertical">
-                <Panel> <!-- Stack TextBlocks together -->
+                <Panel DockPanel.Dock="Left" HorizontalAlignment="Left"> <!-- Stack TextBlocks together -->
                     <!--TEMP COMMENT: USE LANGUAGE HERE-->
                     <TextBlock 
                         Text="Profiles" 
@@ -71,31 +93,49 @@
                         VerticalAlignment="Center"
                         Classes="SideMenu-Label RightHeader"/>
                 </Panel>
-                <StackPanel 
-                    Margin="5 0"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
-                    <AutoCompleteBox
-                        Classes="ModViewerHeader"
-                        Width="110"
-                        Watermark="Search"
-                        ItemsSource="{Binding ProfilesList}"
-                        SelectedItem="{Binding CurrentProfileItem}"
-                        Text="{Binding Text}"
-                        ValueMemberBinding="{Binding ProfileName, DataType=models:ProfileItem}"
-                        FilterMode="Contains"
-                    />
+                <Grid ColumnDefinitions="Auto, *">
+                    <StackPanel
+                        Grid.Column="0"
+                        Margin="5 0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <!-- Search field -->
+                        <AutoCompleteBox
+                            Classes="ModViewerHeader"
+                            Width="140"
+                            Watermark="Search"
+                            ItemsSource="{Binding ObservableProfiles}"
+                            SelectedItem="{Binding CurrentProfileItem}"
+                            Text="{Binding Text}"
+                            ValueMemberBinding="{Binding ProfileName, DataType=models:ProfileItem}"
+                            FilterMode="Contains"
+                        />
+                        <Button 
+                            Classes="ModViewerHeader YCTPButton"
+                            Margin="5 0 0 0"
+                            Command="{CompiledBinding ResetSearch}">
+                            <Image
+                                Source="/Assets/UI/Icon_Cancel_Generic.png"
+                                Width="24"
+                                Height="24"
+                            />
+                        </Button>
+                        
+                    </StackPanel>
+                    <!-- Add Profile Field -->
                     <Button 
-                        Classes="ModViewerHeader YCTPButton SmallYCTPButton"
-                        Margin="5 0 0 0"
-                        Command="{CompiledBinding ResetSearch}">
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Margin="5 0"
+                        Command="{CompiledBinding CreateProfileUi}"
+                        Classes="ModViewerHeader YCTPButton">
                         <Image
-                            Source="/Assets/UI/Icon_Cancel_Generic.png"
+                            Source="/Assets/UI/Icon_AddModContainer.png"
                             Width="24"
                             Height="24"
                         />
                     </Button>
-                </StackPanel>
+                </Grid>
             </StackPanel>
             <!-- Actual Mod Scroll Viewer -->
             <ScrollViewer 
@@ -103,24 +143,33 @@
             Background="{DynamicResource ProfilesBg}">
 
             <ItemsControl
+                Name="ProfileListElement"
                 ItemsSource="{Binding ObservableProfiles}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:ProfileItem}">
                             <Panel>
                                 <!--Background for the shade effect-->
                                 <Border
-                                        CornerRadius="5"
-                                        ClipToBounds="True"
-                                        BorderThickness="5"
-                                        BoxShadow="inset 50 -25 125 0 Black"
-                                        Background="Gray"
-                                        BorderBrush="{DynamicResource YctpBg}">
-                                </Border>
+                                    CornerRadius="5"
+                                    ClipToBounds="True"
+                                    BorderThickness="5"
+                                    BoxShadow="inset 50 -25 125 0 Black"
+                                    IsVisible="{CompiledBinding !IsSelectedProfile}"
+                                    Background="Gray"
+                                    BorderBrush="{DynamicResource YctpBg}"/>
+                                <Border
+                                    IsVisible="{CompiledBinding IsSelectedProfile}"
+                                    CornerRadius="5"
+                                    ClipToBounds="True"
+                                    BorderThickness="5"
+                                    BoxShadow="inset 50 -25 125 0 Black"
+                                    Background="Gray"
+                                    BorderBrush="{DynamicResource YctpBg-Selected}"/>
                                 
                                 <Grid ColumnDefinitions="*, Auto" 
                                       HorizontalAlignment="Stretch" 
                                       VerticalAlignment="Stretch"
-                                      Margin="0 5 5 5">
+                                      Margin="0 5 10 5">
                                     <!--Mod Name Layout-->
                                     <Panel Grid.Column="0">
                                         <StackPanel Margin="15 10" Orientation="Vertical">
@@ -135,11 +184,18 @@
                                                 Orientation="Horizontal"
                                                 HorizontalAlignment="Right"
                                                 Spacing="5">
+                                        <!-- Switch Default Button -->
+                                        <Button
+                                            Classes="YCTPButton SmallYCTPButton"
+                                            Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
+                                            CommandParameter="{CompiledBinding Id}">
+                                            <Image Source="/Assets/UI/Icon_ProfilesBtn.png"/>
+                                        </Button>
                                         <!-- Info Button -->
                                         <Button
                                             Classes="YCTPButton SmallYCTPButton"
                                             Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding Id}">
+                                            CommandParameter="{CompiledBinding Id}">
                                             <Image Source="/Assets/UI/Icon_ProfilesBtn.png"/>
                                         </Button>
                                     </StackPanel>

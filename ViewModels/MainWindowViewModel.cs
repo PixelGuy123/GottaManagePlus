@@ -51,7 +51,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     }
     
     // Constructor
-    public MainWindowViewModel(PageFactory pageFactory, DialogService dialogService, IGameFolderViewer gameFolderViewer, SettingsService settingsService)
+    public MainWindowViewModel(PageFactory pageFactory, DialogService dialogService, PlusFolderViewer gameFolderViewer, SettingsService settingsService)
     {
         _pageFactory = pageFactory;
         _dialogService = dialogService;

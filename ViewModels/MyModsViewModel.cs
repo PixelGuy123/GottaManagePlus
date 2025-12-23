@@ -5,22 +5,28 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
 
 namespace GottaManagePlus.ViewModels;
 
+// TODO: Add an indicator of "No mods available" to the Mod Viewer.
+// TODO: Add a mod counter.
+// TODO: Add a current profile indicator in the header.
+
 public partial class MyModsViewModel : PageViewModel
 {
-    private readonly List<ModItem> _allMods = null!;
+    private readonly List<ModItem> _allMods = [];
     private ModItem? _lastSelectedItem;
     private readonly DialogService _dialogService = null!;
+    private readonly IProfileProvider _profileProvider = null!;
     
     // Public readonly properties
     public IReadOnlyList<ModItem> ModList => _allMods;
     
     // Observable Properties
     [ObservableProperty]
-    private ObservableCollection<ModItem> _observableMods = null!;
+    private ObservableCollection<ModItem> _observableMods = [];
     [ObservableProperty]
     private ModItem? _currentModItem;
     [ObservableProperty]
@@ -37,7 +43,7 @@ public partial class MyModsViewModel : PageViewModel
     
     
     // For designer
-    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!))
+    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, null!, null!))
     {
         if (!Design.IsDesignMode) return;
         
@@ -57,27 +63,23 @@ public partial class MyModsViewModel : PageViewModel
     }
     
     // Constructor
-    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel) : base(PageNames.Home, profilesViewModel)
+    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel, ProfileProvider profileProvider) : base(PageNames.Home, profilesViewModel)
     {
-        // Initialize Data
-        _allMods =
-        [
-            new ModItem(0, "Mod 1"),
-            new ModItem(1, "Mod 2"),
-            new ModItem(2, "Mod 3"),
-            new ModItem(3, "Baldi's Basics Times"),
-            new ModItem(4, "Baldi's Basics Advanced Edition"),
-            new ModItem(5, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu.")
-        ];
-
-        // Initialize collections
-        ObservableMods = new ObservableCollection<ModItem>(_allMods);
-        
-        // Dialog Service
+        // Service
         _dialogService = dialogService;
+        _profileProvider = profileProvider;
+        _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
     }
 
     // Private methods
+    private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
+    {
+        _allMods.Clear();
+        _allMods.AddRange(provider.GetActiveProfile().ModMetaDataList);
+        
+        ResetListVisibleConfigurations();
+    }
+    
     private void UpdateModsList(ModItem? highlightedItem)
     {
         // If item is not null, insert it at the top

@@ -7,5 +7,4 @@ public class AppSettingsWrapper
 public class AppSettings
 {
     public required string BaldiPlusExecutablePath { get; set; }
-    public required string FolderBookmarkId { get; set; }
 }

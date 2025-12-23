@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -15,7 +16,7 @@ public partial class SettingsViewModel : PageViewModel
         // For designer
     }
 
-    public SettingsViewModel(FilesService filesService, SettingsService settingsService, IGameFolderViewer gameFolderViewer) : base(PageNames.Settings)
+    public SettingsViewModel(FilesService filesService, SettingsService settingsService, PlusFolderViewer gameFolderViewer) : base(PageNames.Settings)
     {
         _filesService = filesService;
         _settingsService = settingsService;
@@ -36,22 +37,23 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     public async Task SetFilePathForPlusFolder()
     {
-        var file = await _filesService.OpenFileAsync();
+        var file = await _filesService.OpenFileAsync(title:"Select the game\'s executable.", preselectedPath: Constants.BaldiPlusFolderSteamPath);
         
         // If the file is null, leave
         if (file == null) return;
         
         // Get local path
         var fileLocalPath = file.TryGetLocalPath();
-
-        if (!string.IsNullOrEmpty(fileLocalPath) &&
-            _gameFolderViewer.ValidateFolder(fileLocalPath, setPathIfTrue: false)) // Do not set path until confirmed by Save action
+        
+        // The path must obviously not be null
+        if (!string.IsNullOrEmpty(fileLocalPath) && _gameFolderViewer.ValidateFolder(fileLocalPath, setPathIfTrue: false)) // Do not set path until confirmed by Save action
         {
             CurrentSaveState.GameExecutablePath = fileLocalPath;
             return;
         }
-        
+
         // TODO: Display dialog for failure
+        Debug.WriteLine("Failed to set the folder!", Constants.DebugWarning);
     }
 
     [RelayCommand]
@@ -67,9 +69,7 @@ public partial class SettingsViewModel : PageViewModel
 
         // Saving executable path to the folder validator
         _gameFolderViewer.ValidateFolder(settings.BaldiPlusExecutablePath);
-        
-        // TODO: Add and save bookmark
-        
+
         // TODO: Display Saving... Popup
         var status = await _settingsService.Save();
         if (status) return;

@@ -181,10 +181,20 @@
                             <TextBlock Text="{Binding Profile.UpdateDate}"/>
                             <!-- Profile Path -->
                             <Label Content="Profile Path:"/>
-                            <TextBox
-                                IsReadOnly="True"
-                                Text="{Binding Profile.FullOsPath}"
-                                Watermark="Path missing!"/>
+                            <DockPanel>
+                                <Button
+                                    Margin="5 0 0 0"
+                                    Classes="YCTPButton SmallYCTPButton"
+                                    Command="{CompiledBinding OpenProfilePath}"
+                                    DockPanel.Dock="Right">
+                                    <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                                </Button>
+                                <TextBox
+                                    IsReadOnly="True"
+                                    Text="{Binding Profile.RelativeOsPath}"
+                                    Watermark="Path missing!"/>
+                            </DockPanel>
+
                         </StackPanel>
                     </Panel>
                     <!-- Configs Displayer -->
@@ -253,8 +263,11 @@
                 Spacing="20"
                 Margin="10">
                 <Button
+                    Name="DeleteButton"
                     Content="{CompiledBinding DeleteText}" 
                     Classes="DialogBtn DangerDialogBtn"
+                    IsHitTestVisible="{CompiledBinding AllowProfileDeletion}"
+                    Opacity="{CompiledBinding AllowProfileDeletion}"
                     Command="{CompiledBinding CloseAndDeleteProfile}"/>
                 <Button
                     Content="{CompiledBinding CloseText}" 
