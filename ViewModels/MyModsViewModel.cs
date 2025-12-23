@@ -1,12 +1,15 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GottaManagePlus.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
+using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -14,17 +17,16 @@ namespace GottaManagePlus.ViewModels;
 // TODO: Add a mod counter.
 // TODO: Add a current profile indicator in the header.
 
-public partial class MyModsViewModel : PageViewModel
+public partial class MyModsViewModel : PageViewModel, IDisposable
 {
     private readonly List<ModItem> _allMods = [];
     private ModItem? _lastSelectedItem;
     private readonly DialogService _dialogService = null!;
     private readonly IProfileProvider _profileProvider = null!;
     
-    // Public readonly properties
-    public IReadOnlyList<ModItem> ModList => _allMods;
-    
     // Observable Properties
+    [ObservableProperty] 
+    private ObservableCollection<ModItem> _observableUnchangedMods = [];
     [ObservableProperty]
     private ObservableCollection<ModItem> _observableMods = [];
     [ObservableProperty]
@@ -43,7 +45,7 @@ public partial class MyModsViewModel : PageViewModel
     
     
     // For designer
-    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, null!, null!))
+    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, null!, null!, null!))
     {
         if (!Design.IsDesignMode) return;
         
@@ -60,6 +62,7 @@ public partial class MyModsViewModel : PageViewModel
         
         // Initialize collections
         ObservableMods = new ObservableCollection<ModItem>(_allMods);
+        ObservableUnchangedMods = new ObservableCollection<ModItem>(_allMods);
     }
     
     // Constructor
@@ -71,13 +74,25 @@ public partial class MyModsViewModel : PageViewModel
         _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
     }
 
+    public void Dispose()
+    {
+        _profileProvider?.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
+    }
+
     // Private methods
     private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
     {
-        _allMods.Clear();
-        _allMods.AddRange(provider.GetActiveProfile().ModMetaDataList);
-        
-        ResetListVisibleConfigurations();
+        Dispatcher.UIThread.Post(() =>
+        {
+            _allMods.Clear();
+            _allMods.AddRange(provider.GetInstanceActiveProfile().ModMetaDataList);
+
+            ObservableUnchangedMods.Clear();
+            foreach (var mod in _allMods)
+                ObservableUnchangedMods.Add(mod);
+
+            ResetListVisibleConfigurations();
+        });
     }
     
     private void UpdateModsList(ModItem? highlightedItem)

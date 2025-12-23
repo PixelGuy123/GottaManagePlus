@@ -26,8 +26,9 @@ public interface IGameFolderViewer
     /// The implementation should return the absolute path for a specific <see cref="CommonDirectory"/>.
     /// </summary>
     /// <param name="directoryType">The type of directory to resolve.</param>
+    /// <param name="relativeToRootPath">If <see langword="true"/>, the path returned will be relative to what <see cref="GetGameRootPath"/> returns.</param>
     /// <returns>The absolute path as a string.</returns>
-    string GetPathFrom(CommonDirectory directoryType);
+    string GetPathFrom(CommonDirectory directoryType, bool relativeToRootPath = false);
 
     /// <summary>
     /// The implementation should return the root directory of the game installation.

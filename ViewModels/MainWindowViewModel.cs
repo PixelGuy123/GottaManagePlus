@@ -14,7 +14,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     private readonly DialogService _dialogService = null!;
     private readonly IGameFolderViewer _gameFolderViewer = null!;
     private readonly SettingsService _settingsService = null!;
-    
+    private readonly IProfileProvider _profileProvider = null!;
     
     [ObservableProperty] 
     private bool _executablePathSet;
@@ -51,12 +51,18 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     }
     
     // Constructor
-    public MainWindowViewModel(PageFactory pageFactory, DialogService dialogService, PlusFolderViewer gameFolderViewer, SettingsService settingsService)
+    public MainWindowViewModel(
+        PageFactory pageFactory, 
+        DialogService dialogService, 
+        PlusFolderViewer gameFolderViewer, 
+        SettingsService settingsService, 
+        ProfileProvider profileProvider)
     {
         _pageFactory = pageFactory;
         _dialogService = dialogService;
         _gameFolderViewer = gameFolderViewer;
         _settingsService = settingsService;
+        _profileProvider = profileProvider;
 
         _settingsService.OnSaveSettings += UpdateExecutablePathValidation;
 
@@ -68,6 +74,28 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             // TODO: Add dialog to explicitly ask the user to set a game executable path
             CurrentPage = _pageFactory.GetPageViewModel<SettingsViewModel>();
         }
+
+        UpdateExecutablePathValidation();
+    }
+    
+    // public methods
+    public async Task<bool> HandleSettingsSave()
+    {
+        // TODO: Show dialog for saving
+        // TODO: Add progress bar for saving active profile, then the service one
+        if (await _profileProvider.SaveActiveProfile() && await _settingsService.Save()) return true;
+        
+        var confirmViewModel = new ConfirmDialogViewModel
+        {
+            Title = "Failed to save settings!",
+            Message = "Are you sure you still want to leave the application without saving changes?",
+            ConfirmText = "Yes",
+            CancelText = "No"
+        };
+
+        // Show confirmation dialog
+        await _dialogService.ShowDialog(confirmViewModel);
+        return confirmViewModel.Confirmed;
     }
     
     // Private methods

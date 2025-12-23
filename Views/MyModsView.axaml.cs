@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 
 namespace GottaManagePlus.Views;
@@ -7,5 +8,11 @@ public partial class MyModsView : UserControl
     public MyModsView()
     {
         InitializeComponent();
+        // When detached, we dispose the profiles view
+        DetachedFromVisualTree += (_, _) => 
+        {
+            if (DataContext is IDisposable disposable)
+                disposable.Dispose();
+        };
     }
 }

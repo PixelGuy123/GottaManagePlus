@@ -75,11 +75,6 @@ public partial class App : Application
             var filesService = services.GetRequiredService<FilesService>();
             filesService.RegisterProvider(desktop.MainWindow.StorageProvider);
             filesService.RegisterLauncher(desktop.MainWindow.Launcher);
-            
-            // Assigns the necessary components to the Profile Provider
-            var profilesProvider = services.GetRequiredService<ProfileProvider>();
-            profilesProvider.RegisterViewer(services.GetRequiredService<PlusFolderViewer>()); // IGameFolderViewer
-            
         }
 
         base.OnFrameworkInitializationCompleted();

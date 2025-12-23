@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -26,15 +27,21 @@ public class SettingsService(IOptions<AppSettings> initialOptions) // Doesn't us
         // The wrapper will add that "AppSettings" section into the JSON
         var wrapper = new AppSettingsWrapper { AppSettings = CurrentSettings };
         var json = JsonSerializer.Serialize(wrapper, DefaultSerializerOptions);
+        StreamWriter? writer = null;
         try
         {
-            await using var writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
+            OnSaveSettings?.Invoke(); // Invoke first, then save
+            
+            writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
             await writer.WriteAsync(json);
-            OnSaveSettings?.Invoke();
+            await writer.DisposeAsync();
             return true;
         }
-        catch
+        catch(Exception ex)
         {
+            Debug.WriteLine(ex.ToString(), Constants.DebugError);
+            if (writer != null)
+                await writer.DisposeAsync();
             return false;
         }
     }

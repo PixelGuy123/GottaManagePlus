@@ -1,27 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
+using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.ViewModels;
 
-public partial class ProfilesViewModel : ViewModelBase
+//TODO: Add an update profiles data button
+
+public partial class ProfilesViewModel : ViewModelBase, IDisposable
 {
     private readonly DialogService _dialogService = null!;
     private readonly IProfileProvider _profileProvider = null!;
+    private readonly SettingsService _settingsService = null!;
     private readonly IFilesService _filesService = null!;
     private readonly List<ProfileItem> _allProfiles = [];
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private ProfileItem? _lastSelectedItem;
     
     // Observable Properties
+    [ObservableProperty] 
+    private ObservableCollection<ProfileItem> _observableUnchangedProfiles = [];
     [ObservableProperty] 
     private ObservableCollection<ProfileItem> _observableProfiles = [];
     [ObservableProperty]
@@ -37,6 +42,9 @@ public partial class ProfilesViewModel : ViewModelBase
 
     [RelayCommand]
     public async Task OpenProfileMetadata(int id) => await OpenProfileMetaDataAndHandleActions(id);
+
+    [RelayCommand]
+    public async Task UpdateProfilesData() => await WaitToUpdateData();
 
     [RelayCommand]
     public async Task CreateProfileUi() => await CreateProfileUiAsync();
@@ -62,30 +70,47 @@ public partial class ProfilesViewModel : ViewModelBase
         
         // Initialize collections
         ObservableProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
+        ObservableUnchangedProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
     }
     
     // DI Constructor
-    public ProfilesViewModel(DialogService dialogService, ProfileProvider profileProvider, FilesService filesService)
+    public ProfilesViewModel(DialogService dialogService, ProfileProvider profileProvider, FilesService filesService, SettingsService settingsService)
     {
         if (Design.IsDesignMode) return;
         
         // Services
         _dialogService = dialogService;
         _filesService = filesService;
+        _settingsService = settingsService;
         _profileProvider = profileProvider;
         _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
         
         // Update profile data
-        _profileProvider.UpdateProfilesData();
+        Dispatcher.UIThread.AwaitWithPriority(WaitToUpdateData(_settingsService.CurrentSettings.CurrentProfileSet), DispatcherPriority.Loaded);
+    }
+
+    public void Dispose()
+    {
+        _profileProvider?.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
     }
     
     private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
     {
         // Initialize Data
-        _allProfiles.Clear();
-        _allProfiles.AddRange(_profileProvider.GetLoadedProfiles());
+        Dispatcher.UIThread.Post(() => 
+        {
+            _allProfiles.Clear();
+            _allProfiles.AddRange(_profileProvider.GetLoadedProfiles());
 
-        ResetListVisibleConfigurations();
+            ObservableUnchangedProfiles.Clear();
+            foreach (var profile in _allProfiles)
+                ObservableUnchangedProfiles.Add(profile);
+            
+            ResetListVisibleConfigurations();
+            
+            // Update profile settings
+            _settingsService.CurrentSettings.CurrentProfileSet = _profileProvider.GetActiveProfile();
+        });
     }
     
     // Private methods
@@ -190,11 +215,13 @@ public partial class ProfilesViewModel : ViewModelBase
     private async Task CreateProfileUiAsync()
     {
         // TODO: Display a progress bar dialog for this process
-        await _profileProvider.AddProfile(new ProfileItemMetaData
+        if (!await _profileProvider.AddProfile("SomeRandomProfile_" + new Random().Next(0, 256)))
         {
-            ProfileName = "SomeRandomProfile_" + new System.Random().Next(0, 256),
-            AllUsedDirectoryPaths = []
-        });
+            // TODO: Create a fail dialog here
+            return;
+        }
+        
+        
     }
 
     private async Task SwitchProfileUiAsync(int id)
@@ -202,7 +229,7 @@ public partial class ProfilesViewModel : ViewModelBase
         if (id < 0 || id >= _allProfiles.Count)
             throw new IndexOutOfRangeException($"Profile ID ({id}) is out of range.");
 
-        if (_profileProvider.GetActiveProfile() == _allProfiles[id]) // Ignores completely
+        if (_profileProvider.GetInstanceActiveProfile() == _allProfiles[id]) // Ignores completely
             return;
     
         var confirmViewModel = new ConfirmDialogViewModel
@@ -227,8 +254,31 @@ public partial class ProfilesViewModel : ViewModelBase
             // TODO: Create a dialog to warn it failed.
             return;
         }
+
+        var previousId = _profileProvider.GetActiveProfile();
         
         // Switch profile
-        await _profileProvider.SetActiveProfile(id);
+        if (!await _profileProvider.SetActiveProfile(id))
+        {
+            // TODO: Create a dialog saying something went wrong and that it'll revert back to the previous profile
+            return;
+        }
+        
+        // TODO: Maybe a dialog saying the profile change was a success?
+    }
+
+    private async Task WaitToUpdateData(int preferredIndex = -1, bool closeProgramIfFail = false)
+    {
+        // TODO: Create a progress bar for updating data
+        if (!await _profileProvider.UpdateProfilesData(defaultSelection: preferredIndex))
+        {
+            if (closeProgramIfFail)
+            {
+                // TODO: Create a dialog telling the user what to do to prevent the issue
+                return;
+            }
+            
+            // TODO: Create a dialog warning something went wrong when loading the profiles
+        }
     }
 }

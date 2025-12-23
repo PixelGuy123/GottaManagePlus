@@ -163,13 +163,18 @@ public class PlusFolderViewer : IGameFolderViewer
     /// Resolves common directories using the local configuration.
     /// </summary>
     /// <inheritdoc/>
-    public string GetPathFrom(IGameFolderViewer.CommonDirectory directoryType) => directoryType switch
+    public string GetPathFrom(IGameFolderViewer.CommonDirectory directoryType, bool relativeToRootPath)
     {
-        IGameFolderViewer.CommonDirectory.BaldiData => _baldiDataFolder,
-        IGameFolderViewer.CommonDirectory.BepInEx => SearchPath("BepInEx"),
-        IGameFolderViewer.CommonDirectory.ManagerRoot => SearchPath(Constants.AppRootFolder),
-        _ => throw new ArgumentException(directoryType.ToString())
-    };
+        var path = directoryType switch
+        {
+            IGameFolderViewer.CommonDirectory.BaldiData => _baldiDataFolder,
+            IGameFolderViewer.CommonDirectory.BepInEx => SearchPath("BepInEx"),
+            IGameFolderViewer.CommonDirectory.ManagerRoot => SearchPath(Constants.AppRootFolder),
+            _ => throw new ArgumentException(directoryType.ToString())
+        };
+
+        return relativeToRootPath ? Path.GetRelativePath(GetGameRootPath(), path) : path;
+    }
     /// <inheritdoc/>
     public string GetGameRootPath() => RootPath;
     

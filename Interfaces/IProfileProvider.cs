@@ -14,10 +14,10 @@ public interface IProfileProvider
     /// <summary>
     /// The implementation should attempt to add a new profile item to the managed collection.
     /// </summary>
-    /// <param name="profileItem">The profile data to be added.</param>
+    /// <param name="profileName">The profile name to be included.</param>
     /// <param name="progress">Reports back the process if needed.</param>
     /// <returns><see langword="true"/> if the profile was successfully added; otherwise, <see langword="false"/>.</returns>
-    public Task<bool> AddProfile(ProfileItemMetaData profileItem, IProgress<double>? progress = null);
+    public Task<bool> AddProfile(string profileName, IProgress<double>? progress = null);
 
     /// <summary>
     /// The implementation should remove a profile at the specified index and delete its associated storage resources.
@@ -32,20 +32,22 @@ public interface IProfileProvider
     /// The implementation should provide a read-only collection of all currently loaded profiles.
     /// </summary>
     /// <returns>A collection of <see cref="ProfileItem"/> objects.</returns>
-    public IReadOnlyCollection<ProfileItem> GetLoadedProfiles();
+    public IReadOnlyList<ProfileItem> GetLoadedProfiles();
 
     /// <summary>
     /// The implementation should refresh the profile list by scanning the underlying storage.
     /// </summary>
+    /// <param name="defaultSelection">The profile to be selected in case the list reaches the determined index.</param>
     /// <param name="progress">Reports back the process if needed.</param>
-    public Task UpdateProfilesData(IProgress<double>? progress = null);
+    /// /// <returns><see langword="true"/> if the operation was a success; otherwise, <see langword="false"/>.</returns>
+    public Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<double>? progress = null);
 
     /// <summary>
     /// The implementation should return the profile currently marked as active.
     /// </summary>
-    /// <returns>The active <see cref="ProfileItem"/>.</returns>
+    /// <returns>The index of the active <see cref="ProfileItem"/>.</returns>
     /// <exception cref="NullReferenceException">Thrown if no profile is currently active.</exception>
-    public ProfileItem GetActiveProfile();
+    public int GetActiveProfile();
 
     /// <summary>
     /// The implementation should update the current active profile to the one at the specified index, while also move the profile content into the game folder.

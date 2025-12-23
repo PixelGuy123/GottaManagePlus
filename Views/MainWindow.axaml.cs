@@ -1,11 +1,16 @@
+using System;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
+using GottaManagePlus.ViewModels;
 
 namespace GottaManagePlus.Views;
 
 public partial class MainWindow : Window
 {
     private readonly GridLength _noBelowBar = new(200), _withBelowBar = new(300);
+    private bool _canClose = false;
+    
     public MainWindow()
     {
         InitializeComponent();
@@ -35,5 +40,32 @@ public partial class MainWindow : Window
         // Update body grid based on width
         if (args.Property.Name == nameof(Content))
             BodyGrid.ColumnDefinitions[0].Width = args.NewValue == null ? _noBelowBar : _withBelowBar;
+    }
+
+    protected override async void OnClosing(WindowClosingEventArgs e)
+    {
+        try
+        {
+            if (_canClose)
+            {
+                base.OnClosing(e);
+                return;
+            }
+            
+            if (DataContext is not MainWindowViewModel viewModel) return;
+        
+            e.Cancel = true; // Cancels the closing event
+
+            if (!await viewModel.HandleSettingsSave()) return;
+        
+            _canClose = true;
+            Close(); // Manually close
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.ToString(), Constants.DebugError);
+            _canClose = true;
+            Close();
+        }
     }
 }

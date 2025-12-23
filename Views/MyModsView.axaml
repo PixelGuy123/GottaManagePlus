@@ -113,7 +113,7 @@
                         Classes="ModViewerHeader"
                         Width="250"
                         Watermark="Search"
-                        ItemsSource="{Binding ModList}"
+                        ItemsSource="{Binding ObservableUnchangedMods}"
                         SelectedItem="{Binding CurrentModItem}"
                         Text="{Binding Text}"
                         ValueMemberBinding="{Binding ModName, DataType=models:ModItem}"

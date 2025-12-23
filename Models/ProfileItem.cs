@@ -11,7 +11,7 @@ public partial class ProfileItem(int id, string profileName) : ItemWithPath(id)
     
     // Observables
     [ObservableProperty] 
-    private bool _isSelectedProfile;
+    private bool _isSelectedProfile; // Tells whether the profile is being used or is a ReadOnly file for metadata.
     [ObservableProperty]
     private string _profileName = profileName;
     [ObservableProperty] 

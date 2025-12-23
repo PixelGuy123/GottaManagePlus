@@ -104,37 +104,51 @@
                             Classes="ModViewerHeader"
                             Width="140"
                             Watermark="Search"
-                            ItemsSource="{Binding ObservableProfiles}"
+                            ItemsSource="{Binding ObservableUnchangedProfiles}"
                             SelectedItem="{Binding CurrentProfileItem}"
                             Text="{Binding Text}"
                             ValueMemberBinding="{Binding ProfileName, DataType=models:ProfileItem}"
                             FilterMode="Contains"
                         />
                         <Button 
-                            Classes="ModViewerHeader YCTPButton"
+                            Classes="ModViewerHeader YCTPButton SmallYCTPButton"
                             Margin="5 0 0 0"
                             Command="{CompiledBinding ResetSearch}">
                             <Image
                                 Source="/Assets/UI/Icon_Cancel_Generic.png"
+                            />
+                        </Button>
+                        
+                    </StackPanel>
+                    <StackPanel  
+                        Grid.Column="1"
+                        Margin="0 0 10 0"
+                        Spacing="5"
+                        Orientation="Horizontal">
+                        <!-- Add Profile Field -->
+                        <Button 
+                            HorizontalAlignment="Right"
+                            Command="{CompiledBinding UpdateProfilesData}"
+                            Classes="ModViewerHeader YCTPButton">
+                            <Image
+                                Source="/Assets/UI/Icon_UpdateMod.png"
                                 Width="24"
                                 Height="24"
                             />
                         </Button>
                         
+                        <!-- Add Profile Field -->
+                        <Button 
+                            HorizontalAlignment="Right"
+                            Command="{CompiledBinding CreateProfileUi}"
+                            Classes="ModViewerHeader YCTPButton">
+                            <Image
+                                Source="/Assets/UI/Icon_AddModContainer.png"
+                                Width="24"
+                                Height="24"
+                            />
+                        </Button>
                     </StackPanel>
-                    <!-- Add Profile Field -->
-                    <Button 
-                        Grid.Column="1"
-                        HorizontalAlignment="Right"
-                        Margin="5 0"
-                        Command="{CompiledBinding CreateProfileUi}"
-                        Classes="ModViewerHeader YCTPButton">
-                        <Image
-                            Source="/Assets/UI/Icon_AddModContainer.png"
-                            Width="24"
-                            Height="24"
-                        />
-                    </Button>
                 </Grid>
             </StackPanel>
             <!-- Actual Mod Scroll Viewer -->

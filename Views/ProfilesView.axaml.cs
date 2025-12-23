@@ -1,6 +1,5 @@
-using Avalonia;
+using System;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 
 namespace GottaManagePlus.Views;
 
@@ -9,5 +8,11 @@ public partial class ProfilesView : UserControl
     public ProfilesView()
     {
         InitializeComponent();
+        // When detached, we dispose the profiles view
+        DetachedFromVisualTree += (_, _) => 
+        {
+            if (DataContext is IDisposable disposable)
+                disposable.Dispose();
+        };
     }
 }
