@@ -104,6 +104,7 @@
                                 </Button>
                                 <TextBox
                                     IsReadOnly="True"
+                                    Name="GamePathText"
                                     Text="{Binding CurrentSaveState.GameExecutablePath}"
                                     Watermark="Select a path"/>
                             </DockPanel>

@@ -45,6 +45,8 @@ public partial class SettingsViewModel : PageViewModel
         // Get local path
         var fileLocalPath = file.TryGetLocalPath();
         
+        // TODO: Display a loading dialog since this process lags a bit
+        
         // The path must obviously not be null
         if (!string.IsNullOrEmpty(fileLocalPath) && _gameFolderViewer.ValidateFolder(fileLocalPath, setPathIfTrue: false)) // Do not set path until confirmed by Save action
         {

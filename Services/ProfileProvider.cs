@@ -24,7 +24,7 @@ namespace GottaManagePlus.Services;
 public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 {
     // Constants
-    internal const string ProfileFolderName = "profiles",
+    private const string ProfileFolderName = "profiles",
         TempContentZipFileSuffix = "_TEMP",
         ContentZipFileExtension = ".zip";
     
@@ -238,7 +238,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             // Get game root path
             var rootPath = GameFolderViewer.GetGameRootPath();
             // Get the BepInEx path
-            var bepInExPath = GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx, true);
+            var bepInExPath = GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx);
 
             // Configs loading
             var configsPath = GameFolderViewer.SearchPath(bepInExPath, "config");
@@ -297,7 +297,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         
         // Generate folder path
         var profilesFolderPath = GameFolderViewer.SearchPath(
-            GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.ManagerRoot, true),
+            GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.ManagerRoot),
             ProfileFolderName
         );
         // Get the zip file path
@@ -427,11 +427,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 progress?.Report(1.0);
                 success = true;
             }
-            catch (OperationCanceledException)
-            {
-                Debug.WriteLine("Profile generation was cancelled by the user.", Constants.DebugWarning);
-                throw;
-            }
             catch (Exception e)
             {
                 Debug.WriteLine("Failed to create the profile content.", Constants.DebugError);
@@ -453,6 +448,8 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                     }
                 }
             }
+            if (success)
+                Debug.WriteLine($"Successfully zipped {profileItem.ProfileName} to {zipPath}.", Constants.DebugInfo);
             return success;
         }
         catch (Exception e)
@@ -498,8 +495,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             var totalEntryCount = archive.Entries.Count();
             List<string> deletedDirectories = [];
             
-            // To provide accurate progress, we must count entries first if the reader allows, 
-            // or use a generic estimation. Here we use an iterative approach.
+            // Iterate each entry
             foreach (var entry in archive.Entries)
             {
                 if (entry.IsDirectory || string.IsNullOrEmpty(entry.Key)) continue;
