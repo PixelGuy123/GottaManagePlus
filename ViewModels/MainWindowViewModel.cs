@@ -29,14 +29,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     public void GoToHome()
     {
         if (ExecutablePathSet)
-            CurrentPage = _pageFactory!.GetPageViewModel<MyModsViewModel>();
+            GoTo<MyModsViewModel>();
     }
 
     [RelayCommand]
-    public void GoToSettings()
-    {
-        CurrentPage = _pageFactory!.GetPageViewModel<SettingsViewModel>();
-    }
+    public void GoToSettings() => GoTo<SettingsViewModel>();
+    
 
     [RelayCommand]
     public async Task RevealAboutSection() => await RevealAboutSectionUi();
@@ -99,6 +97,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     }
     
     // Private methods
+    private void GoTo<TVm>()
+        where TVm : PageViewModel
+    {
+        if (CurrentPage is not TVm)
+            CurrentPage = _pageFactory!.GetPageViewModel<TVm>();
+    }
     private async Task RevealAboutSectionUi() => await _dialogService.ShowDialog(new AppInfoDialogViewModel());
     
     private void UpdateExecutablePathValidation() => 

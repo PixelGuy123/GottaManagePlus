@@ -71,6 +71,8 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         // Initialize collections
         ObservableProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
         ObservableUnchangedProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
+
+        _profileProvider = new ProfileProvider(null!);
     }
     
     // DI Constructor
@@ -91,7 +93,8 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
-        _profileProvider?.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
+        GC.SuppressFinalize(this);
+        _profileProvider.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
     }
     
     private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)

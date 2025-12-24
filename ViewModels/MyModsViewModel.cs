@@ -45,7 +45,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     
     
     // For designer
-    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, null!, null!, null!))
+    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, new ProfileProvider(null!), null!, null!))
     {
         if (!Design.IsDesignMode) return;
         
@@ -76,7 +76,8 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     public void Dispose()
     {
-        _profileProvider?.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
+        GC.SuppressFinalize(this);
+        _profileProvider.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
     }
 
     // Private methods

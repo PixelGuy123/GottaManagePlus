@@ -30,14 +30,12 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     
     // Private members
     private ProfileItem? _currentProfileItem;
-    private ProfileItem? _lastUnzippedProfileItem = null;
+    private ProfileItem? _lastUnzippedProfileItem;
     private readonly List<ProfileItem> _availableProfiles = [];
+    private readonly IGameFolderViewer _gameFolderViewer = viewer;
     
     // Public getters
-    protected IGameFolderViewer GameFolderViewer
-    {
-        get => field ?? throw new NullReferenceException("GameFolderViewer is null.");
-    } = viewer;
+    protected IGameFolderViewer GameFolderViewer => _gameFolderViewer ?? throw new NullReferenceException("GameFolderViewer is null.");
 
 
     // Public implementation
@@ -179,7 +177,8 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     public async Task<bool> SetActiveProfile(int profileIndex, IProgress<double>? progress = null)
     {
         // Previous profile
-        _currentProfileItem?.IsSelectedProfile = false;
+        if (_currentProfileItem != null)
+            _currentProfileItem.IsSelectedProfile = false;
         
         // New Profile
         _currentProfileItem = _availableProfiles[profileIndex];
@@ -523,6 +522,8 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                     deletedDirectories.Add(directory); // Register directory
                 }
                 
+                // DO not use async method; it bugs out here for some reason, differently from its sync variant.
+                // ReSharper disable once MethodHasAsyncOverload
                 entry.WriteToDirectory(rootPath, new ExtractionOptions
                 {
                     ExtractFullPath = true, Overwrite = true, PreserveAttributes = false, PreserveFileTime = false
