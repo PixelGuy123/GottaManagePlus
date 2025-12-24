@@ -12,14 +12,14 @@
                     />
 
                     <ImageBrush x:Key="SettingsBg"
-                        Source="/Assets/UI/Light/SettingsBG.webp"
+                        Source="/Assets/UI/Light/SettingsBG.png"
                         TileMode="Tile"
                         Stretch="None"
                         DestinationRect="0,0,256,256"
                     />
                     
                     <ImageBrush x:Key="ProfilesBg"
-                                Source="/Assets/UI/Light/ProfilesBG.webp"
+                                Source="/Assets/UI/Light/ProfilesBG.png"
                                 TileMode="Tile"
                                 Stretch="None"
                                 DestinationRect="0,0,256,256"
