@@ -41,7 +41,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public void ResetSearch() => Text = null;
 
     [RelayCommand]
-    public async Task DeleteModItem(int id) => await DeleteModItemUiAsync(id);
+    public async Task DeleteModItem(int id) => await  Dispatcher.UIThread.InvokeAsync(() => DeleteModItemUiAsync(id));
     
     
     // For designer
@@ -140,11 +140,17 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         var index = _allMods.FindIndex(item => item.Id == id);
         if (index == -1) // If the item doesn't exist, skip
         {
-            // TODO: Open dialog for not succeeding deletion
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"""
+                          Failed to delete the profile!
+                          For some reason, there's no profile with the id ({id}).
+                          """
+            });
             return;
         }
         
-        // TODO: Implement translation support here
         var confirmViewModel = new ConfirmDialogViewModel()
         {
             Title = $"Delete {_allMods[index].ModName}?",

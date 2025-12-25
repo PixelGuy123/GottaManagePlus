@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,8 +14,6 @@ using GottaManagePlus.Services;
 using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.ViewModels;
-
-//TODO: Add an update profiles data button
 
 public partial class ProfilesViewModel : ViewModelBase, IDisposable
 {
@@ -41,16 +41,16 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
     public void ResetSearch() => Text = null;
 
     [RelayCommand]
-    public async Task OpenProfileMetadata(int id) => await OpenProfileMetaDataAndHandleActions(id);
+    public async Task OpenProfileMetadata(int id) => await Dispatcher.UIThread.InvokeAsync(() => OpenProfileMetaDataAndHandleActions(id));
 
     [RelayCommand]
-    public async Task UpdateProfilesData() => await WaitToUpdateData();
+    public async Task UpdateProfilesData() => await Dispatcher.UIThread.InvokeAsync(() => WaitToUpdateData());
 
     [RelayCommand]
-    public async Task CreateProfileUi() => await CreateProfileUiAsync();
+    public async Task CreateProfileUi() => await Dispatcher.UIThread.InvokeAsync(CreateProfileUiAsync);
 
     [RelayCommand]
-    public async Task SwitchToProfile(int id) => await SwitchProfileUiAsync(id);
+    public async Task SwitchToProfile(int id) => await Dispatcher.UIThread.InvokeAsync(() => SwitchProfileUiAsync(id));
 
     // Previewer Constructor
     public ProfilesViewModel()
@@ -87,8 +87,8 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         _profileProvider = profileProvider;
         _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
         
-        // Update profile data
-        Dispatcher.UIThread.AwaitWithPriority(WaitToUpdateData(_settingsService.CurrentSettings.CurrentProfileSet), DispatcherPriority.Loaded);
+        // Update profile data on random thread
+        Dispatcher.UIThread.InvokeAsync(() => WaitToUpdateData(_settingsService.CurrentSettings.CurrentProfileSet));
     }
 
     public void Dispose()
@@ -161,7 +161,11 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         var index = _allProfiles.FindIndex(item => item.Id == id);
         if (index == -1) // If the item doesn't exist, skip
         {
-            // TODO: Open dialog for not succeeding opening it
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"Failed to open the profile.\nFor some reason, their id ({id}) wasn't found!"
+            });
             return;
         }
 
@@ -185,6 +189,13 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
                 continue; // Loop back, since that wasn't a normal close
             }
 
+            // If there's a feedback, display it and reset the loop
+            if (profileViewer.SubDialogView != null)
+            {
+                await _dialogService.ShowDialog(profileViewer.SubDialogView);
+                continue;
+            }
+
             break;
         }
     }
@@ -205,44 +216,53 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         // Do not if not accepted
         if (!confirmViewModel.Confirmed)
             return false;
-
-        // TODO: Display a progress bar dialog for this process
-        if (!await _profileProvider.DeleteProfile(index))
+        
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.DeleteProfile, index) { Title = "Deleting profile..." };
+        if (await _dialogService.ShowLoadingDialog(loadingDialog)) return true;
+        
+        // Warn delete profile failed
+        await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
         {
-            // TODO: Show dialog warning something went wrong during deletion! And cancel, of course.
-            return false;
-        }
-        return true;
+            Title = Constants.FailDialog,
+            Message = $"Failed to delete the profile (id: {index})."
+        });
+        return false;
     }
 
     private async Task CreateProfileUiAsync()
     {
-        // TODO: Display a progress bar dialog for this process
-        if (!await _profileProvider.AddProfile("SomeRandomProfile_" + new Random().Next(0, 256)))
+        // TODO: Create a dialog for generating a profile
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.AddProfile, 
+            "SomeRandomProfile_" + new Random().Next(0, 256))
         {
-            // TODO: Create a fail dialog here
-            return;
+            Title = "Creating profile..."
+        };
+        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        {
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+            {
+                Title = Constants.FailDialog,
+                Message = "Failed to create the profile!"
+            });
         }
-        
-        
     }
 
     private async Task SwitchProfileUiAsync(int id)
     {
         if (id < 0 || id >= _allProfiles.Count)
             throw new IndexOutOfRangeException($"Profile ID ({id}) is out of range.");
-
+        
         if (_profileProvider.GetInstanceActiveProfile() == _allProfiles[id]) // Ignores completely
             return;
-    
+        
         var confirmViewModel = new ConfirmDialogViewModel
         {
             Title = $"Switch to {_allProfiles[id].ProfileName}?",
-            Message = "Are you sure you want to switch to this profile?\nAll data from your previous profile will be saved first.",
+            Message =
+                "Are you sure you want to switch to this profile?\nAll data from your previous profile will be saved first.",
             ConfirmText = "Yes",
             CancelText = "No"
         };
-
         // Show confirmation dialog
         await _dialogService.ShowDialog(confirmViewModel);
         
@@ -251,37 +271,84 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return;
         
         // Save previous profile
-        if (!await _profileProvider.SaveActiveProfile())
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
+        {
+            Title = "Saving currently active profile..."
+        };
+        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             // If failed, show a dialog
-            // TODO: Create a dialog to warn it failed.
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"""
+                          Failed to switch the profile.\nThe current active profile failed to be saved.
+                          If this issue persists, you can try:
+                          {Constants.SolutionFilePermissions}
+                          """
+            });
             return;
         }
-
-        var previousId = _profileProvider.GetActiveProfile();
         
         // Switch profile
-        if (!await _profileProvider.SetActiveProfile(id))
+        loadingDialog = new LoadingDialogViewModel(_profileProvider.SetActiveProfile, id);
+        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
-            // TODO: Create a dialog saying something went wrong and that it'll revert back to the previous profile
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"""
+                           Failed to switch the profile ({id}) due to an unknown reason.
+                           If this issue persists, you can try:
+                           {Constants.SolutionFilePermissions} 
+                           """
+            });
             return;
         }
         
-        // TODO: Maybe a dialog saying the profile change was a success?
+        // Success dialog
+        await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+        {
+            Title = Constants.SuccessDialog,
+            Message = "You've successfully switched profiles!"
+        });
     }
 
     private async Task WaitToUpdateData(int preferredIndex = -1, bool closeProgramIfFail = false)
     {
-        // TODO: Create a progress bar for updating data
-        if (!await _profileProvider.UpdateProfilesData(defaultSelection: preferredIndex))
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.UpdateProfilesData, preferredIndex)
+        {
+            Title = "Updating profile data..."
+        };
+        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             if (closeProgramIfFail)
             {
-                // TODO: Create a dialog telling the user what to do to prevent the issue
+                // Aggressive dialog
+                await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+                {
+                    Title = Constants.FailDialog,
+                    Message = $"""
+                              Failed to update the profiles list! The program will close after you close this.
+                              If the issue persists, you can try:
+                              {Constants.SolutionFilePermissions}
+                              """
+                });
+                // End application
+                Environment.Exit(0);
                 return;
             }
             
-            // TODO: Create a dialog warning something went wrong when loading the profiles
+            // Not-so-aggressive dialog
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"""
+                           Failed to update the profiles list!
+                           If the issue persists, you can try:
+                           {Constants.SolutionFilePermissions}
+                           """
+            });
         }
     }
 }

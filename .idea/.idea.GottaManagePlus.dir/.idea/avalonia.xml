@@ -15,6 +15,7 @@
         <entry key="Styles/style.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/AppInfoDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/ConfirmDialogView.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/LoadingDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MainWindow.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MyModsView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/PreviewProfileDialogView.axaml" value="GottaManagePlus.csproj" />

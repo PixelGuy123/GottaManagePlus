@@ -69,8 +69,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             CurrentPage = _pageFactory.GetPageViewModel<MyModsViewModel>();
         else // Otherwise, force the user to set that manually
         {
-            // TODO: Add dialog to explicitly ask the user to set a game executable path
-            CurrentPage = _pageFactory.GetPageViewModel<SettingsViewModel>();
+            var settings = _pageFactory.GetPageViewModel<SettingsViewModel>();
+            CurrentPage = settings;
+            
+            // Display that one needed dialog
+            settings.DisplayGameFolderRequirementFolder();
         }
 
         UpdateExecutablePathValidation();
@@ -79,10 +82,23 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     // public methods
     public async Task<bool> HandleSettingsSave()
     {
-        // TODO: Show dialog for saving
-        // TODO: Add progress bar for saving active profile, then the service one
-        if (await _profileProvider.SaveActiveProfile() && await _settingsService.Save()) return true;
+        // Loading dialog for saving active profile
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
+        {
+            Title = "Saving current active profile..."
+        };
+        if (await _dialogService.ShowLoadingDialog(loadingDialog))
+        {
+            // Then, one for saving settings
+            loadingDialog = new LoadingDialogViewModel(_settingsService.Save)
+            {
+                Title = "Saving settings..."
+            };
+            if (await _dialogService.ShowLoadingDialog(loadingDialog))
+                return true;
+        }
         
+        // If one of them fail, go here
         var confirmViewModel = new ConfirmDialogViewModel
         {
             Title = "Failed to save settings!",

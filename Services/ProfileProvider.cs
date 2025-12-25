@@ -43,7 +43,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Adds a profile to the internal list if a profile with the same name does not already exist.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> AddProfile(string profileName, IProgress<double>? progress = null)
+    public async Task<bool> AddProfile(string profileName, IProgress<(double, string?)>? progress = null)
     {
         // Check if there's already a profile with same name
         if (_availableProfiles.Exists(p =>
@@ -70,7 +70,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="UnauthorizedAccessException">Thrown if the profile path is outside the manager root.</exception>
-    public async Task<bool> DeleteProfile(int profileIndex, IProgress<double>? progress = null)
+    public async Task<bool> DeleteProfile(int profileIndex, IProgress<(double, string?)>? progress = null)
     {
         if (profileIndex < 0 || profileIndex >= _availableProfiles.Count)
             throw new IndexOutOfRangeException($"profileIndex ({profileIndex}) is out of range.");
@@ -112,7 +112,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Clears current data and re-populates the profile list from the "profiles" directory.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<double>? progress = null)
+    public async Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<(double, string?)>? progress = null)
     {
         // Get the profile
         var profilesFolder = GetOrCreateProfilesFolder();
@@ -174,7 +174,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Sets the active profile and triggers the <see cref="OnProfilesUpdate"/> event.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> SetActiveProfile(int profileIndex, IProgress<double>? progress = null)
+    public async Task<bool> SetActiveProfile(int profileIndex, IProgress<(double, string?)>? progress = null)
     {
         // Previous profile
         if (_currentProfileItem != null)
@@ -193,7 +193,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Saves the current active profile.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> SaveActiveProfile(IProgress<double>? progress = null) => await GenerateProfileDataFromProfileItem(this.GetInstanceActiveProfile(), true, progress);
+    public async Task<bool> SaveActiveProfile(IProgress<(double, string?)>? progress = null) => await GenerateProfileDataFromProfileItem(this.GetInstanceActiveProfile(), true, progress);
 
 
     // Public events
@@ -241,7 +241,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             var bepInExPath = GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx);
 
             // Configs loading
-            var configsPath = GameFolderViewer.SearchPath(bepInExPath, "config");
+            var configsPath = GameFolderViewer.SearchPath(bepInExPath, Constants.ConfigFolder);
             if (Directory.Exists(configsPath))
             {
                 foreach (var config in Directory.GetFiles(configsPath))
@@ -253,7 +253,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             }
 
             // Patchers loading
-            var patchersPath = GameFolderViewer.SearchPath(bepInExPath, "patchers");
+            var patchersPath = GameFolderViewer.SearchPath(bepInExPath, Constants.PatchersFolder);
             if (Directory.Exists(patchersPath))
             {
                 foreach (var patcher in Directory.GetFiles(patchersPath))
@@ -265,7 +265,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             }
 
             // Mods loading
-            var modsPath = GameFolderViewer.SearchPath(bepInExPath, "plugins");
+            var modsPath = GameFolderViewer.SearchPath(bepInExPath, Constants.PluginsFolder);
             if (Directory.Exists(configsPath))
             {
                 // TODO: Scan for mod meta data, since they have some special access inside the game
@@ -290,7 +290,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     private async Task<bool> GenerateProfileDataFromProfileItem(
         ProfileItem profileItem, 
         bool generateNewContentStorage = false,
-        IProgress<double>? progress = null)
+        IProgress<(double, string?)>? progress = null)
     {
         if (!GatherProfileFolderInformation(profileItem))
             return false;
@@ -327,7 +327,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 await using (var zipArchiveHandler =
                              File.OpenWrite(tempZipPath))
                 {
-
                     // Create a writer
                     using var zipWriter = WriterFactory.Open(zipArchiveHandler, ArchiveType.Zip, CompressionType.LZMA);
 
@@ -366,9 +365,17 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
                         // Calculate percentage
                         var percentage = (double)(i + 1) / totalFiles;
-                        progress?.Report(percentage);
+                        progress?.Report((percentage, $"Zipping {Path.GetFileName(fullPath)}..."));
                     }
 
+                    // If no file found, make a stub directory in the zip
+                    if (configs.Count == 0)
+                        await zipWriter.WriteDirectoryAsync(Path.GetRelativePath(GameFolderViewer.GetGameRootPath(), 
+                            GameFolderViewer.SearchPath(
+                                GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx),
+                                Constants.ConfigFolder 
+                                )));
+                    
                     totalFiles -= configs.Count; // Remove the configs from the table
 
                     // Look for patchers
@@ -389,8 +396,16 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
                         // Calculate percentage
                         var percentage = (double)(i + 1) / totalFiles;
-                        progress?.Report(percentage);
+                        progress?.Report((percentage, $"Zipping {Path.GetFileName(fullPath)}..."));
                     }
+                    
+                    // If no file found, make a stub directory in the zip
+                    if (patchers.Count == 0)
+                        await zipWriter.WriteDirectoryAsync(Path.GetRelativePath(GameFolderViewer.GetGameRootPath(), 
+                            GameFolderViewer.SearchPath(
+                                GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx),
+                                Constants.PatchersFolder
+                            )));
 
                     totalFiles -= patchers.Count; // Remove the patchers from the table
 
@@ -412,8 +427,16 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
                         // Calculate percentage
                         var percentage = (double)(i + 1) / totalFiles;
-                        progress?.Report(percentage);
+                        progress?.Report((percentage, $"Zipping {Path.GetFileName(fullPath)}..."));
                     }
+                    
+                    // If no file found, make a stub directory in the zip
+                    if (mods.Count == 0)
+                        await zipWriter.WriteDirectoryAsync(Path.GetRelativePath(GameFolderViewer.GetGameRootPath(), 
+                            GameFolderViewer.SearchPath(
+                            GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx),
+                            Constants.PluginsFolder
+                        )));
                     
                 }
 
@@ -424,7 +447,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 File.Delete(tempZipPath);
                 
                 // 100% report
-                progress?.Report(1.0);
+                progress?.Report((1.0, "Successfully zipped!"));
                 success = true;
             }
             catch (Exception e)
@@ -463,7 +486,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
     private async Task<bool> UnzipAndDistributeProfileContent(
     ProfileItem profileItem, 
-    IProgress<double>? progress = null)
+    IProgress<(double, string?)>? progress = null)
     {
         // Don't allow unzipping the same profile item twice for performance reasons
         if (_lastUnzippedProfileItem?.ProfileName == profileItem.ProfileName)
@@ -498,8 +521,9 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             // Iterate each entry
             foreach (var entry in archive.Entries)
             {
-                if (entry.IsDirectory || string.IsNullOrEmpty(entry.Key)) continue;
-
+                if (string.IsNullOrEmpty(entry.Key)) continue;
+                
+                var entryIsDirectory = entry.IsDirectory;
                 var extractionPath = GameFolderViewer.SearchPath(entry.Key);
                 var directory = Path.GetDirectoryName(extractionPath);
 
@@ -517,7 +541,9 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                     
                     deletedDirectories.Add(directory); // Register directory
                 }
-                
+                // Only do the directory scan check, not extract the directory yet
+                if (entryIsDirectory)
+                    continue;
                 // DO not use async method; it bugs out here for some reason, differently from its sync variant.
                 // ReSharper disable once MethodHasAsyncOverload
                 entry.WriteToDirectory(rootPath, new ExtractionOptions
@@ -527,11 +553,11 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 
                 // Progress update
                 entriesProcessed++;
-                progress?.Report((double)entriesProcessed / totalEntryCount);
+                progress?.Report(((double)entriesProcessed / totalEntryCount, $"Unzipping {Path.GetFileName(entry.Key)}..."));
             }
             
             _lastUnzippedProfileItem = profileItem;
-            progress?.Report(1.0);
+            progress?.Report((1.0, "Successfully unzipped!"));
             Debug.WriteLine($"Successfully unzipped {profileItem.ProfileName} to {rootPath}.", Constants.DebugInfo);
             return true;
         }

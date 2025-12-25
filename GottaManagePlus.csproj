@@ -43,5 +43,9 @@
       <DependentUpon>AppInfoDialogView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\LoadingDialogView.axaml.cs">
+      <DependentUpon>LoadingDialogView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

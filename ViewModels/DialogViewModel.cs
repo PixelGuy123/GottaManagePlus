@@ -19,17 +19,17 @@ public abstract partial class DialogViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isDialogOpen;
 
-    protected TaskCompletionSource CloseTask = new();
+    private TaskCompletionSource _closeTask = new();
 
     public async Task WaitAsync()
     {
-        await CloseTask.Task;
+        await _closeTask.Task;
     }
 
     public void Show()
     {
-        if (CloseTask.Task.IsCompleted)
-            CloseTask = new TaskCompletionSource();
+        if (_closeTask.Task.IsCompleted)
+            _closeTask = new TaskCompletionSource();
         
         IsDialogOpen = true;
     }
@@ -38,6 +38,6 @@ public abstract partial class DialogViewModel : ViewModelBase
     {
         IsDialogOpen = false;
 
-        CloseTask.TrySetResult();
+        _closeTask.TrySetResult();
     }
 }

@@ -15,6 +15,8 @@ public partial class ProfileItem(int id, string profileName) : ItemWithPath(id)
     [ObservableProperty]
     private string _profileName = profileName;
     [ObservableProperty] 
+    private long _profileMegabyteLength;
+    [ObservableProperty] 
     private ObservableCollection<ItemWithPath> _configsMetaDataList = [];
     [ObservableProperty] 
     private ObservableCollection<ItemWithPath> _patchersMetaDataList = [];

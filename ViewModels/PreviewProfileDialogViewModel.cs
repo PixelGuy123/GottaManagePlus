@@ -34,7 +34,8 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     public bool AllowProfileDeletion { get; } = allowProfileDeletion;
     
     // Public getters
-    public bool ShouldDeleteProfile { get; set; }
+    public bool ShouldDeleteProfile { get; private set; }
+    public DialogViewModel? SubDialogView { get; private set; }
     
     // Commands
     [RelayCommand]
@@ -50,17 +51,28 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     [RelayCommand]
     public async Task OpenProfilePath()
     {
+        const string profileFixSuggestion = "Try closing this window and reloading the profiles list.";
         if (string.IsNullOrEmpty(Profile.FullOsPath) || !Directory.Exists(Profile.FullOsPath))
         {
-            // TODO: Display fail dialog due to invalid path
+            SubDialogView = new ConfirmDialogViewModel(true)
+            {
+              Title = Constants.FailDialog,
+              Message = $"The path to the profile is somehow invalid!\n{profileFixSuggestion}"
+            };
             Debug.WriteLine("Failed to open profile path due to invalid path.", Constants.DebugError);
+            Close();
             return;
         }
 
         if (!await _filesService.OpenDirectoryInfo(new DirectoryInfo(Profile.FullOsPath)))
         {
-            // TODO: Display fail dialog due to unknown error
+            SubDialogView = new ConfirmDialogViewModel(true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"Failed to open the path to the profile due to an unknown error!\n{profileFixSuggestion}"
+            };
             Debug.WriteLine("Failed to open profile path due to unknown error.", Constants.DebugError);
+            Close();
         }
     }
 
@@ -68,6 +80,7 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     // Internal/Public methods
     public void ResetState()
     {
+        SubDialogView = null;
         ShouldDeleteProfile = false;
         IsDialogOpen = false;
     }

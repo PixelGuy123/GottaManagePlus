@@ -30,4 +30,24 @@ public static class Constants
     
     // Categories for debugging
     public const string DebugWarning = "Warning", DebugInfo = "Info", DebugError = "Error";
+    
+    // Dialog titles
+    public const string FailDialog = "Something went wrong...", 
+        SuccessDialog = "Success!", 
+        WarningDialog = "Just so you know...";
+    
+    // BepInEx Directory Names
+    public const string ConfigFolder = "config",
+        PatchersFolder = "patchers",
+        PluginsFolder = "plugins";
+    
+    // Platform-specific recommendations
+    public static readonly string SolutionFilePermissions =
+            // Linux Suggestion
+            OperatingSystem.IsLinux() ? 
+            """
+            TODO: Actually write a solution for this.
+            """ :
+            // Default is Windows suggestion
+            "1. Executing this tool with administrator permissions.";
 }
