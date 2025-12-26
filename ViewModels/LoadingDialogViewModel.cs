@@ -28,7 +28,8 @@ public partial class LoadingDialogViewModel : DialogViewModel
     // Observable properties
     [ObservableProperty] private string _title = "Loading...";
     [ObservableProperty] private string? _status;
-    [ObservableProperty] private string? _progressPercentage = "0.0%";
+    [ObservableProperty] private string? _progressPercentageText = "0.0%";
+    [ObservableProperty] private double _progressPercentage;
     [ObservableProperty] private string _cancelText = "Cancel";
     [ObservableProperty] private Progress<(double, string?)>? _progress;
 
@@ -71,6 +72,9 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
         if (Progress != null)
             Progress.ProgressChanged += OnProgressChanged;
+            
+        // Wait one frame for the UI to render at the very least 
+        await Task.Yield();
 
         try
         {
@@ -103,18 +107,28 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 }
             }
 
-            var result = _loadingDelegate.DynamicInvoke(finalArgs);
-
+            // Run the result in a separate thread to not affect UI
+            var result = await Task.Run(() => _loadingDelegate.DynamicInvoke(finalArgs)).ConfigureAwait(false);
+            var cancellationDone = false;
+            
             switch (result)
             {
                 case Task<bool> boolTask:
                 {
                     var success = await boolTask;
-                    return success && !_cts.IsCancellationRequested;
+                    cancellationDone = _cts.IsCancellationRequested;
+                    if (Progress != null)
+                        OnProgressChanged(null, (1, "Finished!")); // Updates progress if needed
+                    await Task.Delay(250);
+                    return success && !cancellationDone;
                 }
                 case Task task:
                     await task;
-                    return !_cts.IsCancellationRequested;
+                    cancellationDone = _cts.IsCancellationRequested;
+                    if (Progress != null)
+                        OnProgressChanged(null, (1, "Finished!")); // Updates progress if needed
+                    await Task.Delay(250);
+                    return !cancellationDone;
                 default:
                     return true;
             }
@@ -139,7 +153,8 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
     private void OnProgressChanged(object? sender, (double, string?) e)
     {
-        ProgressPercentage = (e.Item1 * 100.0).ToString("P");
+        ProgressPercentageText = (e.Item1 * 100.0).ToString("N1") + '%';
+        ProgressPercentage = e.Item1;
         Status = e.Item2;
     }
 

@@ -31,17 +31,15 @@ public partial class SettingsViewModel : PageViewModel
     internal void DisplayGameFolderRequirementFolder()
     {
         // Display the warning dialog to remind the user
-        Dispatcher.UIThread.InvokeAsync(
-            () => _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.WarningDialog,
-                Message = """
-                          Looks like the BB+ folder is not set or is not valid.
-                          If this is your first time using the tool, just select the executable of Baldi's Basics Plus inside Settings.
-                          You cannot interact with "My Mods" section while under this condition.
-                          """
-            })
-        );
+        Dispatcher.UIThread.InvokeAsync(() => _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+        {
+            Title = Constants.WarningDialog,
+            Message = """
+                      Looks like the BB+ folder is not set or is not valid.
+                      If this is your first time using the tool, just select the executable of Baldi's Basics Plus inside Settings.
+                      You cannot interact with "My Mods" section while under this condition.
+                      """
+        }));
     }
     
     // Private members
@@ -58,8 +56,6 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     public async Task SetFilePathForPlusFolder()
     {
-        await Dispatcher.UIThread.InvokeAsync(async () =>
-        {
             var file = await _filesService.OpenFileAsync(title: "Select the game\'s executable.",
                 preselectedPath: Constants.BaldiPlusFolderSteamPath);
 
@@ -85,43 +81,39 @@ public partial class SettingsViewModel : PageViewModel
                     "Failed to locate the executable file or the directory, where this executable may be located, is invalid."
             });
             Debug.WriteLine("Failed to set the folder!", Constants.DebugWarning);
-        });
     }
 
     [RelayCommand]
     public async Task SaveState()
     {
-        await Dispatcher.UIThread.InvokeAsync(async () =>
+        // Serialize saved state
+        CurrentSaveState.UpdateSavedState();
+
+        var settings = _settingsService.CurrentSettings;
+        // Saving executable path
+        if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath))
+            settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
+
+        // Saving executable path to the folder validator
+        _gameFolderViewer.ValidateFolder(settings.BaldiPlusExecutablePath);
+
+        // Saving dialog
+        var loadingDialog = new LoadingDialogViewModel(_settingsService.Save)
         {
-            // Serialize saved state
-            CurrentSaveState.UpdateSavedState();
+            Title = "Saving settings...",
+            Status = "Saving..."
+        };
+        var status = await _dialogService.ShowLoadingDialog(loadingDialog);
+        if (status) return;
 
-            var settings = _settingsService.CurrentSettings;
-            // Saving executable path
-            if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath))
-                settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
-
-            // Saving executable path to the folder validator
-            _gameFolderViewer.ValidateFolder(settings.BaldiPlusExecutablePath);
-
-            // Saving dialog
-            var loadingDialog = new LoadingDialogViewModel(_settingsService.Save)
-            {
-                Title = "Saving settings...",
-                Status = "Saving..."
-            };
-            var status = await _dialogService.ShowLoadingDialog(loadingDialog);
-            if (status) return;
-
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
-                           Failed to save the settings. You can try again.
-                           If it doesn't work, you can try:
-                           {Constants.SolutionFilePermissions}
-                           """
-            });
+        await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+        {
+            Title = Constants.FailDialog,
+            Message = $"""
+                       Failed to save the settings. You can try again.
+                       If it doesn't work, you can try:
+                       {Constants.SolutionFilePermissions}
+                       """
         });
     }
 

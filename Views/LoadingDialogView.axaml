@@ -54,12 +54,12 @@
                         Foreground="{DynamicResource ProgressBar-Foreground}"
                         MinHeight="15"
                         Minimum="0"
-                        Maximum="100"
-                        Value="65"/>
+                        Maximum="1"
+                        Value="{CompiledBinding ProgressPercentage}"/>
                     <TextBlock
                         Name="ProgressText"
                         IsVisible="{CompiledBinding !HideProgressBar}"
-                        Text="{CompiledBinding ProgressPercentage}"
+                        Text="{CompiledBinding ProgressPercentageText}"
                         FontFamily="{StaticResource WorkSans}"
                         FontWeight="ExtraBlack"
                         FontSize="14"

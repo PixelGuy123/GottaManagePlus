@@ -41,7 +41,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public void ResetSearch() => Text = null;
 
     [RelayCommand]
-    public async Task DeleteModItem(int id) => await  Dispatcher.UIThread.InvokeAsync(() => DeleteModItemUiAsync(id));
+    public async Task DeleteModItem(int id) => await DeleteModItemUiAsync(id);
     
     
     // For designer

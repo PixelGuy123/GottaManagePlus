@@ -41,16 +41,16 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
     public void ResetSearch() => Text = null;
 
     [RelayCommand]
-    public async Task OpenProfileMetadata(int id) => await Dispatcher.UIThread.InvokeAsync(() => OpenProfileMetaDataAndHandleActions(id));
+    public async Task OpenProfileMetadata(int id) => await OpenProfileMetaDataAndHandleActions(id);
 
     [RelayCommand]
-    public async Task UpdateProfilesData() => await Dispatcher.UIThread.InvokeAsync(() => WaitToUpdateData());
+    public async Task UpdateProfilesData() => await WaitToUpdateData();
 
     [RelayCommand]
-    public async Task CreateProfileUi() => await Dispatcher.UIThread.InvokeAsync(CreateProfileUiAsync);
+    public async Task CreateProfileUi() => await CreateProfileUiAsync();
 
     [RelayCommand]
-    public async Task SwitchToProfile(int id) => await Dispatcher.UIThread.InvokeAsync(() => SwitchProfileUiAsync(id));
+    public async Task SwitchToProfile(int id) => await SwitchProfileUiAsync(id);
 
     // Previewer Constructor
     public ProfilesViewModel()
