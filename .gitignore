@@ -419,6 +419,7 @@ FodyWeavers.xsd
 
 # Developer Specific files
 ConceptImage.png
+build.sh
 
 # Jetbrains IDE
 =======
