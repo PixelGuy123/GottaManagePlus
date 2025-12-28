@@ -56,7 +56,7 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     public async Task SetFilePathForPlusFolder()
     {
-            var file = await _filesService.OpenFileAsync(title: "Select the game\'s executable.",
+            var file = await _filesService.OpenFileAsync(title: "Select BB+ executable file:",
                 preselectedPath: Constants.BaldiPlusFolderSteamPath);
 
             // If the file is null, leave

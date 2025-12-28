@@ -1,0 +1,105 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             x:DataType="vm:CreateProfileDialogViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GottaManagePlus.Views.CreateProfileDialogView"
+             MinWidth="350"
+             MinHeight="200">
+    
+    <Design.DataContext><vm:CreateProfileDialogViewModel/></Design.DataContext>
+    
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/Buttons.axaml"/>
+        
+        <Style Selector="TabItem"> <!-- TODO: Style the TabItems to use a green line instead of a blue default one (use {DynamicResource TabSelectedBg})--> 
+            <Setter Property="FontFamily" Value="{StaticResource Baskerville}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Border 
+        Background="{DynamicResource MainMenus-Bg}" 
+        CornerRadius="10"
+        ClipToBounds="True"
+        BorderBrush="{DynamicResource Generic-Border}"
+        BorderThickness="2"
+        Margin="10 20">
+        <Border.Effect>
+            <DropShadowEffect
+                OffsetX="0"
+                OffsetY="5"
+                BlurRadius="15"
+            />
+        </Border.Effect>
+        <DockPanel>
+            <Border DockPanel.Dock="Top" 
+                    Background="{DynamicResource Menu-Header-Bg}" 
+                    CornerRadius="8 8 0 0">
+                <TextBlock 
+                    Foreground="{DynamicResource BlackColor}"
+                    Text="{CompiledBinding Title}"
+                    MaxWidth="650"
+                    HorizontalAlignment="Center"
+                    Padding="10"
+                    FontSize="25"
+                    TextTrimming="CharacterEllipsis"
+                    FontWeight="ExtraLight"
+                    FontFamily="{StaticResource WorkSans}"/>
+            </Border>
+            <Grid RowDefinitions="*, Auto">
+                <TabControl Grid.Row="0">
+                    <!-- 
+                    TODO: Here will a simple menu with an input for the name of the profile.
+                    Validations:
+                    The user can only create the profile if the profile name meets the general requirements for writing file names in most desktop Operational Systems.
+                    The string must not be null or empty.
+                    -->
+                    <!-- Create New Profile -->
+                    <TabItem Header="New profile...">
+                        <!-- Body -->
+                        <Border Padding="10">
+                        </Border>
+                    </TabItem>
+                    <!-- 
+                    TODO: Another simple menu, but here, the user needs to select a profile from the list of existing profiles.
+                    To do so, a ListBox will be in this body for the user to select the profile.
+                    The input will, by default, be the name of the selected profile with the suffix "_Clone" attached to it.
+                    The same input rules applies here, just like creating a new profile.
+                    -->
+                    <!-- Create a new profile from an existing one -->
+                    <TabItem Header="Pick existing...">
+                        <!-- Body -->
+                        <Border Padding="10">
+                        </Border>
+                    </TabItem>
+                    <!-- Import a profile locally -->
+                    <TabItem Header="Import locally...">
+                        <Border></Border>
+                    </TabItem>
+                </TabControl>
+                <!-- Buttons -->
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    Spacing="20"
+                    Margin="10">
+                    <Button
+                        Content="{CompiledBinding CancelText}" 
+                        Classes="DialogBtn DangerDialogBtn"
+                        Command="{CompiledBinding Cancel}"/>
+                    <Button
+                        Name="CreateProfileBtn"
+                        Opacity="{CompiledBinding CanCreateProfile}"
+                        Content="{CompiledBinding CreateText}" 
+                        Classes="DialogBtn GenericDialogBtn"
+                        Command="{CompiledBinding Confirm}"/>
+                </StackPanel>
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

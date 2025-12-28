@@ -113,9 +113,10 @@
             <Border Grid.Row="1" Padding="5">
                 <UniformGrid Columns="3">
                     <!-- Mod Displayer -->
-                    <StackPanel Margin="10 0">
-                        <TextBlock Text="Mods" Classes = "ColumnTitle"/>
+                    <Grid RowDefinitions="Auto, *, Auto" Margin="10 0">
+                        <TextBlock Grid.Row="0" Text="Mods" Classes = "ColumnTitle"/>
                         <Border
+                            Grid.Row="1"
                             BorderBrush="{DynamicResource Menu-Header-Bg}"
                             BorderThickness="5"
                             Background="{DynamicResource ListInnerBg}"
@@ -125,6 +126,7 @@
                                 Margin="5">
                                 <ItemsControl
                                     Padding="5"
+                                    VerticalAlignment="Stretch"
                                     ItemsSource="{Binding Profile.ModMetaDataList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="models:ModItem">
@@ -154,11 +156,11 @@
                                 </ItemsControl>
                             </ScrollViewer>
                         </Border>
-                        <TextBlock FontWeight="Bold"> <!-- Mod Count -->
+                        <TextBlock Grid.Row="2" FontWeight="Bold"> <!-- Mod Count -->
                             <Run Text="Mod Count:"/>
                             <Run Text="{Binding Profile.ModMetaDataList.Count}"/>
                         </TextBlock>
-                    </StackPanel>
+                    </Grid>
                     <!-- Metadata Displayer -->
                     <Panel>
                         <!-- Separators -->
@@ -198,9 +200,10 @@
                         </StackPanel>
                     </Panel>
                     <!-- Configs Displayer -->
-                    <StackPanel Margin="10 0">
-                            <TextBlock Text="Configurations" Classes="ColumnTitle"/>
+                    <Grid RowDefinitions="Auto, *, Auto" Margin="10 0">
+                            <TextBlock Grid.Row="0" Text="Configurations" Classes="ColumnTitle"/>
                             <Border
+                                Grid.Row="1"
                                 BorderBrush="{DynamicResource Menu-Header-Bg}"
                                 BorderThickness="5"
                                 Background="{DynamicResource ListInnerBg}"
@@ -247,11 +250,11 @@
                                     </ItemsControl>
                                 </ScrollViewer>
                             </Border>
-                            <TextBlock FontWeight="Bold"> <!-- Mod Count -->
+                            <TextBlock Grid.Row="2" FontWeight="Bold"> <!-- Mod Count -->
                                 <Run Text="Configs Count:"/>
                                 <Run Text="{Binding Profile.ConfigsMetaDataList.Count}"/>
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                 </UniformGrid>
             </Border>
             
@@ -273,6 +276,11 @@
                     Content="{CompiledBinding CloseText}" 
                     Classes="DialogBtn GenericDialogBtn"
                     Command="{CompiledBinding CloseWithoutChanges}"/>
+                <Button
+                    Name="ExportButton"
+                    Content="{CompiledBinding ExportText}" 
+                    Classes="DialogBtn GenericDialogBtn"
+                    Command="{CompiledBinding ExportProfile}"/>
             </StackPanel>
         </Grid>
     </Border>

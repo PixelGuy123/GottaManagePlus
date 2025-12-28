@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -19,10 +18,13 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 {
     private readonly DialogService _dialogService = null!;
     private readonly IProfileProvider _profileProvider = null!;
+    private readonly IGameFolderViewer _gameFolderViewer = null!;
     private readonly SettingsService _settingsService = null!;
     private readonly IFilesService _filesService = null!;
     private readonly List<ProfileItem> _allProfiles = [];
     private ProfileItem? _lastSelectedItem;
+
+    public event Action<IProfileProvider>? AfterProfileUpdate;
     
     // Observable Properties
     [ObservableProperty] 
@@ -76,7 +78,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
     }
     
     // DI Constructor
-    public ProfilesViewModel(DialogService dialogService, ProfileProvider profileProvider, FilesService filesService, SettingsService settingsService)
+    public ProfilesViewModel(DialogService dialogService, ProfileProvider profileProvider, FilesService filesService, SettingsService settingsService, PlusFolderViewer plusFolderViewer)
     {
         if (Design.IsDesignMode) return;
         
@@ -84,11 +86,12 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         _dialogService = dialogService;
         _filesService = filesService;
         _settingsService = settingsService;
+        _gameFolderViewer = plusFolderViewer;
         _profileProvider = profileProvider;
         _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
         
         // Update profile data on random thread
-        Dispatcher.UIThread.InvokeAsync(() => WaitToUpdateData(_settingsService.CurrentSettings.CurrentProfileSet));
+        Dispatcher.UIThread.InvokeAsync(() => WaitToUpdateData(_settingsService.CurrentSettings.CurrentProfileSet), DispatcherPriority.Loaded);
     }
 
     public void Dispose()
@@ -113,6 +116,9 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             
             // Update profile settings
             _settingsService.CurrentSettings.CurrentProfileSet = _profileProvider.GetActiveProfile();
+            
+            // Update other view models subscribed to this event
+            AfterProfileUpdate?.Invoke(provider);
         });
     }
     
@@ -169,6 +175,20 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        if (_allProfiles[index].IsProfileMissingMetadata)
+        {
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.WarningDialog,
+                Message = """
+                          The profile you're attempting to open is missing its metadata! 
+                          If you want to know what's inside it, you will need to load this profile.
+                          Don't worry, your currently active profile will be saved.
+                          """
+            });
+            return;
+        }
+
         // Create profile viewer
         var profileViewer = new PreviewProfileDialogViewModel(
             _allProfiles[index], 
@@ -189,6 +209,12 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
                 continue; // Loop back, since that wasn't a normal close
             }
 
+            if (profileViewer.ShouldExportProfile)
+            {
+                await ExportProfileItem(id);
+                continue;
+            }
+
             // If there's a feedback, display it and reset the loop
             if (profileViewer.SubDialogView != null)
             {
@@ -198,6 +224,26 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 
             break;
         }
+    }
+
+    private async Task ExportProfileItem(int index)
+    {
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.ExportProfile, index) { Title = "Profile Export", Status = "Exporting profile..."};
+        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        {
+            // If it fails, show dialog
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"Failed to export the profile! If you're still having issues, try this:\n{Constants.SolutionFilePermissions}"
+            });
+            return;
+        }
+        // Success action (open the export)
+        await _filesService.OpenDirectoryInfo(new DirectoryInfo(_gameFolderViewer.SearchPath(
+            _gameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.ManagerRoot),
+            Constants.ProfileExportFolder
+            )));
     }
     
     private async Task<bool> DeleteProfileItemUiAsync(int index) // Delete asynchronously the items
@@ -218,7 +264,15 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return false;
         
         var loadingDialog = new LoadingDialogViewModel(_profileProvider.DeleteProfile, index) { Title = "Deleting profile..." };
-        if (await _dialogService.ShowLoadingDialog(loadingDialog)) return true;
+        if (await _dialogService.ShowLoadingDialog(loadingDialog))
+        {
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+            {
+                Title = Constants.SuccessDialog,
+                Message = $"Successfully deleted the profile (id: {index})."
+            });
+            return true;
+        }
         
         // Warn delete profile failed
         await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
@@ -282,7 +336,8 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             {
                 Title = Constants.FailDialog,
                 Message = $"""
-                          Failed to switch the profile.\nThe current active profile failed to be saved.
+                          Failed to switch the profile.
+                          The current active profile failed to be saved.
                           If this issue persists, you can try:
                           {Constants.SolutionFilePermissions}
                           """

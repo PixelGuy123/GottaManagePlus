@@ -25,8 +25,8 @@ public static class Constants
         OperatingSystem.IsLinux() ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".steam", "steam", "steamapps", "common", "Baldi's Basics Plus") :
             string.Empty;
     
-    // Root folder of the app
-    public const string AppRootFolder = ".gmp";
+    // Extensions and names that the app uses
+    public const string AppRootFolder = ".gmp", ExportedProfileExtension = ".gmpProfile", ProfileExportFolder = "exports";
     
     // Categories for debugging
     public const string DebugWarning = "Warning", DebugInfo = "Info", DebugError = "Error";

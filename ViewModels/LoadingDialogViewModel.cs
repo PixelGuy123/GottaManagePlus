@@ -28,10 +28,11 @@ public partial class LoadingDialogViewModel : DialogViewModel
     // Observable properties
     [ObservableProperty] private string _title = "Loading...";
     [ObservableProperty] private string? _status;
-    [ObservableProperty] private string? _progressPercentageText = "0.0%";
-    [ObservableProperty] private double _progressPercentage;
+    [ObservableProperty] private string? _progressPercentageText;
+    [ObservableProperty] private int _progressMax = 1;
+    [ObservableProperty] private int _progressValue = 0;
     [ObservableProperty] private string _cancelText = "Cancel";
-    [ObservableProperty] private Progress<(double, string?)>? _progress;
+    [ObservableProperty] private Progress<(int, int, string?)>? _progress;
 
     /// <summary>
     /// Unified constructor that accepts a Delegate and dynamic arguments.
@@ -48,10 +49,10 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
         // Dynamic UI State Detection
         AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
-        HideProgressBar = !parameters.Any(p => typeof(IProgress<(double, string?)>).IsAssignableFrom(p.ParameterType));
+        HideProgressBar = !parameters.Any(p => typeof(IProgress<(int, int, string?)>).IsAssignableFrom(p.ParameterType));
         
         if (!HideProgressBar) // If there's progress bar, there's progress instance
-            Progress = new Progress<(double, string?)>();
+            Progress = new Progress<(int, int, string?)>();
     }
 
     public LoadingDialogViewModel()
@@ -72,9 +73,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
         if (Progress != null)
             Progress.ProgressChanged += OnProgressChanged;
-            
-        // Wait one frame for the UI to render at the very least 
-        await Task.Yield();
 
         try
         {
@@ -93,7 +91,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 {
                     finalArgs[i] = _cts.Token;
                 } // Otherwise, check if it is a IProgress
-                else if (typeof(IProgress<(double, string?)>).IsAssignableFrom(pType))
+                else if (typeof(IProgress<(int, int, string?)>).IsAssignableFrom(pType))
                 {
                     finalArgs[i] = Progress;
                 } // Below them, just use these as arguments
@@ -109,7 +107,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
             // Run the result in a separate thread to not affect UI
             var result = await Task.Run(() => _loadingDelegate.DynamicInvoke(finalArgs)).ConfigureAwait(false);
-            var cancellationDone = false;
+            bool cancellationDone;
             
             switch (result)
             {
@@ -117,17 +115,11 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 {
                     var success = await boolTask;
                     cancellationDone = _cts.IsCancellationRequested;
-                    if (Progress != null)
-                        OnProgressChanged(null, (1, "Finished!")); // Updates progress if needed
-                    await Task.Delay(250);
                     return success && !cancellationDone;
                 }
                 case Task task:
                     await task;
                     cancellationDone = _cts.IsCancellationRequested;
-                    if (Progress != null)
-                        OnProgressChanged(null, (1, "Finished!")); // Updates progress if needed
-                    await Task.Delay(250);
                     return !cancellationDone;
                 default:
                     return true;
@@ -151,11 +143,12 @@ public partial class LoadingDialogViewModel : DialogViewModel
         }
     }
 
-    private void OnProgressChanged(object? sender, (double, string?) e)
+    private void OnProgressChanged(object? sender, (int, int, string?) e)
     {
-        ProgressPercentageText = (e.Item1 * 100.0).ToString("N1") + '%';
-        ProgressPercentage = e.Item1;
-        Status = e.Item2;
+        ProgressPercentageText = $"{e.Item1}/{e.Item2} ";
+        ProgressMax = e.Item2;
+        ProgressValue = e.Item1;
+        Status = e.Item3;
     }
 
     [RelayCommand]

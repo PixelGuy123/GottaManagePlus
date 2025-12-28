@@ -54,8 +54,8 @@
                         Foreground="{DynamicResource ProgressBar-Foreground}"
                         MinHeight="15"
                         Minimum="0"
-                        Maximum="1"
-                        Value="{CompiledBinding ProgressPercentage}"/>
+                        Maximum="{CompiledBinding ProgressMax}"
+                        Value="{CompiledBinding ProgressValue}"/>
                     <TextBlock
                         Name="ProgressText"
                         IsVisible="{CompiledBinding !HideProgressBar}"

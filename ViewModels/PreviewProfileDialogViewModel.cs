@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
@@ -29,12 +30,13 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     [ObservableProperty]
     private ProfileItem _profile = profile;
     [ObservableProperty]
-    private string _closeText = "Close", _deleteText = "Delete";
+    private string _closeText = "Close", _deleteText = "Delete", _exportText = "Export profile";
 
     public bool AllowProfileDeletion { get; } = allowProfileDeletion;
     
     // Public getters
     public bool ShouldDeleteProfile { get; private set; }
+    public bool ShouldExportProfile { get; private set; }
     public DialogViewModel? SubDialogView { get; private set; }
     
     // Commands
@@ -51,8 +53,9 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     [RelayCommand]
     public async Task OpenProfilePath()
     {
-        const string profileFixSuggestion = "Try closing this window and reloading the profiles list.";
-        if (string.IsNullOrEmpty(Profile.FullOsPath) || !Directory.Exists(Profile.FullOsPath))
+        const string profileFixSuggestion = "Try reloading the profiles list.";
+        var path = Path.GetDirectoryName(Profile.FullOsPath);
+        if (!Directory.Exists(path))
         {
             SubDialogView = new ConfirmDialogViewModel(true)
             {
@@ -60,11 +63,12 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
               Message = $"The path to the profile is somehow invalid!\n{profileFixSuggestion}"
             };
             Debug.WriteLine("Failed to open profile path due to invalid path.", Constants.DebugError);
+            Debug.WriteLine(path, Constants.DebugError);
             Close();
             return;
         }
-
-        if (!await _filesService.OpenDirectoryInfo(new DirectoryInfo(Profile.FullOsPath)))
+        
+        if (!await _filesService.OpenDirectoryInfo(new DirectoryInfo(path)))
         {
             SubDialogView = new ConfirmDialogViewModel(true)
             {
@@ -75,13 +79,20 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
             Close();
         }
     }
-
-
+    
     // Internal/Public methods
     public void ResetState()
     {
         SubDialogView = null;
+        ShouldExportProfile = false;
         ShouldDeleteProfile = false;
         IsDialogOpen = false;
+    }
+
+    [RelayCommand]
+    public void ExportProfile()
+    {
+        ShouldExportProfile = true;
+        Close();
     }
 }

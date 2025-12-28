@@ -12,10 +12,6 @@ using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Writers;
 
-// TODO: Generate a metadata file with the same name as the zip (myProfile.zip.json) to keep record of all the files that have been stored and at what categories:
-// For example, the JSON should have a "Configs" list, and all the file paths used inside the configs folder (NOT TO BE USED FOR EXTRACTION, ONLY FOR REFERENCE).
-// if the ProfileItem has IsSelectedProfile on, it is literally being used to identify the path; otherwise, the system should use it to know if it's just a readonly instance with metadata contained.
-
 namespace GottaManagePlus.Services;
 
 /// <summary>
@@ -26,7 +22,8 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     // Constants
     private const string ProfileFolderName = "profiles",
         TempContentZipFileSuffix = "_TEMP",
-        ContentZipFileExtension = ".zip";
+        ContentZipFileExtension = ".zip",
+        ContentMetadataFileExtension = ".metadata";
     
     // Private members
     private ProfileItem? _currentProfileItem;
@@ -43,7 +40,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Adds a profile to the internal list if a profile with the same name does not already exist.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> AddProfile(string profileName, IProgress<(double, string?)>? progress = null)
+    public async Task<bool> AddProfile(string profileName, bool deleteExistingStorage, IProgress<(int, int, string?)>? progress = null)
     {
         // Check if there's already a profile with same name
         if (_availableProfiles.Exists(p =>
@@ -61,7 +58,9 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         
         // Add profile and update data
         await GenerateProfileDataFromProfileItem(profileItem, 
-            generateNewContentStorage: true, progress); // Generate active profile
+            generateNewContentStorage: true, 
+            deleteExistingStorage: deleteExistingStorage, 
+            progress); 
         return await SetActiveProfile(_availableProfiles.Count - 1, progress); // Set as active profile to copy the data properly from the game
     }
     
@@ -70,7 +69,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="UnauthorizedAccessException">Thrown if the profile path is outside the manager root.</exception>
-    public async Task<bool> DeleteProfile(int profileIndex, IProgress<(double, string?)>? progress = null)
+    public async Task<bool> DeleteProfile(int profileIndex, IProgress<(int, int, string?)>? progress = null)
     {
         if (profileIndex < 0 || profileIndex >= _availableProfiles.Count)
             throw new IndexOutOfRangeException($"profileIndex ({profileIndex}) is out of range.");
@@ -88,7 +87,13 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 throw new UnauthorizedAccessException("Profile path is located outside the expected location!");
             
             // Delete profile folder
-            File.Delete(profile.FullOsPath);
+            if (File.Exists(profile.FullOsPath))
+                File.Delete(profile.FullOsPath);
+            
+            // Delete profile metadata
+            var metadataPath = profile.FullOsPath + ContentMetadataFileExtension;
+            if (File.Exists(metadataPath))
+                File.Delete(metadataPath);
             
             // Update profile data
             await UpdateProfilesData(progress: progress);
@@ -102,6 +107,182 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             return false;
         }
     }
+    
+    /// <summary>
+    /// Exports a profile in the default format within the manager's folder.
+    /// </summary>
+    /// <inheritdoc/>
+    public async Task<bool> ExportProfile(int profileIndex)
+    {
+        var success = false;
+        var profileExportTempPath = string.Empty;
+        try
+        {
+            // Get the folder to export
+            var exportFolder = GameFolderViewer.SearchPath(
+                GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.ManagerRoot),
+                Constants.ProfileExportFolder
+            );
+
+            // Get profile instance
+            var profile = _availableProfiles[profileIndex];
+
+            // Safe checks
+            if (string.IsNullOrEmpty(profile.FullOsPath) || !File.Exists(profile.FullOsPath) ||
+                profile.IsProfileMissingMetadata)
+                throw new InvalidOperationException("Profile CANNOT be exported.");
+
+            // Create directory if it doesn't exist
+            if (!Directory.Exists(exportFolder))
+                Directory.CreateDirectory(exportFolder);
+            
+            // Set the temp path
+            profileExportTempPath = Path.Combine(exportFolder, profile.ProfileName + TempContentZipFileSuffix + Constants.ExportedProfileExtension);
+            
+            // Open the zip writer
+            await using (var zipArchiveHandler = File.OpenWrite(profileExportTempPath))
+            {
+                // Get the zip writer for the task
+                using (var writer = WriterFactory.Open(zipArchiveHandler, ArchiveType.Zip, CompressionType.BZip2))
+                {
+                    // Get the streams for writing
+                    await using var metadataStream = File.OpenRead(profile.FullOsPath + ContentMetadataFileExtension);
+                    await using var contentStream = File.OpenRead(profile.FullOsPath);
+
+                    // Write the files to the zip
+                    writer.Write(Path.GetFileName(contentStream.Name), contentStream);
+                    writer.Write(Path.GetFileName(metadataStream.Name), metadataStream);
+                }
+            }
+
+            // Copy the temp one to have a different name (overwrite)
+            File.Copy(profileExportTempPath, Path.Combine(exportFolder, profile.ProfileName + Constants.ExportedProfileExtension), true);
+            
+            // Delete the temporary zip file
+            File.Delete(profileExportTempPath);
+
+            success = true;
+            return true;
+        }
+        catch (Exception e)
+        {
+            success = false;
+            Debug.WriteLine($"Failed to export {_availableProfiles[profileIndex].ProfileName} to {profileExportTempPath}.", Constants.DebugError);
+            Debug.WriteLine(e.ToString(), Constants.DebugError);
+            return false;
+        }
+        finally // Finally, if export wasn't successful, delete the temporary file
+        {
+            try
+            {
+                if (!success && File.Exists(profileExportTempPath))
+                    File.Delete(profileExportTempPath);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Failed to delete temporary export file: {profileExportTempPath}.", Constants.DebugError);
+                Debug.WriteLine(e.ToString(), Constants.DebugError);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Imports a profile in the default format within the manager's folder.
+    /// </summary>
+    /// <inheritdoc/>
+    public async Task<bool> ImportProfile(string importPath)
+    {
+        var tempFiles = new List<string>();
+        try
+        {
+            if (!File.Exists(importPath))
+            {
+                Debug.WriteLine($"Import file not found: {importPath}", Constants.DebugError);
+                return false;
+            }
+
+            var profilesFolder = GetOrCreateProfilesFolder();
+            if (profilesFolder == null)
+                throw new NullReferenceException(nameof(profilesFolder));
+            
+            await using var stream = File.OpenRead(importPath);
+            using var archive = ArchiveFactory.Open(stream);
+            
+            // Extract to temporary files
+            foreach (var entry in archive.Entries)
+            {
+                if (entry.IsDirectory || string.IsNullOrEmpty(entry.Key)) continue;
+
+                var fileName = Path.GetFileName(entry.Key);
+                var finalPath = Path.Combine(profilesFolder.FullName, fileName);
+                var tempPath = finalPath + TempContentZipFileSuffix;
+
+                // Extract
+                entry.WriteToFile(tempPath, new ExtractionOptions { ExtractFullPath = false, Overwrite = true });
+                tempFiles.Add(tempPath);
+            }
+
+            // Check for files
+            if (tempFiles.Count == 0)
+            {
+                Debug.WriteLine("No files found in the imported archive.", Constants.DebugError);
+                return false;
+            }
+
+            // Check for conflicts and prepare for move
+            var finalFiles = new List<string>();
+            foreach (var tempFile in tempFiles)
+            {
+                var originalFinalPath = tempFile.Substring(0, tempFile.Length - TempContentZipFileSuffix.Length);
+                var finalPath = originalFinalPath;
+                var counter = 1;
+                
+                // Basically make a unique file name
+                while (File.Exists(finalPath))
+                {
+                    counter++;
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFinalPath);
+                    var extension = Path.GetExtension(originalFinalPath);
+                    finalPath = Path.Combine(Path.GetDirectoryName(originalFinalPath)!, $"{fileNameWithoutExtension}_{counter}{extension}");
+                }
+                finalFiles.Add(finalPath);
+            }
+
+
+            // Move temp files to final destination
+            for (var i = 0; i < tempFiles.Count; i++)
+                File.Move(tempFiles[i], finalFiles[i], true);
+
+            // Update profiles data
+            await UpdateProfilesData();
+            
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine($"Failed to import profile from {importPath}.", Constants.DebugError);
+            Debug.WriteLine(e.ToString(), Constants.DebugError);
+            return false;
+        }
+        finally
+        {
+            // Cleanup temp files
+            foreach (var tempFile in tempFiles)
+            {
+                try
+                {
+                    if (File.Exists(tempFile))
+                        File.Delete(tempFile);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"Failed to delete temporary import file: {tempFile}.", Constants.DebugError);
+                    Debug.WriteLine(e.ToString(), Constants.DebugError);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Returns the internal list of profiles as a read-only collection.
     /// </summary>
@@ -112,7 +293,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Clears current data and re-populates the profile list from the "profiles" directory.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<(double, string?)>? progress = null)
+    public async Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<(int, int, string?)>? progress = null)
     {
         // Get the profile
         var profilesFolder = GetOrCreateProfilesFolder();
@@ -129,6 +310,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         // Search up them again
         foreach (var profileZip in profilesFolder
                                             .GetFiles()
+                                            .Where(p => p.Extension == ContentZipFileExtension)
                                             .OrderBy(p => p.Name)) // Ordered search
         {
             var profileZipName = Path.GetFileNameWithoutExtension(profileZip.FullName);
@@ -174,15 +356,22 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Sets the active profile and triggers the <see cref="OnProfilesUpdate"/> event.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> SetActiveProfile(int profileIndex, IProgress<(double, string?)>? progress = null)
+    public async Task<bool> SetActiveProfile(int profileIndex, IProgress<(int, int, string?)>? progress = null)
     {
+        var noPrevProfileDetected = false;
         // Previous profile
         if (_currentProfileItem != null)
             _currentProfileItem.IsSelectedProfile = false;
+        else
+            noPrevProfileDetected = true;
         
         // New Profile
         _currentProfileItem = _availableProfiles[profileIndex];
         _currentProfileItem.IsSelectedProfile = true;
+        
+        // No previous profile detected means this is a first boot
+        if (noPrevProfileDetected)
+            await GenerateProfileDataFromProfileItem(_currentProfileItem, generateNewContentStorage: false); // Generate profile with no storage changes
         
         // Invoke profiles update
         OnProfilesUpdate?.Invoke(this);
@@ -193,7 +382,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Saves the current active profile.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> SaveActiveProfile(IProgress<(double, string?)>? progress = null) => await GenerateProfileDataFromProfileItem(this.GetInstanceActiveProfile(), true, progress);
+    public async Task<bool> SaveActiveProfile(IProgress<(int, int, string?)>? progress = null) => await GenerateProfileDataFromProfileItem(this.GetInstanceActiveProfile(), true,  progress: progress);
 
 
     // Public events
@@ -221,6 +410,31 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         }
     }
 
+    private void RemoveProfileStorageReference()
+    {
+        // Delete the common folders
+        DeleteAndRegenerateFolder(GameFolderViewer.SearchPath(
+            GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx),
+            Constants.ConfigFolder));
+        DeleteAndRegenerateFolder(GameFolderViewer.SearchPath(
+            GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx),
+            Constants.PatchersFolder));
+        DeleteAndRegenerateFolder(GameFolderViewer.SearchPath(
+            GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx),
+            Constants.PluginsFolder));
+        return;
+
+
+        static void DeleteAndRegenerateFolder(string path)
+        {
+            // Search configs folder and delete it to be regenerated
+            if (!Directory.Exists(path)) return;
+            
+            Directory.Delete(path, true);
+            Directory.CreateDirectory(path);
+        }
+    }
+
     private bool GatherProfileFolderInformation(ProfileItem item)
     {
         // Record snapshots if it happens to fail
@@ -235,6 +449,80 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
         try
         {
+            // If the profile item is not the chosen one, use metadata file instead.
+            if (!item.IsSelectedProfile)
+            {
+                var path = item.FullOsPath + ContentMetadataFileExtension;
+                // If the path itself for the metadata exists, we can use it.
+                if (File.Exists(path))
+                {
+                    // Declare the missing metadata is false
+                    item.IsProfileMissingMetadata = false;
+                    
+                    // Get binary reader
+                    Dictionary<string, string[]>? profileMetaData;
+                    using (var reader = new BinaryReader(File.OpenRead(path)))
+                    {
+                        profileMetaData = ProfileMetadataBinaryUtils.ReadDirectoryStructure(reader);
+                    }
+
+                    if (profileMetaData == null)
+                        throw new NullReferenceException(nameof(profileMetaData));
+                    
+                    // Configs loading
+                    if (profileMetaData.TryGetValue(ProfileMetadataBinaryUtils.ConfigsPrefix, out var collection))
+                    {
+                        for (var i = 0; i < collection.Length; i++)
+                        {
+                            item.ConfigsMetaDataList.Add(new ItemWithPath(i)
+                            {
+                                FullOsPath = collection[i]
+                            });
+                        }
+                    }
+                        
+                    // Patchers loading
+                    if (profileMetaData.TryGetValue(ProfileMetadataBinaryUtils.PatchersPrefix, out collection))
+                    {
+                        for (var i = 0; i < collection.Length; i++)
+                        {
+                            item.PatchersMetaDataList.Add(new ItemWithPath(i)
+                            {
+                                FullOsPath = collection[i]
+                            });
+                        }
+                    }
+                        
+                    // Mod list loading
+                    if (profileMetaData.TryGetValue(ProfileMetadataBinaryUtils.ModsPrefix, out collection))
+                    {
+                        if (profileMetaData.TryGetValue(ProfileMetadataBinaryUtils.ModsNamePrefix, out var modNames))
+                        {
+                            if (modNames.Length != collection.Length)
+                                throw new InvalidOperationException("Invalid size match from ModNames and ModPaths.");
+                            for (var i = 0; i < collection.Length; i++)
+                            {
+                                item.ModMetaDataList.Add(new ModItem(i, modNames[i])
+                                {
+                                    FullOsPath = collection[i]
+                                });
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+
+                // If the file is missing, then it misses metadata and will use the current directory by default
+                // It's a fail-safe that the UI may never allow, but keeping it here for logical flow
+                item.IsProfileMissingMetadata = true;
+            }
+            else
+            {
+                // If it is the selected one, then the code below already generates the needed metadata
+                item.IsProfileMissingMetadata = false;
+            }
+
             // Get game root path
             var rootPath = GameFolderViewer.GetGameRootPath();
             // Get the BepInEx path
@@ -266,17 +554,28 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
             // Mods loading
             var modsPath = GameFolderViewer.SearchPath(bepInExPath, Constants.PluginsFolder);
-            if (Directory.Exists(configsPath))
+            if (Directory.Exists(modsPath))
             {
                 // TODO: Scan for mod meta data, since they have some special access inside the game
+                // For now, primitive scanning may be used
+                foreach (var mod in Directory.GetFiles(modsPath))
+                    item.ModMetaDataList.Add(new ModItem(item.ModMetaDataList.Count,
+                        Path.GetFileNameWithoutExtension(mod))
+                    {
+                        FullOsPath = mod,
+                        RelativeOsPath = Path.GetRelativePath(rootPath, mod)
+                    });
             }
 
             return true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Failed to gather information for the ProfileItem!", Constants.DebugError);
+            Debug.WriteLine($"Failed to gather information for the {item.ProfileName}!", Constants.DebugError);
             Debug.WriteLine(ex.ToString(), Constants.DebugError);
+            
+            if (!item.IsSelectedProfile) // If it is still not the selected profile, then technically it is missing metadata
+                item.IsProfileMissingMetadata = true;
             
             // Restart their states
             item.ConfigsMetaDataList = new ObservableCollection<ItemWithPath>(tempConfigs);
@@ -290,11 +589,9 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     private async Task<bool> GenerateProfileDataFromProfileItem(
         ProfileItem profileItem, 
         bool generateNewContentStorage = false,
-        IProgress<(double, string?)>? progress = null)
+        bool deleteExistingStorage = false,
+        IProgress<(int, int, string?)>? progress = null)
     {
-        if (!GatherProfileFolderInformation(profileItem))
-            return false;
-        
         // Generate folder path
         var profilesFolderPath = GameFolderViewer.SearchPath(
             GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.ManagerRoot),
@@ -303,25 +600,102 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         // Get the zip file path
         var zipPath = GameFolderViewer.SearchPath(profilesFolderPath, profileItem.ProfileName + ContentZipFileExtension);
         
+        // Update ProfileItem metadata
+        profileItem.FullOsPath = zipPath;
+        profileItem.RelativeOsPath = Path.GetRelativePath(GameFolderViewer.GetGameRootPath(), zipPath);
+        
         // Try to generate profile info
         try
         {
-            // Update ProfileItem metadata
-            profileItem.FullOsPath = zipPath;
-            profileItem.RelativeOsPath = Path.GetRelativePath(GameFolderViewer.GetGameRootPath(), zipPath);
+            // Deletes everything to be clean
+            if (deleteExistingStorage)
+                RemoveProfileStorageReference();
+            
+            // Get information for the profile
+            if (!GatherProfileFolderInformation(profileItem))
+                return false;
             
             profileItem.DateOfCreation = File.GetCreationTime(zipPath);
             profileItem.DateOfUpdate = DateTime.Now; // Get date from system, since things were updated
 
             // If no new content is required, no writing is either.
             if (!generateNewContentStorage) return true;
+
+            var zipName = profileItem.ProfileName + ContentZipFileExtension;
             
-            // Redo zip path
-            var tempZipPath = GameFolderViewer.SearchPath(profilesFolderPath, profileItem.ProfileName + TempContentZipFileSuffix + ContentZipFileExtension);
+            // ****** Metadata Generation ******
+            var metadataFile = GameFolderViewer.SearchPath(profilesFolderPath, zipName + ContentMetadataFileExtension);
+            var tempMetadataFile = GameFolderViewer.SearchPath(profilesFolderPath, 
+                profileItem.ProfileName + TempContentZipFileSuffix + 
+                ContentZipFileExtension + ContentMetadataFileExtension);
             
             var success = false;
             try
             {
+                await using (var writer = new BinaryWriter(File.OpenWrite(tempMetadataFile)))
+                {
+                    // Writes profileItem metadata
+                    profileItem.WriteDirectoryStructure(writer, progress);
+                }
+                
+                // Copy the temp one to have a different name (overwrite)
+                File.Copy(tempMetadataFile, metadataFile, true);
+                
+                // Delete the temporary zip file
+                File.Delete(tempMetadataFile);
+                
+                success = true;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Failed to create the profile content.", Constants.DebugError);
+                Debug.WriteLine(e.ToString(), Constants.DebugError);
+            }
+            finally
+            {
+                switch (success)
+                {
+                    // If the metadata wasn't made successfully, delete it
+                    case false when File.Exists(tempMetadataFile):
+                        try
+                        {
+                            File.Delete(tempMetadataFile);
+                        }
+                        catch (IOException e)
+                        {
+                            Debug.WriteLine("Could not delete partial metadata file.", Constants.DebugError);
+                            Debug.WriteLine(e.ToString(), Constants.DebugError);
+                        }
+
+                        break;
+                    // Update this in case it has metadata now
+                    case true:
+                        profileItem.IsProfileMissingMetadata = false;
+                        break;
+                }
+            }
+
+            // If the JSON wasn't a success, don't continue with the zip then!
+            if (!success)
+                return false;
+            
+            // ****** ZIP Generation *******
+            // Redo zip path
+            var tempZipPath = GameFolderViewer.SearchPath(profilesFolderPath, profileItem.ProfileName + TempContentZipFileSuffix + ContentZipFileExtension);
+            
+            success = false;
+            try
+            {
+                // Gather lists into their local variables
+                var configs = profileItem.ConfigsMetaDataList;
+                var patchers = profileItem.PatchersMetaDataList;
+                var mods = profileItem.ModMetaDataList;
+
+                // TODO: Once mod is properly implemented, the code should:
+                // Calculate the amount of mods and all the other folders that are required by the mods
+                // to be added to totalFiles and be used inside the final for loop from this method.
+
+                var totalFiles = configs.Count + patchers.Count + mods.Count; // Calculate total
                 // ** Write all the content inside the game folder to the profile
                 // Get the zip file ready
                 await using (var zipArchiveHandler =
@@ -333,27 +707,22 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                     // Get root path from game
                     var rootPath = GameFolderViewer.GetGameRootPath();
 
-                    // Gather lists into their local variables
-                    var configs = profileItem.ConfigsMetaDataList;
-                    var patchers = profileItem.PatchersMetaDataList;
-                    var mods = profileItem.ModMetaDataList;
-
-                    // TODO: Once mod is properly implemented, the code should:
-                    // Calculate the amount of mods and all the other folders that are required by the mods
-                    // to be added to totalFiles and be used inside the final for loop from this method.
-
-                    // TODO: Generate the new zip file in a temporary folder (granted by Environment)
-                    // to delete the zip file if left partially completed.
-
-                    var totalFiles = configs.Count + patchers.Count + mods.Count; // Calculate total
+                    var filesZipped = 0;
 
                     // Look for configs
-                    for (var i = 0; i < configs.Count; i++)
+                    foreach (var t in configs)
                     {
-                        var config = configs[i];
-                        var fullPath = config.FullOsPath;
+                        filesZipped++;
+                        var fullPath = t.FullOsPath;
 
-                        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) continue; // Skip this file
+                        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
+                        {
+                            progress?.Report((filesZipped, totalFiles, "Skipping invalid file..."));
+                            continue; // Skip this file
+                        }
+                        
+                        // Report progress
+                        progress?.Report((filesZipped, totalFiles, $"Zipping {Path.GetFileName(fullPath)}..."));
 
                         var entryPathInZip = Path.GetRelativePath(rootPath, fullPath);
 
@@ -362,10 +731,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
                         // Write file to the zip
                         await zipWriter.WriteAsync(entryPathInZip, sourceFileStream);
-
-                        // Calculate percentage
-                        var percentage = (double)(i + 1) / totalFiles;
-                        progress?.Report((percentage, $"Zipping {Path.GetFileName(fullPath)}..."));
                     }
 
                     // If no file found, make a stub directory in the zip
@@ -375,16 +740,21 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                                 GameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.BepInEx),
                                 Constants.ConfigFolder 
                                 )));
-                    
-                    totalFiles -= configs.Count; // Remove the configs from the table
 
                     // Look for patchers
-                    for (var i = 0; i < patchers.Count; i++)
+                    foreach (var t in patchers)
                     {
-                        var patcher = patchers[i];
-                        var fullPath = patcher.FullOsPath;
+                        filesZipped++;
+                        var fullPath = t.FullOsPath;
 
-                        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) continue; // Skip this file
+                        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
+                        {
+                            progress?.Report((filesZipped, totalFiles, "Skipping invalid file..."));
+                            continue; // Skip this file
+                        }
+                        
+                        // Report progress
+                        progress?.Report((filesZipped, totalFiles, $"Zipping {Path.GetFileName(fullPath)}..."));
 
                         var entryPathInZip = Path.GetRelativePath(rootPath, fullPath);
 
@@ -393,10 +763,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
                         // Write file to the zip
                         await zipWriter.WriteAsync(entryPathInZip, sourceFileStream);
-
-                        // Calculate percentage
-                        var percentage = (double)(i + 1) / totalFiles;
-                        progress?.Report((percentage, $"Zipping {Path.GetFileName(fullPath)}..."));
                     }
                     
                     // If no file found, make a stub directory in the zip
@@ -407,15 +773,21 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                                 Constants.PatchersFolder
                             )));
 
-                    totalFiles -= patchers.Count; // Remove the patchers from the table
-
+                    // TODO: Make this loop also not use the primitive approach (Reminder for the bigger note above these loops).
                     // Look for mods
-                    for (var i = 0; i < mods.Count; i++)
+                    foreach (var t in mods)
                     {
-                        var mod = mods[i];
-                        var fullPath = mod.FullOsPath;
+                        filesZipped++;
+                        var fullPath = t.FullOsPath;
 
-                        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) continue; // Skip this file
+                        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
+                        {
+                            progress?.Report((filesZipped, totalFiles, "Skipping invalid file..."));
+                            continue; // Skip this file
+                        }
+                        
+                        // Report progress
+                        progress?.Report((filesZipped, totalFiles, $"Zipping {Path.GetFileName(fullPath)}..."));
 
                         var entryPathInZip = Path.GetRelativePath(rootPath, fullPath);
 
@@ -424,10 +796,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
                         // Write file to the zip
                         await zipWriter.WriteAsync(entryPathInZip, sourceFileStream);
-
-                        // Calculate percentage
-                        var percentage = (double)(i + 1) / totalFiles;
-                        progress?.Report((percentage, $"Zipping {Path.GetFileName(fullPath)}..."));
                     }
                     
                     // If no file found, make a stub directory in the zip
@@ -447,7 +815,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 File.Delete(tempZipPath);
                 
                 // 100% report
-                progress?.Report((1.0, "Successfully zipped!"));
+                progress?.Report((totalFiles, totalFiles, "Successfully zipped!"));
                 success = true;
             }
             catch (Exception e)
@@ -486,7 +854,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
     private async Task<bool> UnzipAndDistributeProfileContent(
     ProfileItem profileItem, 
-    IProgress<(double, string?)>? progress = null)
+    IProgress<(int, int, string?)>? progress = null)
     {
         // Don't allow unzipping the same profile item twice for performance reasons
         if (_lastUnzippedProfileItem?.ProfileName == profileItem.ProfileName)
@@ -521,14 +889,25 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             // Iterate each entry
             foreach (var entry in archive.Entries)
             {
-                if (string.IsNullOrEmpty(entry.Key)) continue;
+                // Add one entry
+                entriesProcessed++;
+                
+                if (string.IsNullOrEmpty(entry.Key))
+                {
+                    progress?.Report((entriesProcessed, totalEntryCount, "Skipped invalid entry..."));
+                    continue;
+                }
                 
                 var entryIsDirectory = entry.IsDirectory;
                 var extractionPath = GameFolderViewer.SearchPath(entry.Key);
                 var directory = Path.GetDirectoryName(extractionPath);
 
                 // Skip if invalid directory
-                if (string.IsNullOrEmpty(directory)) continue;
+                if (string.IsNullOrEmpty(directory))
+                {
+                    progress?.Report((entriesProcessed, totalEntryCount, "Skipped invalid entry..."));
+                    continue;
+                }
 
                 // Create directory in the space
                 if (!deletedDirectories.Exists(p => p.StartsWith(directory))) // Avoid deleting subdirectories from other directories
@@ -541,9 +920,13 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                     
                     deletedDirectories.Add(directory); // Register directory
                 }
-                // Only do the directory scan check, not extract the directory yet
+                // Only do the directory scan check, do not extract the directory yet
                 if (entryIsDirectory)
+                {
+                    progress?.Report((entriesProcessed, totalEntryCount, $"Unzipping {Path.GetFileName(entry.Key)}..."));
                     continue;
+                }
+
                 // DO not use async method; it bugs out here for some reason, differently from its sync variant.
                 // ReSharper disable once MethodHasAsyncOverload
                 entry.WriteToDirectory(rootPath, new ExtractionOptions
@@ -552,12 +935,11 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 });
                 
                 // Progress update
-                entriesProcessed++;
-                progress?.Report(((double)entriesProcessed / totalEntryCount, $"Unzipping {Path.GetFileName(entry.Key)}..."));
+                progress?.Report((entriesProcessed, totalEntryCount, $"Unzipping {Path.GetFileName(entry.Key)}..."));
             }
             
             _lastUnzippedProfileItem = profileItem;
-            progress?.Report((1.0, "Successfully unzipped!"));
+            progress?.Report((totalEntryCount, totalEntryCount, "Successfully unzipped!"));
             Debug.WriteLine($"Successfully unzipped {profileItem.ProfileName} to {rootPath}.", Constants.DebugInfo);
             return true;
         }

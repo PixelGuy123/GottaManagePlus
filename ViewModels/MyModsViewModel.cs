@@ -45,7 +45,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     
     
     // For designer
-    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, new ProfileProvider(null!), null!, null!))
+    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, new ProfileProvider(null!), null!, null!, null!))
     {
         if (!Design.IsDesignMode) return;
         
@@ -71,29 +71,26 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         // Service
         _dialogService = dialogService;
         _profileProvider = profileProvider;
-        _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
+        profilesViewModel.AfterProfileUpdate += ProfilesProvider_OnProfilesUpdate;
     }
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _profileProvider.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
+        ((ProfilesViewModel)SideMenuBase!).AfterProfileUpdate -= ProfilesProvider_OnProfilesUpdate;
     }
 
     // Private methods
     private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
     {
-        Dispatcher.UIThread.Post(() =>
-        {
-            _allMods.Clear();
-            _allMods.AddRange(provider.GetInstanceActiveProfile().ModMetaDataList);
+        _allMods.Clear();
+        _allMods.AddRange(provider.GetInstanceActiveProfile().ModMetaDataList);
 
-            ObservableUnchangedMods.Clear();
-            foreach (var mod in _allMods)
-                ObservableUnchangedMods.Add(mod);
+        ObservableUnchangedMods.Clear();
+        foreach (var mod in _allMods)
+            ObservableUnchangedMods.Add(mod);
 
-            ResetListVisibleConfigurations();
-        });
+        ResetListVisibleConfigurations();
     }
     
     private void UpdateModsList(ModItem? highlightedItem)

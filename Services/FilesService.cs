@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
@@ -38,7 +39,7 @@ public class FilesService : IFilesService
 
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">Thrown if the storage provider is not registered.</exception>
-    public async Task<IStorageFile?> SaveFileAsync(string? title = null, string? preselectedPath = null)
+    public async Task<IStorageFile?> SaveFileAsync(string? title = null, string? suggestedFileName = null, string? preselectedPath = null, params FilePickerFileType[] filterChoices)
     {
         if (_storageProvider == null) throw new InvalidOperationException("StorageProvider has not been registered yet.");
         
@@ -49,7 +50,9 @@ public class FilesService : IFilesService
         return await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions()
         {
             Title = title,
-            SuggestedStartLocation = folder
+            SuggestedStartLocation = folder,
+            FileTypeChoices = filterChoices,
+            SuggestedFileName = suggestedFileName
         });
     }
     
@@ -67,11 +70,28 @@ public class FilesService : IFilesService
         
         return folders.Count >= 1 ? folders[0] : null;
     }
-    
+
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">Thrown if the launcher is not registered.</exception>
-    public Task<bool> OpenDirectoryInfo(DirectoryInfo directoryInfo) =>
-        _launcher != null ? _launcher.LaunchDirectoryInfoAsync(directoryInfo) : 
-            throw new InvalidOperationException("Launcher has not been registered yet.");
-    
+    public async Task<bool> OpenDirectoryInfo(DirectoryInfo directoryInfo)
+    {
+        // Workaround for issue: https://github.com/AvaloniaUI/Avalonia/issues/20230
+        if (OperatingSystem.IsLinux())
+        {
+            // using xdg-open with Linux
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "xdg-open",
+                Arguments = $"\"{directoryInfo.FullName}\"",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            });
+            return true;
+        }
+        
+        return _launcher != null
+            ? await _launcher.LaunchDirectoryInfoAsync(directoryInfo)
+            : throw new InvalidOperationException("Launcher has not been registered yet.");
+    }
+
 }

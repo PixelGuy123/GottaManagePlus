@@ -12,6 +12,8 @@ public partial class ProfileItem(int id, string profileName) : ItemWithPath(id)
     // Observables
     [ObservableProperty] 
     private bool _isSelectedProfile; // Tells whether the profile is being used or is a ReadOnly file for metadata.
+    [ObservableProperty] 
+    private bool _isProfileMissingMetadata; // used by the UI to know whether to indicate METADATA IS MISSING or not.
     [ObservableProperty]
     private string _profileName = profileName;
     [ObservableProperty] 

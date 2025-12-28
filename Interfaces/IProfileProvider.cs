@@ -15,9 +15,10 @@ public interface IProfileProvider
     /// The implementation should attempt to add a new profile item to the managed collection.
     /// </summary>
     /// <param name="profileName">The profile name to be included.</param>
+    /// <param name="deleteExistingStorage">If <see langword="true"/>, the implementation should delete the storage before generating the profile.</param>
     /// <param name="progress">Reports back the process (both percentage and status message) if needed.</param>
     /// <returns><see langword="true"/> if the profile was successfully added; otherwise, <see langword="false"/>.</returns>
-    public Task<bool> AddProfile(string profileName, IProgress<(double, string?)>? progress = null);
+    public Task<bool> AddProfile(string profileName, bool deleteExistingStorage, IProgress<(int, int, string?)>? progress = null);
 
     /// <summary>
     /// The implementation should remove a profile at the specified index and delete its associated storage resources.
@@ -26,7 +27,21 @@ public interface IProfileProvider
     /// <param name="progress">Reports back the process (both percentage and status message) if needed.</param>
     /// <returns><see langword="true"/> if the deletion was successful; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="IndexOutOfRangeException">Thrown when the index is outside the bounds of the profile list.</exception>
-    public Task<bool> DeleteProfile(int profileIndex, IProgress<(double, string?)>? progress = null);
+    public Task<bool> DeleteProfile(int profileIndex, IProgress<(int, int, string?)>? progress = null);
+    
+    /// <summary>
+    /// The implementation should export a special format for a profile at the specified index.
+    /// </summary>
+    /// <param name="profileIndex">The zero-based index of the profile to export.</param>
+    /// <returns><see langword="true"/> if the exportation was successful; otherwise, <see langword="false"/>.</returns>
+    public Task<bool> ExportProfile(int profileIndex);
+    
+    /// <summary>
+    /// The implementation should import a special format for a profile.
+    /// </summary>
+    /// <param name="importPath">The path to grab the file to be imported.</param>
+    /// <returns><see langword="true"/> if the exportation was successful; otherwise, <see langword="false"/>.</returns>
+    public Task<bool> ImportProfile(string importPath);
 
     /// <summary>
     /// The implementation should provide a read-only collection of all currently loaded profiles.
@@ -40,7 +55,7 @@ public interface IProfileProvider
     /// <param name="defaultSelection">The profile to be selected in case the list reaches the determined index.</param>
     /// <param name="progress">Reports back the process (both percentage and status message) if needed.</param>
     /// /// <returns><see langword="true"/> if the operation was a success; otherwise, <see langword="false"/>.</returns>
-    public Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<(double, string?)>? progress = null);
+    public Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<(int, int, string?)>? progress = null);
 
     /// <summary>
     /// The implementation should return the profile currently marked as active.
@@ -54,13 +69,13 @@ public interface IProfileProvider
     /// </summary>
     /// <param name="profileIndex">The zero-based index of the profile to activate.</param>
     /// <param name="progress">Reports back the process (both percentage and status message) if needed.</param>
-    public Task<bool> SetActiveProfile(int profileIndex, IProgress<(double, string?)>? progress = null);
+    public Task<bool> SetActiveProfile(int profileIndex, IProgress<(int, int, string?)>? progress = null);
     
     /// <summary>
     /// The implementation should forcefully generate a new content file for the profile.
     /// </summary>
     /// <param name="progress">Reports back the process (both percentage and status message) if needed.</param>
-    public Task<bool> SaveActiveProfile(IProgress<(double, string?)>? progress = null);
+    public Task<bool> SaveActiveProfile(IProgress<(int, int, string?)>? progress = null);
 
     /// <summary>
     /// Occurs when the profiles collection is updated or the active profile changes.
