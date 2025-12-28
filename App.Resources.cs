@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Avalonia.Platform.Storage;
 
 namespace GottaManagePlus;
 
@@ -27,6 +28,12 @@ public static class Constants
     
     // Extensions and names that the app uses
     public const string AppRootFolder = ".gmp", ExportedProfileExtension = ".gmpProfile", ProfileExportFolder = "exports";
+    
+    // File Picker Filters
+    public static readonly FilePickerFileType ExportedProfileFilter = new($"Exported Profile (*{ExportedProfileExtension})")
+    {
+        Patterns = [$"*{ExportedProfileExtension}"]
+    };
     
     // Categories for debugging
     public const string DebugWarning = "Warning", DebugInfo = "Info", DebugError = "Error";

@@ -7,5 +7,5 @@ public class AppSettingsWrapper
 public class AppSettings
 {
     public required string BaldiPlusExecutablePath { get; set; }
-    public required int CurrentProfileSet { get; set; }
+    public required string CurrentProfileSet { get; set; }
 }

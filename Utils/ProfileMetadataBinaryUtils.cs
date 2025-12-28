@@ -64,7 +64,7 @@ public static class ProfileMetadataBinaryUtils
 
             // ### Mod Name Storage ###
             // Get all files
-            writer.Write(prefix + ModsNamePrefix);
+            writer.Write(ModsNamePrefix);
         
             // Write count
             writer.Write(collection.Count);

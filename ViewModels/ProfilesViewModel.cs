@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -115,7 +116,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             ResetListVisibleConfigurations();
             
             // Update profile settings
-            _settingsService.CurrentSettings.CurrentProfileSet = _profileProvider.GetActiveProfile();
+            _settingsService.CurrentSettings.CurrentProfileSet = _profileProvider.GetInstanceActiveProfile().ProfileName;
             
             // Update other view models subscribed to this event
             AfterProfileUpdate?.Invoke(provider);
@@ -228,6 +229,21 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 
     private async Task ExportProfileItem(int index)
     {
+        var confirmViewModel = new ConfirmDialogViewModel
+        {
+            Title = $"Export {_allProfiles[index].ProfileName}?",
+            Message = "Are you sure you want to export this profile?",
+            ConfirmText = "Yes",
+            CancelText = "No"
+        };
+
+        // Show confirmation dialog
+        await _dialogService.ShowDialog(confirmViewModel);
+        
+        // Do not if not accepted
+        if (!confirmViewModel.Confirmed)
+            return;
+        
         var loadingDialog = new LoadingDialogViewModel(_profileProvider.ExportProfile, index) { Title = "Profile Export", Status = "Exporting profile..."};
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
@@ -285,19 +301,126 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 
     private async Task CreateProfileUiAsync()
     {
-        // TODO: Create a dialog for generating a profile
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.AddProfile, 
-            "SomeRandomProfile_" + new Random().Next(0, 256))
+        // Create the profile creation dialog and display
+        var creatingPfDialog = new CreateProfileDialogViewModel(
+            _filesService, // File service
+            _profileProvider.GetLoadedProfiles() // Get the loaded profiles
+            .Select(p => p.ProfileName)); // Select the names for these profiles
+        await _dialogService.ShowDialog(creatingPfDialog);
+
+        // If no creation was requested, cancel
+        if (!creatingPfDialog.Confirmed)
+            return;
+        
+        // By default, save the current profile, since we're switching to another profile
+        // Save previous profile
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
         {
-            Title = "Creating profile..."
+            Title = "Saving currently active profile..."
         };
+        
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+            // If failed, show a dialog
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
             {
                 Title = Constants.FailDialog,
-                Message = "Failed to create the profile!"
+                Message = $"""
+                           Failed to switch the profile.
+                           The current active profile failed to be saved.
+                           If this issue persists, you can try:
+                           {Constants.SolutionFilePermissions}
+                           """
             });
+            return;
+        }
+
+        switch (creatingPfDialog.SelectedTabIndex) // Defines what mode to go with
+        {
+            // 0: Create new original profile
+            case 0:
+                // Creates profile with name
+                loadingDialog = new LoadingDialogViewModel(_profileProvider.AddProfile,
+                    creatingPfDialog.ProfileName, // Profile name
+                    true) // Destroy exiting storage
+                {
+                    Title = "Creating new profile..."
+                };
+                // If it worked, success dialog; otherwise, fail dialog
+                if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+                {
+                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+                    {
+                        Title = Constants.FailDialog,
+                        Message = "Failed to create the profile!"
+                    });
+                }
+                else
+                {
+                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+                    {
+                        Title = Constants.SuccessDialog,
+                        Message = $"Created {creatingPfDialog.ProfileName} with success!"
+                    });
+                }
+                break;
+            // 1: Create profile based on other profile
+            case 1:
+                // Creates profile with name
+                loadingDialog = new LoadingDialogViewModel(_profileProvider.CloneProfile,
+                        creatingPfDialog.CloneProfileName, // Profile name
+                        creatingPfDialog.ProfileIndexToClone) // Destroy exiting storage
+                    {
+                        Title = "Cloning profile...",
+                        Status = "Selecting profile and cloning it..."
+                    };
+                // If it worked, success dialog; otherwise, fail dialog
+                if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+                {
+                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+                    {
+                        Title = Constants.FailDialog,
+                        Message = "Failed to clone the profile!"
+                    });
+                }
+                else
+                {
+                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+                    {
+                        Title = Constants.SuccessDialog,
+                        Message = $"Created {creatingPfDialog.CloneProfileName} with success!"
+                    });
+                }
+                break;
+            
+            // 2: Import profile from a pack
+            case 2:
+                // Creates profile with index
+                loadingDialog = new LoadingDialogViewModel(_profileProvider.ImportProfile,
+                        creatingPfDialog.ProfileImportPath // Profile path
+                        )
+                    {
+                        Title = "Importing profile...",
+                        Status = "Selecting profile and importing it..."
+                    };
+                // If it worked, success dialog; otherwise, fail dialog
+                if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+                {
+                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+                    {
+                        Title = Constants.FailDialog,
+                        Message = "Failed to clone the profile!"
+                    });
+                }
+                else
+                {
+                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+                    {
+                        Title = Constants.SuccessDialog,
+                        Message = $"Imported {Path.GetFileName(creatingPfDialog.ProfileImportPath)} with success!"
+                    });
+                }
+                break;
         }
     }
 
@@ -369,7 +492,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         });
     }
 
-    private async Task WaitToUpdateData(int preferredIndex = -1, bool closeProgramIfFail = false)
+    private async Task WaitToUpdateData(string preferredIndex = "", bool closeProgramIfFail = false)
     {
         var loadingDialog = new LoadingDialogViewModel(_profileProvider.UpdateProfilesData, preferredIndex)
         {

@@ -27,7 +27,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
     // Observable properties
     [ObservableProperty] private string _title = "Loading...";
-    [ObservableProperty] private string? _status;
+    [ObservableProperty] private string? _status = "Loading...";
     [ObservableProperty] private string? _progressPercentageText;
     [ObservableProperty] private int _progressMax = 1;
     [ObservableProperty] private int _progressValue = 0;

@@ -8,8 +8,12 @@
         <entry key="Styles/Borders.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Buttons.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Labels.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ProfileStyling.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ProfileVisualization/ProfileResources.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ProfileVisualization/ProfileStyling.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/ReusableEffects.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/ScrollBarViewer.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ScrollViewer.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/TextBlock.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Themes/LightThemeResources.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/style.axaml" value="GottaManagePlus.csproj" />

@@ -63,6 +63,89 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             progress); 
         return await SetActiveProfile(_availableProfiles.Count - 1, progress); // Set as active profile to copy the data properly from the game
     }
+
+    /// <summary>
+    /// Clone profile based on the given index and rename it.
+    /// </summary>
+    /// <inheritdoc/>
+    public async Task<bool> CloneProfile(string newProfileName, int profileToBeClonedIndex)
+    {
+        if (profileToBeClonedIndex < 0 || profileToBeClonedIndex >= _availableProfiles.Count)
+            throw new IndexOutOfRangeException($"profileToBeClonedIndex ({profileToBeClonedIndex}) is out of range.");
+
+        // Check if there's already a profile with same name
+        if (_availableProfiles.Exists(p =>
+                p.ProfileName.Equals(newProfileName, StringComparison.OrdinalIgnoreCase)))
+        {
+            Debug.WriteLine($"Cannot clone: Profile with name '{newProfileName}' already exists.", Constants.DebugWarning);
+            return false;
+        }
+
+        // Get the profile to be cloned
+        var sourceProfile = _availableProfiles[profileToBeClonedIndex];
+        if (string.IsNullOrEmpty(sourceProfile.FullOsPath) || !File.Exists(sourceProfile.FullOsPath))
+        {
+            Debug.WriteLine("Source profile path is invalid or file does not exist.", Constants.DebugError);
+            return false;
+        }
+
+        // Get the directory to clone, if it exists
+        var profilesFolder = GetOrCreateProfilesFolder();
+        if (profilesFolder == null)
+        {
+            Debug.WriteLine("Profiles folder could not be determined.", Constants.DebugError);
+            return false;
+        }
+
+        // Zip paths
+        var destZipPath = Path.Combine(profilesFolder.FullName, newProfileName + ContentZipFileExtension);
+        var destMetadataPath = destZipPath + ContentMetadataFileExtension;
+
+        try
+        {
+            // Copy the zip file
+            File.Copy(sourceProfile.FullOsPath, destZipPath);
+
+            // Copy the metadata file if it exists
+            var sourceMetadataPath = sourceProfile.FullOsPath + ContentMetadataFileExtension;
+            if (File.Exists(sourceMetadataPath))
+                File.Copy(sourceMetadataPath, destMetadataPath);
+
+            // Create new profile item instance
+            var newProfileItem = new ProfileItem(
+                _availableProfiles.Count,
+                newProfileName
+            );
+
+            // Add profile to the list
+            _availableProfiles.Add(newProfileItem);
+
+            // Load data for the new profile (no new storage generation needed as we copied it)
+            await GenerateProfileDataFromProfileItem(newProfileItem, generateNewContentStorage: false);
+
+            // Switch to the new profile
+            return await SetActiveProfile(_availableProfiles.Count - 1);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine($"Failed to clone profile '{sourceProfile.ProfileName}' to '{newProfileName}'.", Constants.DebugError);
+            Debug.WriteLine(e.ToString(), Constants.DebugError);
+
+            // Cleanup
+            try
+            {
+                if (File.Exists(destZipPath)) File.Delete(destZipPath);
+                if (File.Exists(destMetadataPath)) File.Delete(destMetadataPath);
+            }
+            catch (Exception cleanEx)
+            {
+                Debug.WriteLine("Failed to cleanup after failed clone.", Constants.DebugError);
+                Debug.WriteLine(cleanEx.ToString(), Constants.DebugError);
+            }
+
+            return false;
+        }
+    }
     
     /// <summary>
     /// Deletes the profile folder and removes the item from the list.
@@ -241,9 +324,8 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                 while (File.Exists(finalPath))
                 {
                     counter++;
-                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFinalPath);
-                    var extension = Path.GetExtension(originalFinalPath);
-                    finalPath = Path.Combine(Path.GetDirectoryName(originalFinalPath)!, $"{fileNameWithoutExtension}_{counter}{extension}");
+                    var (extensions, fileName) = FileUtils.SeparateFileNameFromExtensions(originalFinalPath);
+                    finalPath = Path.Combine(Path.GetDirectoryName(originalFinalPath)!, $"{fileName}_{counter}{extensions}");
                 }
                 finalFiles.Add(finalPath);
             }
@@ -252,9 +334,11 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
             // Move temp files to final destination
             for (var i = 0; i < tempFiles.Count; i++)
                 File.Move(tempFiles[i], finalFiles[i], true);
-
+            
             // Update profiles data
-            await UpdateProfilesData();
+            await UpdateProfilesData(
+                FileUtils.SeparateFileNameFromExtensions(finalFiles[0]).Item2 // To be expected that the first file should match the name of the profile
+                ); 
             
             return true;
         }
@@ -293,7 +377,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Clears current data and re-populates the profile list from the "profiles" directory.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<(int, int, string?)>? progress = null)
+    public async Task<bool> UpdateProfilesData(string defaultSelection = "", IProgress<(int, int, string?)>? progress = null)
     {
         // Get the profile
         var profilesFolder = GetOrCreateProfilesFolder();
@@ -334,15 +418,18 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         }
 
         // If the profile exists, try to still set the same profile active; otherwise, the first default
-        if (_currentProfileItem != null)
+        if (_currentProfileItem != null && string.IsNullOrEmpty(defaultSelection))
             return await SetActiveProfile(
                 _currentProfileItem.Id < _availableProfiles.Count ? _currentProfileItem.Id : 0,
                 progress);
         
         // Update active profile
         // Get the index
-        var defaultIndex = defaultSelection < 0 || defaultSelection >= _availableProfiles.Count ? 
-            0 : defaultSelection;
+        var defaultIndex = string.IsNullOrEmpty(defaultSelection) ? 
+            0 : Math.Max(0, _availableProfiles.FindIndex(
+                p => p.ProfileName.Equals(defaultSelection, StringComparison.Ordinal)
+                ));
+        
         return await SetActiveProfile(defaultIndex, progress);
     }
 

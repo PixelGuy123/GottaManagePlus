@@ -13,9 +13,11 @@ public interface IFilesService
     /// The implementation should prompt the user to select a file for opening.
     /// </summary>
     /// <param name="title">The title of the dialog.</param>
+    /// <param name="suggestedFileName">The suggested file name for the save operation.</param>
     /// <param name="preselectedPath">The initial directory path for the picker.</param>
+    /// <param name="fileChoices">The file type choices for the save operation.</param>
     /// <returns>A task representing the operation, containing the selected <see cref="IStorageFile"/> or <see langword="null"/>.</returns>
-    public Task<IStorageFile?> OpenFileAsync(string? title = null, string? preselectedPath = null);
+    public Task<IStorageFile?> OpenFileAsync(string? title = null, string? suggestedFileName = null, string? preselectedPath = null, params FilePickerFileType[] fileChoices);
 
     /// <summary>
     /// The implementation should prompt the user to select a location and name to save a file.

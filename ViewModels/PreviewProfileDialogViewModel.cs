@@ -30,7 +30,7 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     [ObservableProperty]
     private ProfileItem _profile = profile;
     [ObservableProperty]
-    private string _closeText = "Close", _deleteText = "Delete", _exportText = "Export profile";
+    private string _closeText = "Close", _deleteText = "Delete", _exportText = "Export as package";
 
     public bool AllowProfileDeletion { get; } = allowProfileDeletion;
     

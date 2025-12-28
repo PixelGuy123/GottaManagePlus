@@ -62,8 +62,22 @@
             <Style Selector="^:pointerover Image">
                 <Setter Property="BlendMode" Value="Hue"/>
             </Style>
+            <Style Selector="^:pressed Image">
+                <Setter Property="BlendMode" Value="Hue"/>
+            </Style>
             <!--Pointer over style consistency-->
             <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <ImageBrush
+                            Source="/Assets/UI/Button_Normal_Selected_48x48.png"
+                            Stretch="Uniform"
+                        />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            
+            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
                 <Setter Property="Background">
                     <Setter.Value>
                         <ImageBrush
@@ -91,6 +105,17 @@
                 </Style>
                 <!--Pointer over style consistency-->
                 <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <ImageBrush
+                                Source="/Assets/UI/Button_Normal_Selected_32x32.png"
+                                Stretch="Uniform"
+                            />
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <!--Pointer pressed style consistency-->
+                <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
                     <Setter Property="Background">
                         <Setter.Value>
                             <ImageBrush

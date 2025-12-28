@@ -17,24 +17,9 @@
     
     <UserControl.Resources>
         <ResourceDictionary>
-            <LinearGradientBrush
-                x:Key="YctpBg"
-                StartPoint="0% 100%"
-                EndPoint="0% 0%">
-                <LinearGradientBrush.GradientStops>
-                    <GradientStop Color="#118500" Offset="0.0" />
-                    <GradientStop Color="#12FF00" Offset="0.5" />
-                </LinearGradientBrush.GradientStops>
-            </LinearGradientBrush>
-            <LinearGradientBrush
-                x:Key="YctpBg-Selected"
-                StartPoint="0% 100%"
-                EndPoint="0% 0%">
-                <LinearGradientBrush.GradientStops>
-                    <GradientStop Color="#85820A" Offset="0.0" />
-                    <GradientStop Color="#FFF900" Offset="0.5" />
-                </LinearGradientBrush.GradientStops>
-            </LinearGradientBrush>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Styles/ProfileVisualization/ProfileResources.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -65,7 +50,7 @@
                     Classes="Menu_Header">
                 <Border.Background>
                     <ImageBrush
-                        Source="/Assets/UI/Icon_ModsBg.png"
+                        Source="/Assets/UI/Icon_ProfilesBg.png"
                         TileMode="Tile"
                         Stretch="None"
                         DestinationRect="-32 34 64 64"
@@ -131,7 +116,7 @@
                             Command="{CompiledBinding UpdateProfilesData}"
                             Classes="ModViewerHeader YCTPButton">
                             <Image
-                                Source="/Assets/UI/Icon_UpdateMod.png"
+                                Source="/Assets/UI/Icon_Reload.png"
                                 Width="24"
                                 Height="24"
                             />
@@ -200,17 +185,19 @@
                                                 Spacing="5">
                                         <!-- Switch Default Button -->
                                         <Button
+                                            Opacity="{CompiledBinding !IsSelectedProfile}"
+                                            IsHitTestVisible="{CompiledBinding !IsSelectedProfile}"
                                             Classes="YCTPButton SmallYCTPButton"
                                             Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
                                             CommandParameter="{CompiledBinding Id}">
-                                            <Image Source="/Assets/UI/Icon_ProfilesBtn.png"/>
+                                            <Image Source="/Assets/UI/Icon_UpdateMod.png"/>
                                         </Button>
                                         <!-- Info Button -->
                                         <Button
                                             Classes="YCTPButton SmallYCTPButton"
                                             Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
                                             CommandParameter="{CompiledBinding Id}">
-                                            <Image Source="/Assets/UI/Icon_ProfilesBtn.png"/>
+                                            <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
                                         </Button>
                                     </StackPanel>
                                 </Grid>

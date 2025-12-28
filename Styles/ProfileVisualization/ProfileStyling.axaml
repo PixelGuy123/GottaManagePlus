@@ -1,0 +1,20 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--YCTP BORDER STYLE-->
+    <Style Selector="Border.YCTP">
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="CornerRadius" Value="15"/>
+        <Setter Property="Background" Value="{DynamicResource YctpBg}"/>
+    </Style>
+        
+    <!--MOD NAME STYLING-->
+    <Style Selector="TextBlock.ModLabel">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="{StaticResource ComicRelief}" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+</Styles>

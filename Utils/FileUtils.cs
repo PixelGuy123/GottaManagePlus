@@ -7,6 +7,24 @@ namespace GottaManagePlus.Utils;
 public static class FileUtils
 {
     /// <summary>
+    /// Separates a full file path into its file name (without any extensions) and its full extension(s).
+    /// </summary>
+    /// <param name="fullPath">The complete path to the file.</param>
+    /// <returns>A tuple where the first item is the full extension(s) (e.g., ".tar.gz") and the second item is the file name without any extensions.</returns>
+    public static (string, string) SeparateFileNameFromExtensions(string fullPath)
+    {
+        var fileName = Path.GetFileNameWithoutExtension(fullPath);
+        var extensions = Path.GetExtension(fullPath);
+        while (Path.HasExtension(fileName))
+        {
+            extensions = Path.GetExtension(fileName) + extensions; // Inversion of this order
+            fileName = Path.GetFileNameWithoutExtension(fileName); // Get without extension again
+        }
+
+        return (extensions, fileName);
+    }
+    
+    /// <summary>
     /// Determines whether the specified Unix file has execute permissions for the user, group, or others.
     /// </summary>
     /// <param name="fileInfo">A <see cref="FileInfo"/> object representing the file to check.</param>

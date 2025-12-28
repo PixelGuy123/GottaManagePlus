@@ -19,6 +19,14 @@ public interface IProfileProvider
     /// <param name="progress">Reports back the process (both percentage and status message) if needed.</param>
     /// <returns><see langword="true"/> if the profile was successfully added; otherwise, <see langword="false"/>.</returns>
     public Task<bool> AddProfile(string profileName, bool deleteExistingStorage, IProgress<(int, int, string?)>? progress = null);
+    
+    /// <summary>
+    /// The implementation should attempt to add a new profile item to the managed collection.
+    /// </summary>
+    /// <param name="newProfileName">The profile name of the clone.</param>
+    /// <param name="profileToCloneIndex">The profile to be cloned.</param>
+    /// <returns><see langword="true"/> if the profile was successfully cloned; otherwise, <see langword="false"/>.</returns>
+    public Task<bool> CloneProfile(string newProfileName, int profileToCloneIndex);
 
     /// <summary>
     /// The implementation should remove a profile at the specified index and delete its associated storage resources.
@@ -52,10 +60,10 @@ public interface IProfileProvider
     /// <summary>
     /// The implementation should refresh the profile list by scanning the underlying storage.
     /// </summary>
-    /// <param name="defaultSelection">The profile to be selected in case the list reaches the determined index.</param>
+    /// <param name="defaultSelection">The profile to be selected by default.</param>
     /// <param name="progress">Reports back the process (both percentage and status message) if needed.</param>
     /// /// <returns><see langword="true"/> if the operation was a success; otherwise, <see langword="false"/>.</returns>
-    public Task<bool> UpdateProfilesData(int defaultSelection = -1, IProgress<(int, int, string?)>? progress = null);
+    public Task<bool> UpdateProfilesData(string defaultSelection = "", IProgress<(int, int, string?)>? progress = null);
 
     /// <summary>
     /// The implementation should return the profile currently marked as active.

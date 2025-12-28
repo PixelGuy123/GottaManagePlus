@@ -19,7 +19,7 @@ public class FilesService : IFilesService
 
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">Thrown if the storage provider is not registered.</exception>
-    public async Task<IStorageFile?> OpenFileAsync(string? title = null, string? preselectedPath = null)
+    public async Task<IStorageFile?> OpenFileAsync(string? title = null, string? suggestedFileName = null, string? preselectedPath = null, params FilePickerFileType[] filterChoices)
     {
         if (_storageProvider == null) throw new InvalidOperationException("StorageProvider has not been registered yet.");
 
@@ -31,7 +31,9 @@ public class FilesService : IFilesService
         {
             Title = title,
             AllowMultiple = false,
-            SuggestedStartLocation = folder
+            SuggestedStartLocation = folder,
+            FileTypeFilter = filterChoices,
+            SuggestedFileName = suggestedFileName
         });
 
         return files.Count >= 1 ? files[0] : null;

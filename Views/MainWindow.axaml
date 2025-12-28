@@ -172,6 +172,15 @@
                                 Opacity="{Binding ExecutablePathSet}"
                                 IsHitTestVisible="{Binding ExecutablePathSet}"
                             >
+                                <Button.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition
+                                            Property="Opacity"
+                                            Duration="0:0:0.07"
+                                            Easing="SineEaseInOut"
+                                        />
+                                    </Transitions>
+                                </Button.Transitions>
                                 <!--TEMP COMMENT: USE LANGUAGE HERE-->
                                 <TextBlock HorizontalAlignment="Center" Text="My Mods"/> <!-- Aligned Text -->
                             </Button>

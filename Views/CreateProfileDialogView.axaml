@@ -10,14 +10,25 @@
              MinHeight="200">
     
     <Design.DataContext><vm:CreateProfileDialogViewModel/></Design.DataContext>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Styles/ProfileVisualization/ProfileResources.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     
     <UserControl.Styles>
-        <StyleInclude Source="/Styles/Buttons.axaml"/>
+        <StyleInclude Source="/Styles/style.axaml"/>
+        <StyleInclude Source="/Styles/ProfileVisualization/ProfileStyling.axaml"/>
         
-        <Style Selector="TabItem"> <!-- TODO: Style the TabItems to use a green line instead of a blue default one (use {DynamicResource TabSelectedBg})--> 
+        <Style Selector="TabItem">
             <Setter Property="FontFamily" Value="{StaticResource Baskerville}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="FontSize" Value="20"/>
+        </Style>
+        <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+            <Setter Property="Background" Value="{DynamicResource TabSelectedBg}"/>
         </Style>
     </UserControl.Styles>
     
@@ -51,34 +62,124 @@
                     FontFamily="{StaticResource WorkSans}"/>
             </Border>
             <Grid RowDefinitions="*, Auto">
-                <TabControl Grid.Row="0">
-                    <!-- 
-                    TODO: Here will a simple menu with an input for the name of the profile.
-                    Validations:
-                    The user can only create the profile if the profile name meets the general requirements for writing file names in most desktop Operational Systems.
-                    The string must not be null or empty.
-                    -->
+                <TabControl
+                    Grid.Row="0"
+                    SelectedIndex="{CompiledBinding SelectedTabIndex}">
                     <!-- Create New Profile -->
                     <TabItem Header="New profile...">
                         <!-- Body -->
                         <Border Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Profile Name:" FontFamily="{StaticResource Baskerville}"/>
+                                <TextBox 
+                                    FontFamily="{StaticResource WorkSans}" 
+                                    Text="{CompiledBinding ProfileName}" 
+                                    Watermark="Enter profile name..."/>
+                                <TextBlock 
+                                    Text="{CompiledBinding ErrorText}"
+                                    Opacity="{Binding !CanCreateProfile}"
+                                    Foreground="Red"
+                                    FontFamily="{StaticResource Baskerville}"/>
+                            </StackPanel>
                         </Border>
                     </TabItem>
-                    <!-- 
-                    TODO: Another simple menu, but here, the user needs to select a profile from the list of existing profiles.
-                    To do so, a ListBox will be in this body for the user to select the profile.
-                    The input will, by default, be the name of the selected profile with the suffix "_Clone" attached to it.
-                    The same input rules applies here, just like creating a new profile.
-                    -->
                     <!-- Create a new profile from an existing one -->
                     <TabItem Header="Pick existing...">
                         <!-- Body -->
                         <Border Padding="10">
+                            <Grid RowDefinitions="*, Auto">
+                                <ListBox Grid.Row="0" 
+                                         BorderBrush="{DynamicResource Menu-Header-Bg}"
+                                         BorderThickness="5"
+                                         CornerRadius="15"
+                                         SelectionMode="AlwaysSelected"
+                                         Background="{DynamicResource ListInnerBg}"
+                                         ItemsSource="{CompiledBinding ExistingProfiles}"
+                                         SelectedItem="{CompiledBinding SelectedExistingProfile}">
+                                    <ListBox.Styles>
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="Padding" Value="5"/>
+                                            <Setter Property="CornerRadius" Value="12.5"/>
+                                            <!-- Change selection -->
+                                            <Style Selector="^:selected /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Style>
+                                            
+                                            <!-- Select YCTPs -->
+                                            <Style Selector="^:selected Border.YCTP">
+                                                <Setter Property="Background" Value="{DynamicResource YctpBg-Selected}"/>
+                                            </Style>
+                                        </Style>
+                                    </ListBox.Styles>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border
+                                                Classes="YCTP">
+                                                <Panel>
+                                                    <Border
+                                                        HorizontalAlignment="{Binding $parent[Border].HorizontalAlignment}"
+                                                        VerticalAlignment="{Binding $parent[Border].VerticalAlignment}"
+                                                        CornerRadius="{Binding $parent[Border].CornerRadius}"
+                                                        Margin="3"
+                                                        Background="Black">
+                                                    </Border>
+                                                    <TextBlock
+                                                        Margin="8"
+                                                        Foreground="White"
+                                                        Text="{CompiledBinding}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        Classes="ModLabel"/>
+                                                </Panel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <!-- Content below the big ListBox -->
+                                <StackPanel 
+                                    Grid.Row="1" 
+                                    Orientation="Vertical"
+                                    Margin="0 5">
+                                    <TextBlock
+                                               Text="New Profile Name:"
+                                               FontFamily="{StaticResource Baskerville}"/>
+                                    <TextBox 
+                                        Text="{CompiledBinding CloneProfileName}"
+                                        FontFamily="{StaticResource WorkSans}"
+                                        Watermark="Enter profile name..."
+                                        />
+                                    <TextBlock 
+                                        Text="{CompiledBinding ErrorText}"
+                                        Opacity="{Binding !CanCreateProfile}"
+                                        Foreground="Red"
+                                        FontFamily="{StaticResource Baskerville}"/>
+                                </StackPanel>
+                            </Grid>
                         </Border>
                     </TabItem>
                     <!-- Import a profile locally -->
                     <TabItem Header="Import locally...">
-                        <Border></Border>
+                        <Border Padding="10">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock
+                                    Text="Select a profile package:"
+                                    FontFamily="{StaticResource Baskerville}"
+                                    />
+                                <DockPanel>
+                                    <Button
+                                        DockPanel.Dock="Right"
+                                        Margin="5 0 0 0"
+                                        Classes="YCTPButton SmallYCTPButton"
+                                        Command="{CompiledBinding BrowseFile}">
+                                        <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                                    </Button>
+                                    <TextBox Text="{CompiledBinding ProfileImportPath}"
+                                             Watermark="No package selected!"
+                                             TextWrapping="Wrap"
+                                             IsReadOnly="True"
+                                             FontFamily="{StaticResource WorkSans}"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
                     </TabItem>
                 </TabControl>
                 <!-- Buttons -->
@@ -94,10 +195,21 @@
                         Command="{CompiledBinding Cancel}"/>
                     <Button
                         Name="CreateProfileBtn"
-                        Opacity="{CompiledBinding CanCreateProfile}"
+                        Opacity="{Binding CanCreateProfile}"
+                        IsHitTestVisible="{Binding CanCreateProfile}"
                         Content="{CompiledBinding CreateText}" 
                         Classes="DialogBtn GenericDialogBtn"
-                        Command="{CompiledBinding Confirm}"/>
+                        Command="{CompiledBinding Confirm}">
+                        <Button.Transitions>
+                            <Transitions>
+                                <DoubleTransition
+                                    Property="Opacity"
+                                    Duration="0:0:0.07"
+                                    Easing="SineEaseInOut"
+                                />
+                            </Transitions>
+                        </Button.Transitions>
+                    </Button>
                 </StackPanel>
             </Grid>
         </DockPanel>

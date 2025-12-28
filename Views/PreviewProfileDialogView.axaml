@@ -16,51 +16,15 @@
  
     <UserControl.Resources>
         <ResourceDictionary>
-            <LinearGradientBrush
-                x:Key="ListInnerBg"
-                StartPoint="50% 100%"
-                EndPoint="50% 0%">
-                <LinearGradientBrush.GradientStops>
-                    <GradientStops>
-                        <GradientStop Color="#46bb77" Offset="0"/>
-                        <GradientStop Color="#285847" Offset="0.8"/>
-                        <GradientStop Color="#164d42" Offset="1"/>
-                    </GradientStops>
-                </LinearGradientBrush.GradientStops>
-            </LinearGradientBrush>
-            
-            <LinearGradientBrush
-                x:Key="YctpBg"
-                StartPoint="0% 100%"
-                EndPoint="0% 0%"
-            >
-                <LinearGradientBrush.GradientStops>
-                    <GradientStop Color="#118500" Offset="0.0" />
-                    <GradientStop Color="#12FF00" Offset="0.5" />
-                </LinearGradientBrush.GradientStops>
-            </LinearGradientBrush>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Styles/ProfileVisualization/ProfileResources.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
     
     <UserControl.Styles>
         <StyleInclude Source="/Styles/Buttons.axaml"/>
-        
-        <!--YCTP BORDER STYLE-->
-        <Style Selector="Border.YCTP">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment" Value="Stretch"/>
-            <Setter Property="CornerRadius" Value="15"/>
-            <Setter Property="Background" Value="{DynamicResource YctpBg}"/>
-        </Style>
-        
-        <!--MOD NAME STYLING-->
-        <Style Selector="TextBlock.ModLabel">
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontFamily" Value="{StaticResource ComicRelief}" />
-            <Setter Property="TextAlignment" Value="Center" />
-            <Setter Property="Foreground" Value="White" />
-        </Style>
+        <StyleInclude Source="/Styles/ProfileVisualization/ProfileStyling.axaml"/>
         
         <!-- Body Styling -->
         <!-- Normal Text Formatting -->
@@ -189,7 +153,7 @@
                                     Classes="YCTPButton SmallYCTPButton"
                                     Command="{CompiledBinding OpenProfilePath}"
                                     DockPanel.Dock="Right">
-                                    <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                                    <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
                                 </Button>
                                 <TextBox
                                     IsReadOnly="True"
@@ -224,7 +188,7 @@
                                                                 <!-- Edit Button -->
                                                                 <Button DockPanel.Dock="Right" Margin="0 2"
                                                                     Classes="YCTPButton SmallYCTPButton">
-                                                                    <Image Source="/Assets/UI/Icon_ProfilesBtn.png"/>
+                                                                    <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
                                                                 </Button>
                                                                 <Panel>
                                                                     <Border

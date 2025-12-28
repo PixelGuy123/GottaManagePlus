@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GottaManagePlus.Models;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -23,6 +25,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     private ModItem? _lastSelectedItem;
     private readonly DialogService _dialogService = null!;
     private readonly IProfileProvider _profileProvider = null!;
+    private readonly IFilesService _filesService = null!;
     
     // Observable Properties
     [ObservableProperty] 
@@ -42,6 +45,53 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     [RelayCommand]
     public async Task DeleteModItem(int id) => await DeleteModItemUiAsync(id);
+    
+    [RelayCommand]
+    public async Task OpenModPath(int id)
+    {
+        const string modFixSuggestion = "Try reloading the profiles list.";
+        
+        // Check if mod exists
+        var index = _allMods.FindIndex(item => item.Id == id);
+        if (index == -1) // If the item doesn't exist, skip
+        {
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"""
+                           Failed to delete the profile!
+                           For some reason, there's no profile with the id ({id}).
+                           """
+            });
+            return;
+        }
+
+        // Get mod instance
+        var mod = _allMods[index];
+        // Get directory path
+        var path = Path.GetDirectoryName(mod.FullOsPath);
+        if (!Directory.Exists(path))
+        {
+            var confirmDialog = new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"The path to the profile is somehow invalid!\n{modFixSuggestion}"
+            };
+            await _dialogService.ShowDialog(confirmDialog);
+            return;
+        }
+        
+        // Open the mod here
+        if (!await _filesService.OpenDirectoryInfo(new DirectoryInfo(path)))
+        {
+            var confirmDialog = new ConfirmDialogViewModel(true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"Failed to open the path to the profile due to an unknown error!\n{modFixSuggestion}"
+            };
+            await _dialogService.ShowDialog(confirmDialog);
+        }
+    }
     
     
     // For designer
@@ -66,11 +116,12 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     }
     
     // Constructor
-    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel, ProfileProvider profileProvider) : base(PageNames.Home, profilesViewModel)
+    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel, ProfileProvider profileProvider, FilesService filesService) : base(PageNames.Home, profilesViewModel)
     {
         // Service
         _dialogService = dialogService;
         _profileProvider = profileProvider;
+        _filesService = filesService;
         profilesViewModel.AfterProfileUpdate += ProfilesProvider_OnProfilesUpdate;
     }
 
@@ -161,8 +212,79 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         // Do not if not accepted
         if (!confirmViewModel.Confirmed)
             return;
+
+        // Get metadata for deleting in profile provider
+        var modName = _allMods[index].ModName;
         
-        _allMods.RemoveAt(index);
-        ResetListVisibleConfigurations();
+        // Get active profile item and remove all the instances of the mod
+        var profileItem = _profileProvider.GetInstanceActiveProfile();
+        var tempModList = new ObservableCollection<ModItem>(profileItem.ModMetaDataList); // For reverting changes
+        for (var i = 0; i < profileItem.ModMetaDataList.Count; i++)
+        {
+            var mod = profileItem.ModMetaDataList[i];
+            if (mod.ModName != modName || string.IsNullOrEmpty(mod.FullOsPath)) continue;
+            
+            // Try to manually delete
+            try
+            {
+                // TODO: Handle proper mod deletion through a service instead of manual implementation
+                File.Delete(mod.FullOsPath);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Failed to delete the mod ({modName})!", Constants.DebugError);
+                Debug.WriteLine(e.ToString(), Constants.DebugError);
+                break;
+            }
+                
+            // Remove item
+            profileItem.ModMetaDataList.RemoveAt(i--);
+        }
+        
+        // Request save changes to the profile
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
+        {
+            Title="Saving changes...",
+            Status="Working on this..."
+        };
+
+        // Try to delete mod
+        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        {
+            // If the mod fails to be deleted, revert back to the old list
+            profileItem.ModMetaDataList = tempModList;
+            
+            // Show dialog
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}"
+            });
+            return;
+        }
+
+        // Update profile data (save)
+        await WaitToUpdateData();
+    }
+    
+    private async Task WaitToUpdateData(string preferredIndex = "") // Copy-paste from ProfileViewModel.cs
+    {
+        var loadingDialog = new LoadingDialogViewModel(_profileProvider.UpdateProfilesData, preferredIndex)
+        {
+            Title = "Updating profile data..."
+        };
+        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        {
+            // Not-so-aggressive dialog
+            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+            {
+                Title = Constants.FailDialog,
+                Message = $"""
+                           Failed to update the profiles list!
+                           If the issue persists, you can try:
+                           {Constants.SolutionFilePermissions}
+                           """
+            });
+        }
     }
 }

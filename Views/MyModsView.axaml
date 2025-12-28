@@ -161,16 +161,6 @@
                                       HorizontalAlignment="Stretch" 
                                       VerticalAlignment="Stretch"
                                       Margin="30">
-                                    <!--<Border
-                                        Classes="YCTP">
-                                        <Border
-                                            HorizontalAlignment="{Binding $parent.HorizontalAlignment}"
-                                            VerticalAlignment="{Binding $parent.VerticalAlignment}"
-                                            CornerRadius="{Binding $parent.CornerRadius}"
-                                            Margin="5"
-                                            Background="Black">
-                                        </Border>
-                                    </Border>-->
                                     <!--Mod Name Layout-->
                                     <Panel Grid.Column="0">
                                         <StackPanel Margin="15 10" Orientation="Vertical">
@@ -193,12 +183,14 @@
                                                 HorizontalAlignment="Right"
                                                 Spacing="10">
                                         <!-- Open Folder Button -->
-                                        <Button Classes="YCTPButton">
-                                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                                        <Button Classes="YCTPButton"
+                                                Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).OpenModPath, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding Id}">
+                                            <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
                                         </Button>
                                         <!-- Update Button -->
                                         <Button Classes="YCTPButton">
-                                            <Image Source="/Assets/UI/Icon_UpdateMod.png"/>
+                                            <Image Source="/Assets/UI/Icon_Reload.png"/>
                                         </Button>
                                         <!-- Delete Button -->
                                         <Button
