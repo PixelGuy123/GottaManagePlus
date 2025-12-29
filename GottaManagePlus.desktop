@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=GottaManagePlus
+Comment=Gotta Manage Plus is a tool made to manage Baldi's Basics Plus mods.
+Exec=/usr/bin/GottaManagePlus
+Icon=gottamanageplus
+Terminal=false

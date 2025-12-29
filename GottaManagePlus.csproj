@@ -5,13 +5,53 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <AssemblyVersion>2025.12.0.0</AssemblyVersion>
-    <FileVersion>2025.12.0.0</FileVersion>
+    <AssemblyVersion>2025.12.0.1</AssemblyVersion>
+    <FileVersion>2025.12.0.1</FileVersion>
     <LangVersion>13.0</LangVersion>
   </PropertyGroup>
 
+  <!--Nuget Description for dotnet-releaser-->
+  <PropertyGroup>
+    <Version>2025.12.0.1</Version>
+    <Description>Gotta Manage Plus is a project made to manage the modding aspect of the game Baldi's Basics Plus, through the usage of BepInEx.</Description> 
+    <Copyright>PixelGuy123</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <Authors>PixelGuy123</Authors>
+    <PackageTags>releaser;packaging;deb;rpm;tool</PackageTags>
+    <PackageIcon>$(AssemblyName).png</PackageIcon>
+    <PackageProjectUrl>https://github.com/PixelGuy123/$(AssemblyName)</PackageProjectUrl>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <!--APP Bundle description for dotnet-bundler (macOS)-->
+  <PropertyGroup>
+    <CFBundleName>GottaManagePlus</CFBundleName>
+    <CFBundleDisplayName>Gotta Manage Plus</CFBundleDisplayName>
+    <CFBundleIdentifier>com.pixelguy.gottamanageplus</CFBundleIdentifier>
+    <CFBundleVersion>2025.12.0.1</CFBundleVersion>
+    <CFBundleShortVersionString>2025.12.0.1</CFBundleShortVersionString>
+    <CFBundlePackageType>APPL</CFBundlePackageType>
+    <CFBundleSignature>????</CFBundleSignature>
+    <CFBundleExecutable>GottaManagePlus</CFBundleExecutable>
+    <CFBundleIconFile>GottaManagePlus.icns</CFBundleIconFile> <!-- Will be copied from output directory -->
+    <CFBundleURLTypes>
+        <CFBundleURLName>GottaManagePlus URL</CFBundleURLName>
+        <CFBundleURLSchemes>gottamanageplus://</CFBundleURLSchemes>
+    </CFBundleURLTypes>
+    <NSPrincipalClass>NSApplication</NSPrincipalClass>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
+
+    <!-- Optional -->
+    <NSRequiresAquaSystemAppearance>true</NSRequiresAquaSystemAppearance>
+  </PropertyGroup>
+
+<!--Avalonia Stuff-->
+
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+
+    <None Include="GottaManagePlus.png" Pack="true" PackagePath=""/>
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +71,7 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
@@ -48,4 +89,9 @@
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
+
+  <Target Name="ChangePermissions" AfterTargets="Publish">
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) or $([MSBuild]::IsOSPlatform('OSX'))" 
+          Command="chmod 770 $(PublishDir)$(TargetName)" />
+  </Target>
 </Project>

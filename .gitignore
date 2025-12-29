@@ -419,9 +419,12 @@ FodyWeavers.xsd
 
 # Developer Specific files
 ConceptImage.png
-build.sh
+temp_icons/*
 
 # Jetbrains IDE
 =======
 # Jetbrains Folders
 .idea/*
+
+# Dotnet-releaser
+artifacts-dotnet-releaser/*
