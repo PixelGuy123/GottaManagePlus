@@ -20,64 +20,10 @@
     <Design.DesignStyle>
         <StyleInclude Source="/Styles/style.axaml"/>
     </Design.DesignStyle>
-    <Window.Resources>
-        <LinearGradientBrush x:Key="OthersBtnBg"
-                             StartPoint="0% 100%"
-                             EndPoint="25% 0%">
-            <LinearGradientBrush.GradientStops>
-                <GradientStop Color="#5E5E5E" Offset="0.0"/>
-                <GradientStop Color="#919191" Offset="1.0"/>
-            </LinearGradientBrush.GradientStops>
-        </LinearGradientBrush>
-    </Window.Resources>
 
     <!-- Styles to define -->
     <Window.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
-        
-        <Style Selector="Button.OthersBtn">
-            <Setter Property="Background" Value="{StaticResource OthersBtnBg}" />
-            <Setter Property="VerticalAlignment" Value="Bottom"/>
-            <Setter Property="MaxWidth" Value="64"/>
-            <Setter Property="MaxHeight" Value="64"/>
-            <Setter Property="CornerRadius" Value="45"/>
-            
-            <!--Icon Styling-->
-            <Style Selector="^ Image">
-                <Setter Property="Effect">
-                    <Setter.Value>
-                        <DropShadowEffect
-                            OffsetY="1"
-                            OffsetX="0"
-                            BlurRadius="10"
-                            />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <!-- Animation -->
-            <Setter Property="Transitions">
-                <Transitions>
-                    <TransformOperationsTransition
-                        Property="RenderTransform"
-                        Duration="0:0:0.25"
-                        Easing="QuadraticEaseOut"
-                    />
-                </Transitions>
-            </Setter>
-            <Style Selector="^:pointerover">
-                <Setter Property="RenderTransform" Value="scale(1.05)"/>
-            </Style>
-            <Style Selector="^:pressed">
-                <Setter Property="RenderTransform" Value="scale(0.99)"/>
-            </Style>
-            <!-- Background override -->
-            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 
-                <Setter Property="Background" Value="{StaticResource OthersBtnBg}" />
-            </Style>
-            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter"> 
-                <Setter Property="Background" Value="{StaticResource OthersBtnBg}" />
-            </Style>
-        </Style>
     </Window.Styles>
 
     <!-- MAIN -->
@@ -90,7 +36,8 @@
         Grid.Row="0"
         MinHeight="128"
         Margin="0 0 0 10"
-        Classes="Menu_Border TopMenu_Behind_Border BorderDropShadow"
+        BoxShadow="0 0 35 2 Black"
+        Classes="Menu_Border TopMenu_Behind_Border"
         >
             <Panel>
                 <Border 
@@ -126,51 +73,40 @@
         <!-- START of Body -->
         <Grid
             Name="BodyGrid"
-            ColumnDefinitions="300, *"
+            ColumnDefinitions="Auto, *"
+            RowDefinitions="300, *"
             Grid.Row="1"
         >
             <!-- START of Side Menu -->
-            <Grid
-            Grid.Column="0"
-            RowDefinitions="Auto, *"
-            >
                 <!-- START of Nav Bar -->
                 <Border
+                    Grid.Column="0"
+                    Grid.Row="0"
                     HorizontalAlignment="Left"
                     Width="200"
-                    ClipToBounds="True"
-                    Classes="Menu_Border BorderDropShadow RightCornerRadius"
-                Grid.Row="0">
+                    Classes="Menu_Border">
                     <!-- YCTP Style-->
                     <Border.Background>
                         <ImageBrush 
-                        Source="/Assets/UI/NavMenuBG.png"
-                        Stretch="Fill"
+                            Source="/Assets/UI/NavMenuBG.png"
+                            Stretch="Fill"
                         />
                     </Border.Background>
-                    <Grid
-                    RowDefinitions="Auto, *"
-                    >
-                        <Border Grid.Row="0" Classes="Menu_Header">
-                            <Panel>
-                                <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                                <TextBlock 
-                                    Text="Navigation" 
-                                    Foreground="White" 
-                                    FontSize="28" 
-                                    Classes="SideMenu-Label" 
-                                    Margin="0 25 0 0"/>
-                            </Panel>
-                        </Border>
                         
-                        <StackPanel Grid.Row="1" Margin="10" Orientation="Vertical">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock 
+                                Text="Navigation" 
+                                Foreground="White" 
+                                FontSize="24" 
+                                Classes="SideMenu-Label" 
+                                Margin="0 40 0 10"/>
                             <Button
                                 Name="MyModsBtn"
                                 Classes="SideMenu-Btn"
                                 Command="{CompiledBinding GoToHomeCommand}"
                                 HorizontalContentAlignment="Center"
-                                Opacity="{Binding ExecutablePathSet}"
-                                IsHitTestVisible="{Binding ExecutablePathSet}"
+                                Opacity="{Binding ExecutablePathSet, Mode=OneWay}"
+                                IsHitTestVisible="{Binding ExecutablePathSet, Mode=OneWay}"
                             >
                                 <Button.Transitions>
                                     <Transitions>
@@ -199,50 +135,47 @@
                                 <TextBlock Text="About"/> <!-- Aligned Text -->
                             </Button>
                         </StackPanel>
-                        
-                    </Grid>
                 </Border>
                 <!-- START of Below Nav Bar -->
                 <ContentControl
-                    Name="BelowBarControl"
                     Margin="0 10 0 0"
+                    Grid.Column="0"
                     Grid.Row="1"
-                    Content="{CompiledBinding CurrentPage.SideMenuBase, FallbackValue={x:Null}}"/>
+                    Content="{CompiledBinding CurrentPage.SideMenuBase, FallbackValue={x:Null}, Mode=OneWay}"/>
                 <!-- END of Below Nav Bar -->
                 <!-- END of Nav Bar -->
-            </Grid>
             <!-- END of Side Menu -->
             
             <!-- Current Page Control -->
-            <ContentControl Grid.Column="1" Content="{CompiledBinding CurrentPage}" />
+            <ContentControl 
+                Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" 
+                Content="{CompiledBinding CurrentPage, Mode=OneWay}" />
         </Grid>
         <!-- END of Body -->
         
         <!-- Dialog Element -->
-        <Grid
+        <Border 
             Name="DialogOverlay"
-            IsVisible="{CompiledBinding #DialogOverlay.Opacity}"
-            Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0}"
-            Grid.Row="0" 
+            Grid.Row="0"
             Grid.RowSpan="2"
-            >
-            <Grid.Transitions>
+            Background="#7D000000"
+            IsVisible="{CompiledBinding #DialogOverlay.Opacity, Mode=OneWay}"
+            Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0, Mode=OneWay}">
+            <Border.Transitions>
                 <Transitions>
                     <DoubleTransition
                         Property="Opacity"
                         Duration="0:0:0.1"
-                        Easing="SineEaseInOut"
+                        Easing="SineEaseOut"
                         />
                 </Transitions>
-            </Grid.Transitions>
-            <Border Background="Black" Opacity="0.5"/>
+            </Border.Transitions>
             <ContentControl 
-                Content="{CompiledBinding Dialog}"
+                Content="{CompiledBinding Dialog, Mode=OneWay}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"/>
-        </Grid>
+        </Border>
         <!-- End of Dialog Element -->
-        
     </Grid>
 
 </Window>

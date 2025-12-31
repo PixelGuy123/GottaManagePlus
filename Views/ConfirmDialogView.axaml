@@ -16,65 +16,59 @@
         <StyleInclude Source="/Styles/Buttons.axaml"/>
     </UserControl.Styles>
     
-    <Border 
-        Background="{DynamicResource MainMenus-Bg}" 
+    <Border
         CornerRadius="10"
-        ClipToBounds="True"
-        BorderBrush="{DynamicResource Generic-Border}"
-        BorderThickness="2"
-        Margin="10 20">
-        <Border.Effect>
-            <DropShadowEffect
-                OffsetX="0"
-                OffsetY="5"
-                BlurRadius="15"
-                />
-        </Border.Effect>
-        <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
-            <!-- Title -->
-            <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" 
-                    CornerRadius="8 8 0 0">
-                <TextBlock 
-                    Foreground="{DynamicResource BlackColor}"
-                    Text="{CompiledBinding Title}"
-                    MaxWidth="650"
+        Margin="10 20"
+        BoxShadow="0 5 25 1.5 Black">
+        <Border
+            Background="{DynamicResource MainMenus-Bg}"
+            CornerRadius="10"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+                <!-- Title -->
+                <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
+                    <TextBlock 
+                        Foreground="{DynamicResource BlackColor}"
+                        Text="{CompiledBinding Title, Mode=OneWay}"
+                        MaxWidth="650"
+                        HorizontalAlignment="Center"
+                        Padding="10"
+                        FontSize="25"
+                        TextTrimming="CharacterEllipsis"
+                        FontWeight="ExtraLight"
+                        FontFamily="{StaticResource WorkSans}"/>
+                </Border>
+                
+                <!-- Description -->
+                <Border Grid.Row="1" Padding="10">
+                    <TextBlock 
+                        Text="{CompiledBinding Message, Mode=OneWay}"
+                        MaxWidth="650"
+                        TextWrapping="Wrap"
+                        TextAlignment="{CompiledBinding DescriptionAlignment, Mode=OneWay}"
+                        FontSize="18"
+                        FontFamily="{StaticResource ComicRelief}"
+                        />
+                </Border>
+                
+                <!-- Buttons -->
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Grid.Row="2"
                     HorizontalAlignment="Center"
-                    Padding="10"
-                    FontSize="25"
-                    TextTrimming="CharacterEllipsis"
-                    FontWeight="ExtraLight"
-                    FontFamily="{StaticResource WorkSans}"/>
-            </Border>
-            
-            <!-- Description -->
-            <Border Grid.Row="1" Padding="10">
-                <TextBlock 
-                    Text="{CompiledBinding Message}"
-                    MaxWidth="650"
-                    TextWrapping="Wrap"
-                    TextAlignment="{CompiledBinding DescriptionAlignment}"
-                    FontSize="18"
-                    FontFamily="{StaticResource ComicRelief}"
-                    />
-            </Border>
-            
-            <!-- Buttons -->
-            <StackPanel 
-                Orientation="Horizontal" 
-                Grid.Row="2"
-                HorizontalAlignment="Center"
-                Spacing="20"
-                Margin="10">
-                <Button
-                    IsVisible="{CompiledBinding !OnlyConfirmButton}"
-                    Content="{CompiledBinding CancelText}" 
-                    Classes="DialogBtn DangerDialogBtn"
-                    Command="{CompiledBinding Cancel}"/>
-                <Button
-                    Content="{CompiledBinding ConfirmText}" 
-                    Classes="DialogBtn GenericDialogBtn"
-                    Command="{CompiledBinding Confirm}"/>
-            </StackPanel>
-        </Grid>
+                    Spacing="20"
+                    Margin="10">
+                    <Button
+                        IsVisible="{CompiledBinding !OnlyConfirmButton, Mode=OneWay}"
+                        Content="{CompiledBinding CancelText, Mode=OneWay}" 
+                        Classes="DialogBtn DangerDialogBtn"
+                        Command="{CompiledBinding Cancel}"/>
+                    <Button
+                        Content="{CompiledBinding ConfirmText, Mode=OneWay}" 
+                        Classes="DialogBtn GenericDialogBtn"
+                        Command="{CompiledBinding Confirm}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Border>
 </UserControl>

@@ -136,9 +136,10 @@
         <!-- General Styling Below -->
         <!--=======================-->
         <Setter Property="Margin" Value="0 3" />
+        <Setter Property="Padding" Value="0" />
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
-        <Setter Property="MinHeight" Value="65" />
-        <Setter Property="MaxHeight" Value="75" />
+        <Setter Property="MinHeight" Value="55" />
+        <Setter Property="MaxHeight" Value="70" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Top" />
@@ -147,7 +148,7 @@
         <Setter Property="BorderThickness" Value="0" />
         <!-- Text Styling -->
         <Style Selector="^ TextBlock">
-            <Setter Property="FontSize" Value="25" />
+            <Setter Property="FontSize" Value="20" />
             <Setter Property="FontFamily" Value="{StaticResource ComicRelief}" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />

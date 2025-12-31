@@ -51,7 +51,7 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
 
-    <None Include="GottaManagePlus.png" Pack="true" PackagePath=""/>
+    <None Include="GottaManagePlus.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,6 +62,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
@@ -91,7 +92,6 @@
   </ItemGroup>
 
   <Target Name="ChangePermissions" AfterTargets="Publish">
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) or $([MSBuild]::IsOSPlatform('OSX'))" 
-          Command="chmod 770 $(PublishDir)$(TargetName)" />
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) or $([MSBuild]::IsOSPlatform('OSX'))" Command="chmod 770 $(PublishDir)$(TargetName)" />
   </Target>
 </Project>

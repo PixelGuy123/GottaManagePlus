@@ -50,6 +50,7 @@ public interface IProfileProvider
     /// <param name="importPath">The path to grab the file to be imported.</param>
     /// <returns><see langword="true"/> if the exportation was successful; otherwise, <see langword="false"/>.</returns>
     public Task<bool> ImportProfile(string importPath);
+    
 
     /// <summary>
     /// The implementation should provide a read-only collection of all currently loaded profiles.
@@ -89,4 +90,9 @@ public interface IProfileProvider
     /// Occurs when the profiles collection is updated or the active profile changes.
     /// </summary>
     public event Action<IProfileProvider>? OnProfilesUpdate;
+    
+    /// <summary>
+    /// The implementation should detect whether the content in the game's folder is different from the profile's data.
+    /// </summary>
+    public bool HasProfileChanged { get; }
 }

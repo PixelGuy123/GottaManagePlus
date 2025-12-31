@@ -16,6 +16,9 @@ sealed class Program
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .With(new Win32PlatformOptions { // Hopefully optimizes rendering for Windows
+                CompositionMode = [Win32CompositionMode.WinUIComposition], 
+                RenderingMode = [Win32RenderingMode.AngleEgl]})
             .WithInterFont()
             .LogToTrace();
 }

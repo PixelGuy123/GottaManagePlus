@@ -168,33 +168,31 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         var index = _allProfiles.FindIndex(item => item.Id == id);
         if (index == -1) // If the item doesn't exist, skip
         {
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"Failed to open the profile.\nFor some reason, their id ({id}) wasn't found!"
-            });
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.FailDialog, $"Failed to open the profile.\nFor some reason, their id ({id}) wasn't found!");
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
 
         if (_allProfiles[index].IsProfileMissingMetadata)
         {
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.WarningDialog,
-                Message = """
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.WarningDialog, """
                           The profile you're attempting to open is missing its metadata! 
                           If you want to know what's inside it, you will need to load this profile.
                           Don't worry, your currently active profile will be saved.
-                          """
-            });
+                          """);
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
 
         // Create profile viewer
-        var profileViewer = new PreviewProfileDialogViewModel(
+        var profileViewer = _dialogService.GetDialog<PreviewProfileDialogViewModel>();
+        profileViewer.Prepare(
             _allProfiles[index], 
             _allProfiles.Count > 1, 
-            _filesService);
+            _filesService,
+            _dialogService);
         
         // Loop until the dialog is truly closed
         while (true)
@@ -229,13 +227,14 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 
     private async Task ExportProfileItem(int index)
     {
-        var confirmViewModel = new ConfirmDialogViewModel
-        {
-            Title = $"Export {_allProfiles[index].ProfileName}?",
-            Message = "Are you sure you want to export this profile?",
-            ConfirmText = "Yes",
-            CancelText = "No"
-        };
+        var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        confirmViewModel.Prepare(
+            null,
+            $"Export {_allProfiles[index].ProfileName}?",
+            "Are you sure you want to export this profile?",
+            "Yes",
+            "No"
+        );
 
         // Show confirmation dialog
         await _dialogService.ShowDialog(confirmViewModel);
@@ -244,15 +243,15 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         if (!confirmViewModel.Confirmed)
             return;
         
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.ExportProfile, index) { Title = "Profile Export", Status = "Exporting profile..."};
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Profile Export", "Exporting profile...", (Delegate)_profileProvider.ExportProfile, index);
+        
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             // If it fails, show dialog
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"Failed to export the profile! If you're still having issues, try this:\n{Constants.SolutionFilePermissions}"
-            });
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.FailDialog, $"Failed to export the profile! If you're still having issues, try this:\n{Constants.SolutionFilePermissions}");
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
         // Success action (open the export)
@@ -264,13 +263,14 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
     
     private async Task<bool> DeleteProfileItemUiAsync(int index) // Delete asynchronously the items
     {
-        var confirmViewModel = new ConfirmDialogViewModel
-        {
-            Title = $"Delete {_allProfiles[index].ProfileName}?",
-            Message = "Are you sure you want to delete this profile?",
-            ConfirmText = "Yes",
-            CancelText = "No"
-        };
+        var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        confirmViewModel.Prepare(
+            null,
+            $"Delete {_allProfiles[index].ProfileName}?",
+            "Are you sure you want to delete this profile?",
+            "Yes",
+            "No"
+        );
 
         // Show confirmation dialog
         await _dialogService.ShowDialog(confirmViewModel);
@@ -279,30 +279,29 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         if (!confirmViewModel.Confirmed)
             return false;
         
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.DeleteProfile, index) { Title = "Deleting profile..." };
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Deleting profile...", null, (Delegate)_profileProvider.DeleteProfile, index);
+        
         if (await _dialogService.ShowLoadingDialog(loadingDialog))
         {
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.SuccessDialog,
-                Message = $"Successfully deleted the profile (id: {index})."
-            });
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.SuccessDialog, $"Successfully deleted the profile (id: {index}).");
+            await _dialogService.ShowDialog(confirmDialog);
             return true;
         }
         
         // Warn delete profile failed
-        await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-        {
-            Title = Constants.FailDialog,
-            Message = $"Failed to delete the profile (id: {index})."
-        });
+        var failDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        failDialog.Prepare(true, Constants.FailDialog, $"Failed to delete the profile (id: {index}).");
+        await _dialogService.ShowDialog(failDialog);
         return false;
     }
 
     private async Task CreateProfileUiAsync()
     {
         // Create the profile creation dialog and display
-        var creatingPfDialog = new CreateProfileDialogViewModel(
+        var creatingPfDialog = _dialogService.GetDialog<CreateProfileDialogViewModel>();
+        creatingPfDialog.Prepare(
             _filesService, // File service
             _profileProvider.GetLoadedProfiles() // Get the loaded profiles
             .Select(p => p.ProfileName)); // Select the names for these profiles
@@ -314,24 +313,20 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         
         // By default, save the current profile, since we're switching to another profile
         // Save previous profile
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
-        {
-            Title = "Saving currently active profile..."
-        };
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Saving currently active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
         
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             // If failed, show a dialog
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.FailDialog, $"""
                            Failed to switch the profile.
                            The current active profile failed to be saved.
                            If this issue persists, you can try:
                            {Constants.SolutionFilePermissions}
-                           """
-            });
+                           """);
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
 
@@ -340,85 +335,67 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             // 0: Create new original profile
             case 0:
                 // Creates profile with name
-                loadingDialog = new LoadingDialogViewModel(_profileProvider.AddProfile,
+                loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+                loadingDialog.Prepare("Creating new profile...", null, (Delegate)_profileProvider.AddProfile,
                     creatingPfDialog.ProfileName, // Profile name
-                    true) // Destroy exiting storage
-                {
-                    Title = "Creating new profile..."
-                };
+                    true); // Destroy exiting storage
+                
                 // If it worked, success dialog; otherwise, fail dialog
                 if (!await _dialogService.ShowLoadingDialog(loadingDialog))
                 {
-                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-                    {
-                        Title = Constants.FailDialog,
-                        Message = "Failed to create the profile!"
-                    });
+                    var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                    confirmDialog.Prepare(true, Constants.FailDialog, "Failed to create the profile!");
+                    await _dialogService.ShowDialog(confirmDialog);
                 }
                 else
                 {
-                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-                    {
-                        Title = Constants.SuccessDialog,
-                        Message = $"Created {creatingPfDialog.ProfileName} with success!"
-                    });
+                    var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                    confirmDialog.Prepare(true, Constants.SuccessDialog, $"Created {creatingPfDialog.ProfileName} with success!");
+                    await _dialogService.ShowDialog(confirmDialog);
                 }
                 break;
             // 1: Create profile based on other profile
             case 1:
                 // Creates profile with name
-                loadingDialog = new LoadingDialogViewModel(_profileProvider.CloneProfile,
+                loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+                loadingDialog.Prepare("Cloning profile...", "Selecting profile and cloning it...", (Delegate)_profileProvider.CloneProfile,
                         creatingPfDialog.CloneProfileName, // Profile name
-                        creatingPfDialog.ProfileIndexToClone) // Destroy exiting storage
-                    {
-                        Title = "Cloning profile...",
-                        Status = "Selecting profile and cloning it..."
-                    };
+                        creatingPfDialog.ProfileIndexToClone); // Destroy exiting storage
+                
                 // If it worked, success dialog; otherwise, fail dialog
                 if (!await _dialogService.ShowLoadingDialog(loadingDialog))
                 {
-                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-                    {
-                        Title = Constants.FailDialog,
-                        Message = "Failed to clone the profile!"
-                    });
+                    var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                    confirmDialog.Prepare(true, Constants.FailDialog, "Failed to clone the profile!");
+                    await _dialogService.ShowDialog(confirmDialog);
                 }
                 else
                 {
-                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-                    {
-                        Title = Constants.SuccessDialog,
-                        Message = $"Created {creatingPfDialog.CloneProfileName} with success!"
-                    });
+                    var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                    confirmDialog.Prepare(true, Constants.SuccessDialog, $"Created {creatingPfDialog.CloneProfileName} with success!");
+                    await _dialogService.ShowDialog(confirmDialog);
                 }
                 break;
             
             // 2: Import profile from a pack
             case 2:
                 // Creates profile with index
-                loadingDialog = new LoadingDialogViewModel(_profileProvider.ImportProfile,
-                        creatingPfDialog.ProfileImportPath // Profile path
-                        )
-                    {
-                        Title = "Importing profile...",
-                        Status = "Selecting profile and importing it..."
-                    };
+                loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+                loadingDialog.Prepare("Importing profile...", "Selecting profile and importing it...", (Delegate)_profileProvider.ImportProfile,
+                        creatingPfDialog.ProfileImportPath); // Profile path
+                
                 // If it worked, success dialog; otherwise, fail dialog
                 if (!await _dialogService.ShowLoadingDialog(loadingDialog))
                 {
-                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-                    {
-                        Title = Constants.FailDialog,
-                        Message = "Failed to clone the profile!"
-                    });
+                    var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                    confirmDialog.Prepare(true, Constants.FailDialog, "Failed to clone the profile!");
+                    await _dialogService.ShowDialog(confirmDialog);
                 }
                 else
                 {
-                    await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-                    {
-                        Title = Constants.SuccessDialog,
-                        Message = $"Imported {Path.GetFileName(creatingPfDialog.ProfileImportPath)} with success!"
-                    });
+                    var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                    confirmDialog.Prepare(true, Constants.SuccessDialog, $"Imported {Path.GetFileName(creatingPfDialog.ProfileImportPath)} with success!");
+                    await _dialogService.ShowDialog(confirmDialog);
                 }
                 break;
         }
@@ -432,14 +409,14 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         if (_profileProvider.GetInstanceActiveProfile() == _allProfiles[id]) // Ignores completely
             return;
         
-        var confirmViewModel = new ConfirmDialogViewModel
-        {
-            Title = $"Switch to {_allProfiles[id].ProfileName}?",
-            Message =
-                "Are you sure you want to switch to this profile?\nAll data from your previous profile will be saved first.",
-            ConfirmText = "Yes",
-            CancelText = "No"
-        };
+        var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        confirmViewModel.Prepare(
+            null,
+            $"Switch to {_allProfiles[id].ProfileName}?",
+            "Are you sure you want to switch to this profile?\nAll data from your previous profile will be saved first.",
+            "Yes",
+            "No"
+        );
         // Show confirmation dialog
         await _dialogService.ShowDialog(confirmViewModel);
         
@@ -448,85 +425,75 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return;
         
         // Save previous profile
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
-        {
-            Title = "Saving currently active profile..."
-        };
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Saving currently active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
+
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             // If failed, show a dialog
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.FailDialog, $"""
                           Failed to switch the profile.
                           The current active profile failed to be saved.
                           If this issue persists, you can try:
                           {Constants.SolutionFilePermissions}
-                          """
-            });
+                          """);
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
         
         // Switch profile
-        loadingDialog = new LoadingDialogViewModel(_profileProvider.SetActiveProfile, id);
+        loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare(null, null, (Delegate)_profileProvider.SetActiveProfile, id);
+        
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.FailDialog, $"""
                            Failed to switch the profile ({id}) due to an unknown reason.
                            If this issue persists, you can try:
                            {Constants.SolutionFilePermissions} 
-                           """
-            });
+                           """);
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
         
         // Success dialog
-        await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-        {
-            Title = Constants.SuccessDialog,
-            Message = "You've successfully switched profiles!"
-        });
+        var successDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        successDialog.Prepare(true, Constants.SuccessDialog, "You've successfully switched profiles!");
+        await _dialogService.ShowDialog(successDialog);
     }
 
     private async Task WaitToUpdateData(string preferredIndex = "", bool closeProgramIfFail = false)
     {
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.UpdateProfilesData, preferredIndex)
-        {
-            Title = "Updating profile data..."
-        };
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Updating profile data...", null, (Delegate)_profileProvider.UpdateProfilesData, preferredIndex);
+        
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             if (closeProgramIfFail)
             {
                 // Aggressive dialog
-                await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-                {
-                    Title = Constants.FailDialog,
-                    Message = $"""
+                var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                confirmDialog.Prepare(true, Constants.FailDialog, $"""
                               Failed to update the profiles list! The program will close after you close this.
                               If the issue persists, you can try:
                               {Constants.SolutionFilePermissions}
-                              """
-                });
+                              """);
+                await _dialogService.ShowDialog(confirmDialog);
                 // End application
                 Environment.Exit(0);
                 return;
             }
             
             // Not-so-aggressive dialog
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
+            var failDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            failDialog.Prepare(true, Constants.FailDialog, $"""
                            Failed to update the profiles list!
                            If the issue persists, you can try:
                            {Constants.SolutionFilePermissions}
-                           """
-            });
+                           """);
+            await _dialogService.ShowDialog(failDialog);
         }
     }
 }

@@ -42,4 +42,11 @@ public interface IFilesService
     /// <param name="directoryInfo">The directory information to open.</param>
     /// <returns>A task representing the operation, containing <see langword="true"/> if successful.</returns>
     public Task<bool> OpenDirectoryInfo(DirectoryInfo directoryInfo);
+    
+    /// <summary>
+    /// The implementation should open the specified file in the system's file explorer.
+    /// </summary>
+    /// <param name="fileInfo">The file information to open.</param>
+    /// <returns><see langword="true"/> if opening the file explorer was successful, otherwise <see langword="false"/>.</returns>
+    public bool OpenFileInfo(FileInfo fileInfo);
 }

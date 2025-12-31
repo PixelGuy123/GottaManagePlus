@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     x:Class="GottaManagePlus.Views.SettingsView"
     x:DataType="vm:SettingsViewModel"
@@ -25,127 +25,130 @@
     </UserControl.Styles>
 
      <!-- START of Settings-->
-    <Border
-    ClipToBounds="True"
-    Classes="Menu_Border BorderDropShadow AllCornerRadius"
-    Margin="25 0 10 10"
-    >
-        <Grid RowDefinitions="Auto, *">
-            <Border Grid.Row="0"
-                    HorizontalAlignment="Stretch" 
-                    VerticalAlignment="Stretch"
-                    Classes="Menu_Header">
-                <Border.Background>
-                    <ImageBrush
-                        Source="/Assets/UI/Icon_GearsBg.png"
-                        TileMode="Tile"
-                        Stretch="None"
-                        DestinationRect="-32 34 64 64"
-                        Opacity="0.175"
-                    />
-                </Border.Background>
-            </Border>
-            <!-- Settings Header -->
-            <StackPanel
-            Grid.Row="0"
-            Margin="0 5"
-            HorizontalAlignment="Stretch"
-            Orientation="Horizontal">
-                <Panel>
-                    <TextBlock 
-                        Text="Settings" 
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Foreground="White"
-                        FontWeight="UltraBold"
-                        Classes="SideMenu-Label RightHeader GlowShadow"/>
-                    <TextBlock 
-                        Text="Settings" 
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Classes="SideMenu-Label RightHeader"/>
-                </Panel>
-            </StackPanel>
+     <Border
+         Classes="Menu_Border AllCornerRadius"
+         Margin="25 0 10 10"
+         BoxShadow="0 3 10 2 #7D000000">
+        <Border
+            Classes="Menu_Border AllCornerRadius"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *">
+                <Border Grid.Row="0"
+                        HorizontalAlignment="Stretch" 
+                        VerticalAlignment="Stretch"
+                        Classes="Menu_Header">
+                    <Border.Background>
+                        <ImageBrush
+                            Source="/Assets/UI/Icon_GearsBg.png"
+                            TileMode="Tile"
+                            Stretch="None"
+                            DestinationRect="-32 34 64 64"
+                            Opacity="0.175"
+                        />
+                    </Border.Background>
+                </Border>
+                <!-- Settings Header -->
+                <StackPanel
+                Grid.Row="0"
+                Margin="0 5"
+                HorizontalAlignment="Stretch"
+                Orientation="Horizontal">
+                    <Panel>
+                        <TextBlock 
+                            Text="Settings" 
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            FontWeight="UltraBold"
+                            Classes="SideMenu-Label RightHeader GlowShadow"/>
+                        <TextBlock 
+                            Text="Settings" 
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Classes="SideMenu-Label RightHeader"/>
+                    </Panel>
+                </StackPanel>
 
-            <!-- Settings Body -->   
-            <Border Grid.Row="1" 
-                    Background="{DynamicResource SettingsBg}">
-                <Grid
-                    Margin="10 10 10 0"
-                    ColumnDefinitions="*, *"
-                    RowDefinitions="*, Auto">
-                    
-                    <!-- Body SubBorder -->
-                    <Border 
-                        Grid.Row="0"
-                        Grid.ColumnSpan="2"
-                        Grid.Column="0"
-                        CornerRadius="10"
-                        Background="{DynamicResource Generic-Border}"/>
-                    <!-- Visible Separator -->
-                    <Border 
-                        Grid.Row="0" 
-                        Grid.Column="0" 
-                        Classes="PageSeparator"/>
-                    <!-- FIRST COLUMN -->
-                    <StackPanel
-                        Grid.Row="0" 
-                        Grid.Column="0" 
-                        Margin="10 5"
-                        Orientation="Vertical">
-                            <Label Content="Baldi's Basics Plus' Executable Path:"/>
-                            <DockPanel HorizontalSpacing="5">
-                                <!-- Select file Dialog -->
-                                <Button
-                                    Classes="YCTPButton SmallYCTPButton"
-                                    DockPanel.Dock="Right"
-                                    Command="{CompiledBinding SetFilePathForPlusFolder}">
-                                    <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
-                                </Button>
-                                <TextBox
-                                    IsReadOnly="True"
-                                    Name="GamePathText"
-                                    Text="{Binding CurrentSaveState.GameExecutablePath}"
-                                    Watermark="Select a path"/>
-                            </DockPanel>
-                            
-                    </StackPanel>
-                    <!-- END OF FIRST COLUMN -->
-                    
-                    <!-- START of Bottom Row (Buttons)-->
-                    <StackPanel 
-                        Grid.Column="0" 
-                        Grid.Row="1"
-                        Grid.ColumnSpan="2"
-                        Name="SavePanel"
-                        HorizontalAlignment="Right"
-                        Spacing="15"
-                        Orientation="Horizontal"
-                        IsHitTestVisible="{Binding CurrentSaveState.HasChanged}"
-                        Opacity="{Binding CurrentSaveState.HasChanged}"
-                        Margin="10">
-                        <StackPanel.Transitions>
-                            <Transitions>
-                                <DoubleTransition
-                                    Property="Opacity"
-                                    Duration="0:0:0.07"
-                                    Easing="SineEaseInOut"
-                                />
-                            </Transitions>
-                        </StackPanel.Transitions>
-                        <Button
-                            Classes="DialogBtn DangerDialogBtn"
-                            Content="Cancel"
-                            Command="{CompiledBinding CancelSaveState}"/>
-                        <Button
-                            Classes="DialogBtn GenericDialogBtn"
-                            Content="Save"
-                            Command="{CompiledBinding SaveState}"/>
-                    </StackPanel>
-                    <!-- END of Bottom Row -->
-                </Grid>
-            </Border>
-        </Grid>
-    </Border>
+                <!-- Settings Body -->   
+                <Border Grid.Row="1" 
+                        Background="{DynamicResource SettingsBg}">
+                    <Grid
+                        Margin="10 10 10 0"
+                        ColumnDefinitions="*, *"
+                        RowDefinitions="*, Auto">
+                        
+                        <!-- Body SubBorder -->
+                        <Border 
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            Grid.Column="0"
+                            CornerRadius="10"
+                            Background="{DynamicResource Generic-Border}"/>
+                        <!-- Visible Separator -->
+                        <Border 
+                            Grid.Row="0" 
+                            Grid.Column="0" 
+                            Classes="PageSeparator"/>
+                        <!-- FIRST COLUMN -->
+                        <StackPanel
+                            Grid.Row="0" 
+                            Grid.Column="0" 
+                            Margin="10 5"
+                            Orientation="Vertical">
+                                <Label Content="Baldi's Basics Plus' Executable Path:"/>
+                                <DockPanel HorizontalSpacing="5">
+                                    <!-- Select file Dialog -->
+                                    <Button
+                                        Classes="YCTPButton SmallYCTPButton"
+                                        DockPanel.Dock="Right"
+                                        Command="{CompiledBinding SetFilePathForPlusFolder}">
+                                        <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                                    </Button>
+                                    <TextBox
+                                        IsReadOnly="True"
+                                        Name="GamePathText"
+                                        Text="{CompiledBinding CurrentSaveState.GameExecutablePath, Mode=OneWay}"
+                                        Watermark="Select a path"/>
+                                </DockPanel>
+                                
+                        </StackPanel>
+                        <!-- END OF FIRST COLUMN -->
+                        
+                        <!-- START of Bottom Row (Buttons)-->
+                        <StackPanel 
+                            Grid.Column="0" 
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            Name="SavePanel"
+                            HorizontalAlignment="Right"
+                            Spacing="15"
+                            Orientation="Horizontal"
+                            IsHitTestVisible="{CompiledBinding CurrentSaveState.HasChanged, Mode=OneWay}"
+                            Opacity="{CompiledBinding CurrentSaveState.HasChanged, Mode=OneWay}"
+                            Margin="10">
+                            <StackPanel.Transitions>
+                                <Transitions>
+                                    <DoubleTransition
+                                        Property="Opacity"
+                                        Duration="0:0:0.07"
+                                        Easing="SineEaseInOut"
+                                    />
+                                </Transitions>
+                            </StackPanel.Transitions>
+                            <Button
+                                Classes="DialogBtn DangerDialogBtn"
+                                Content="Cancel"
+                                Command="{CompiledBinding CancelSaveState}"/>
+                            <Button
+                                Classes="DialogBtn GenericDialogBtn"
+                                Content="Save"
+                                Command="{CompiledBinding SaveState}"/>
+                        </StackPanel>
+                        <!-- END of Bottom Row -->
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+     </Border>
     <!-- END of Settings -->
 </UserControl>

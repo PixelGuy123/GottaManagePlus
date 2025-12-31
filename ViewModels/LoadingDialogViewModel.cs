@@ -16,14 +16,14 @@ public partial class LoadingDialogViewModel : DialogViewModel
     private static readonly ConcurrentDictionary<MethodInfo, ParameterInfo[]> MethodCache = new();
 
     // Private members
-    private readonly Delegate _loadingDelegate;
-    private readonly object?[] _providedArgs;
-    private readonly CancellationTokenSource _cts = new();
+    private Delegate _loadingDelegate = null!;
+    private object?[] _providedArgs = [];
+    private CancellationTokenSource _cts = new();
     private bool _hasAlreadyInitiated;
 
     // Public getters
-    public bool AllowCancellation { get; }
-    public bool HideProgressBar { get; }
+    public bool AllowCancellation { get; private set; }
+    public bool HideProgressBar { get; private set; }
 
     // Observable properties
     [ObservableProperty] private string _title = "Loading...";
@@ -33,36 +33,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
     [ObservableProperty] private int _progressValue = 0;
     [ObservableProperty] private string _cancelText = "Cancel";
     [ObservableProperty] private Progress<(int, int, string?)>? _progress;
-
-    /// <summary>
-    /// Unified constructor that accepts a Delegate and dynamic arguments.
-    /// </summary>
-    /// <param name="loadingFunc">The method to execute.</param>
-    /// <param name="args">Optional arguments required by the method (excluding <see cref="IProgress{double}"/> and <see cref="CancellationToken"/>).</param>
-    public LoadingDialogViewModel(Delegate loadingFunc, params object?[]? args)
-    {
-        _loadingDelegate = loadingFunc ?? throw new ArgumentNullException(nameof(loadingFunc));
-        _providedArgs = args ?? [];
-
-        // Retrieve or Cache Method Parameters
-        var parameters = MethodCache.GetOrAdd(_loadingDelegate.Method, m => m.GetParameters());
-
-        // Dynamic UI State Detection
-        AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
-        HideProgressBar = !parameters.Any(p => typeof(IProgress<(int, int, string?)>).IsAssignableFrom(p.ParameterType));
-        
-        if (!HideProgressBar) // If there's progress bar, there's progress instance
-            Progress = new Progress<(int, int, string?)>();
-    }
-
-    public LoadingDialogViewModel()
-    {
-        if (!Design.IsDesignMode) throw new InvalidOperationException("DesignMode is not active!");
-        // Design-time support logic
-        _loadingDelegate = null!;
-        _providedArgs = null!;
-        Progress = null!;
-    }
 
     public async Task<bool> StartTask()
     {
@@ -153,4 +123,57 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
     [RelayCommand]
     public void Cancel() => _cts.Cancel();
+
+    /// <summary>
+    /// Set up the dialog with the following parameters:
+    /// <list type="number">
+    ///     <item><description><see cref="string"/> Title (optional)</description></item>
+    ///     <item><description><see cref="string"/> Status (optional)</description></item>
+    ///     <item><description><see cref="Delegate"/> loadingFunc</description></item>
+    ///     <item><description><see cref="object"/>[] args (Optional)</description></item>
+    /// </list>
+    /// </summary>
+    /// <param name="args">The positional arguments as defined in the summary.</param>
+    protected override void Setup(params object?[]? args)
+    {
+        // Throw if null, since there are two required arguments afterward
+        ArgumentNullException.ThrowIfNull(args);
+        // If there are optional arguments in the beginning, increment this value by the amount of optional parameters
+        const int delegateHandlingOffset = 2;
+        // Reset state
+        _hasAlreadyInitiated = false;
+        _cts = new CancellationTokenSource();
+        Progress = null;
+        ProgressPercentageText = null;
+        ProgressValue = 0;
+        ProgressMax = 1;
+
+        // Get arguments
+        _loadingDelegate = GetValueOrException<Delegate>(args, delegateHandlingOffset);
+        
+        // The rest of the arguments are for the delegate
+        if (args is { Length: > delegateHandlingOffset + 1 })
+        {
+            _providedArgs = new object?[args.Length - (delegateHandlingOffset + 1)];
+            Array.Copy(args, 1, _providedArgs, 0, args.Length - (delegateHandlingOffset + 1));
+        }
+        else
+        {
+            _providedArgs = [];
+        }
+
+        // Retrieve or Cache Method Parameters
+        var parameters = MethodCache.GetOrAdd(_loadingDelegate.Method, m => m.GetParameters());
+
+        // Dynamic UI State Detection
+        AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
+        HideProgressBar = !parameters.Any(p => typeof(IProgress<(int, int, string?)>).IsAssignableFrom(p.ParameterType));
+        
+        if (!HideProgressBar) // If there's progress bar, there's progress instance
+            Progress = new Progress<(int, int, string?)>();
+        
+        // Update UI Elements
+        Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
+        Status = TryGetValue(args, 1, out text) ? text : "Loading...";
+    }
 }

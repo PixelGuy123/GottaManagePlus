@@ -63,7 +63,7 @@
                     CornerRadius="8 8 0 0">
                 <TextBlock 
                     Foreground="{DynamicResource BlackColor}"
-                    Text="{Binding Profile.ProfileName}"
+                    Text="{CompiledBinding Profile.ProfileName, Mode=OneWay}"
                     MaxWidth="650"
                     HorizontalAlignment="Center"
                     Padding="10"
@@ -88,11 +88,10 @@
                             ClipToBounds="True">
                             <ScrollViewer
                                 Margin="5">
-                                <ItemsControl
-                                    Padding="5"
+                                <ItemsRepeater
                                     VerticalAlignment="Stretch"
-                                    ItemsSource="{Binding Profile.ModMetaDataList}">
-                                    <ItemsControl.ItemTemplate>
+                                    ItemsSource="{CompiledBinding Profile.ModMetaDataList, Mode=OneWay}">
+                                    <ItemsRepeater.ItemTemplate>
                                         <DataTemplate DataType="models:ModItem">
                                             <Panel>
                                                 <StackPanel Margin="0 2" Orientation="Vertical">
@@ -100,15 +99,15 @@
                                                         Classes="YCTP">
                                                         <Panel>
                                                             <Border
-                                                                HorizontalAlignment="{Binding $parent[Border].HorizontalAlignment}"
-                                                                VerticalAlignment="{Binding $parent[Border].VerticalAlignment}"
-                                                                CornerRadius="{Binding $parent[Border].CornerRadius}"
+                                                                HorizontalAlignment="{CompiledBinding $parent[Border].HorizontalAlignment, Mode=OneWay}"
+                                                                VerticalAlignment="{CompiledBinding $parent[Border].VerticalAlignment, Mode=OneWay}"
+                                                                CornerRadius="{CompiledBinding $parent[Border].CornerRadius, Mode=OneWay}"
                                                                 Margin="3"
                                                                 Background="Black">
                                                             </Border>
                                                             <TextBlock
                                                                 Margin="8"
-                                                                Text="{Binding ModName}"
+                                                                Text="{CompiledBinding ModName, Mode=OneWay}"
                                                                 TextTrimming="CharacterEllipsis"
                                                                 Classes="ModLabel"/>
                                                         </Panel>
@@ -116,13 +115,13 @@
                                                 </StackPanel>
                                             </Panel>
                                         </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
                             </ScrollViewer>
                         </Border>
                         <TextBlock Grid.Row="2" FontWeight="Bold"> <!-- Mod Count -->
                             <Run Text="Mod Count:"/>
-                            <Run Text="{Binding Profile.ModMetaDataList.Count}"/>
+                            <Run Text="{CompiledBinding Profile.ModMetaDataList.Count, Mode=OneWay}"/>
                         </TextBlock>
                     </Grid>
                     <!-- Metadata Displayer -->
@@ -141,10 +140,10 @@
                             
                             <!-- Creation date -->
                             <Label Content="Created at:"/>
-                            <TextBlock Text="{Binding Profile.CreationDate}"/>
+                            <TextBlock Text="{CompiledBinding Profile.CreationDate, Mode=OneWay}"/>
                             <!-- Update date -->
                             <Label Content="Last modified:"/>
-                            <TextBlock Text="{Binding Profile.UpdateDate}"/>
+                            <TextBlock Text="{CompiledBinding Profile.UpdateDate, Mode=OneWay}"/>
                             <!-- Profile Path -->
                             <Label Content="Profile Path:"/>
                             <DockPanel>
@@ -157,7 +156,7 @@
                                 </Button>
                                 <TextBox
                                     IsReadOnly="True"
-                                    Text="{Binding Profile.RelativeOsPath}"
+                                    Text="{CompiledBinding Profile.RelativeOsPath, Mode=OneWay}"
                                     Watermark="Path missing!"/>
                             </DockPanel>
 
@@ -175,10 +174,9 @@
                                 ClipToBounds="True">
                                 <ScrollViewer
                                     Margin="5">
-                                    <ItemsControl
-                                        Padding="5"
-                                        ItemsSource="{Binding Profile.ConfigsMetaDataList}">
-                                        <ItemsControl.ItemTemplate>
+                                    <ItemsRepeater
+                                        ItemsSource="{CompiledBinding Profile.ConfigsMetaDataList, Mode=OneWay}">
+                                        <ItemsRepeater.ItemTemplate>
                                             <DataTemplate DataType="models:ItemWithPath">
                                                 <Panel>
                                                     <StackPanel Margin="0 2" Orientation="Vertical">
@@ -192,15 +190,15 @@
                                                                 </Button>
                                                                 <Panel>
                                                                     <Border
-                                                                        HorizontalAlignment="{Binding $parent[Border].HorizontalAlignment}"
-                                                                        VerticalAlignment="{Binding $parent[Border].VerticalAlignment}"
-                                                                        CornerRadius="{Binding $parent[Border].CornerRadius}"
+                                                                        HorizontalAlignment="{CompiledBinding $parent[Border].HorizontalAlignment, Mode=OneWay}"
+                                                                        VerticalAlignment="{CompiledBinding $parent[Border].VerticalAlignment, Mode=OneWay}"
+                                                                        CornerRadius="{CompiledBinding $parent[Border].CornerRadius, Mode=OneWay}"
                                                                         Margin="3"
                                                                         Background="Black">
                                                                     </Border>
                                                                     <TextBlock
                                                                         Margin="8"
-                                                                        Text="{Binding FileName}"
+                                                                        Text="{CompiledBinding FileName, Mode=OneWay}"
                                                                         FontSize="11"
                                                                         TextTrimming="CharacterEllipsis"
                                                                         Classes="ModLabel"/>
@@ -210,13 +208,13 @@
                                                     </StackPanel>
                                                 </Panel>
                                             </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                        </ItemsRepeater.ItemTemplate>
+                                    </ItemsRepeater>
                                 </ScrollViewer>
                             </Border>
                             <TextBlock Grid.Row="2" FontWeight="Bold"> <!-- Mod Count -->
                                 <Run Text="Configs Count:"/>
-                                <Run Text="{Binding Profile.ConfigsMetaDataList.Count}"/>
+                                <Run Text="{CompiledBinding Profile.ConfigsMetaDataList.Count, Mode=OneWay}"/>
                             </TextBlock>
                         </Grid>
                 </UniformGrid>
@@ -231,18 +229,18 @@
                 Margin="10">
                 <Button
                     Name="DeleteButton"
-                    Content="{CompiledBinding DeleteText}" 
+                    Content="{CompiledBinding DeleteText, Mode=OneWay}" 
                     Classes="DialogBtn DangerDialogBtn"
-                    IsHitTestVisible="{CompiledBinding AllowProfileDeletion}"
-                    Opacity="{CompiledBinding AllowProfileDeletion}"
+                    IsHitTestVisible="{CompiledBinding AllowProfileDeletion, Mode=OneWay}"
+                    Opacity="{CompiledBinding AllowProfileDeletion, Mode=OneWay}"
                     Command="{CompiledBinding CloseAndDeleteProfile}"/>
                 <Button
-                    Content="{CompiledBinding CloseText}" 
+                    Content="{CompiledBinding CloseText, Mode=OneWay}" 
                     Classes="DialogBtn GenericDialogBtn"
                     Command="{CompiledBinding CloseWithoutChanges}"/>
                 <Button
                     Name="ExportButton"
-                    Content="{CompiledBinding ExportText}" 
+                    Content="{CompiledBinding ExportText, Mode=OneWay}" 
                     Classes="DialogBtn GenericDialogBtn"
                     Command="{CompiledBinding ExportProfile}"/>
             </StackPanel>

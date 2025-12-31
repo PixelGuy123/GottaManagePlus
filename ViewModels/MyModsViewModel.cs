@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GottaManagePlus.Models;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -15,10 +16,6 @@ using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.ViewModels;
 
-// TODO: Add an indicator of "No mods available" to the Mod Viewer.
-// TODO: Add a mod counter.
-// TODO: Add a current profile indicator in the header.
-
 public partial class MyModsViewModel : PageViewModel, IDisposable
 {
     private readonly List<ModItem> _allMods = [];
@@ -28,7 +25,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     private readonly IFilesService _filesService = null!;
     
     // Observable Properties
-    [ObservableProperty] 
+    [ObservableProperty]
     private ObservableCollection<ModItem> _observableUnchangedMods = [];
     [ObservableProperty]
     private ObservableCollection<ModItem> _observableMods = [];
@@ -37,8 +34,15 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     [ObservableProperty]
     private string? _text;
     
+    public bool HasAnyModsToDisplay => ObservableUnchangedMods.Count != 0;
+    
+    
     // From the generator. https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/observableproperty
-    partial void OnCurrentModItemChanged(ModItem? value) => UpdateModsList(value); 
+    partial void OnCurrentModItemChanged(ModItem? value) => UpdateModsList(value);
+
+    // To update the display
+    private void OnObservableUnchangedModsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+        OnPropertyChanged(nameof(HasAnyModsToDisplay));
     
     [RelayCommand]
     public void ResetSearch() => Text = null;
@@ -50,45 +54,49 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public async Task OpenModPath(int id)
     {
         const string modFixSuggestion = "Try reloading the profiles list.";
+        ConfirmDialogViewModel confirmDialog;
         
         // Check if mod exists
         var index = _allMods.FindIndex(item => item.Id == id);
         if (index == -1) // If the item doesn't exist, skip
         {
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
-                           Failed to delete the profile!
-                           For some reason, there's no profile with the id ({id}).
-                           """
-            });
+            confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(
+                null,
+                Constants.FailDialog,
+                $"""
+                 Failed to delete the profile!
+                 For some reason, there's no profile with the id ({id}).
+                 """
+            );
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
 
         // Get mod instance
         var mod = _allMods[index];
         // Get directory path
-        var path = Path.GetDirectoryName(mod.FullOsPath);
-        if (!Directory.Exists(path))
+        if (!File.Exists(mod.FullOsPath))
         {
-            var confirmDialog = new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"The path to the profile is somehow invalid!\n{modFixSuggestion}"
-            };
+            confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(
+                true,
+                Constants.FailDialog,
+                $"The path to the mod is somehow invalid!\n{modFixSuggestion}"
+            );
             await _dialogService.ShowDialog(confirmDialog);
             return;
         }
         
         // Open the mod here
-        if (!await _filesService.OpenDirectoryInfo(new DirectoryInfo(path)))
+        if (!_filesService.OpenFileInfo(new FileInfo(mod.FullOsPath)))
         {
-            var confirmDialog = new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"Failed to open the path to the profile due to an unknown error!\n{modFixSuggestion}"
-            };
+            confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(
+                true,
+                Constants.FailDialog,
+                $"Failed to open the path to the mod due to an unknown error!\n{modFixSuggestion}"
+            );
             await _dialogService.ShowDialog(confirmDialog);
         }
     }
@@ -107,7 +115,29 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             new ModItem(2, "Mod 3"),
             new ModItem(3, "Baldi's Basics Times"),
             new ModItem(4, "Baldi's Basics Advanced Edition"),
-            new ModItem(5, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu.")
+            new ModItem(5, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(6, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(7, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(8, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(9, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(10, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(11, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(12, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(13, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(14, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(15, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(16, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(17, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(18, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(19, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(20, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(21, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(22, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(23, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(24, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(25, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(26, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(27, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
         ];
         
         // Initialize collections
@@ -123,6 +153,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         _profileProvider = profileProvider;
         _filesService = filesService;
         profilesViewModel.AfterProfileUpdate += ProfilesProvider_OnProfilesUpdate;
+        ObservableUnchangedMods.CollectionChanged += OnObservableUnchangedModsCollectionChanged;
     }
 
     public void Dispose()
@@ -134,14 +165,17 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     // Private methods
     private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
     {
-        _allMods.Clear();
-        _allMods.AddRange(provider.GetInstanceActiveProfile().ModMetaDataList);
+        Dispatcher.UIThread.Post(() =>
+        {
+            _allMods.Clear();
+            _allMods.AddRange(provider.GetInstanceActiveProfile().ModMetaDataList);
 
-        ObservableUnchangedMods.Clear();
-        foreach (var mod in _allMods)
-            ObservableUnchangedMods.Add(mod);
+            ObservableUnchangedMods.Clear();
+            foreach (var mod in _allMods)
+                ObservableUnchangedMods.Add(mod);
 
-        ResetListVisibleConfigurations();
+            ResetListVisibleConfigurations();
+        });
     }
     
     private void UpdateModsList(ModItem? highlightedItem)
@@ -185,32 +219,36 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     
     private async Task DeleteModItemUiAsync(int id) // Delete asynchronously the items
     {
+        ConfirmDialogViewModel confirmDialog;
         var index = _allMods.FindIndex(item => item.Id == id);
         if (index == -1) // If the item doesn't exist, skip
         {
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
-                          Failed to delete the profile!
-                          For some reason, there's no profile with the id ({id}).
-                          """
-            });
+            confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(
+                true,
+                Constants.FailDialog,
+                $"""
+                 Failed to delete the profile!
+                 For some reason, there's no profile with the id ({id}).
+                 """
+            );
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
         
-        var confirmViewModel = new ConfirmDialogViewModel()
-        {
-            Title = $"Delete {_allMods[index].ModName}?",
-            Message = "Are you sure you want to delete this mod?",
-            ConfirmText = "Yes",
-            CancelText = "No"
-        };
-
-        await _dialogService.ShowDialog(confirmViewModel);
+        // Show confirmation dialog
+        confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        confirmDialog.Prepare(
+            null,
+            $"Delete {_allMods[index].ModName}?",
+            "Are you sure you want to delete this mod?",
+            "Yes",
+            "No"
+        );
+        await _dialogService.ShowDialog(confirmDialog);
         
         // Do not if not accepted
-        if (!confirmViewModel.Confirmed)
+        if (!confirmDialog.Confirmed)
             return;
 
         // Get metadata for deleting in profile provider
@@ -242,24 +280,21 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         }
         
         // Request save changes to the profile
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
-        {
-            Title="Saving changes...",
-            Status="Working on this..."
-        };
-
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Saving changes...", null, (Delegate)_profileProvider.SaveActiveProfile);
         // Try to delete mod
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             // If the mod fails to be deleted, revert back to the old list
             profileItem.ModMetaDataList = tempModList;
             
+            confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(
+                Constants.FailDialog,
+                $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}"
+                );
             // Show dialog
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}"
-            });
+            await _dialogService.ShowDialog(confirmDialog);
             return;
         }
 
@@ -269,22 +304,21 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     
     private async Task WaitToUpdateData(string preferredIndex = "") // Copy-paste from ProfileViewModel.cs
     {
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.UpdateProfilesData, preferredIndex)
-        {
-            Title = "Updating profile data..."
-        };
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Updating profile data...", null, 
+            (Delegate)_profileProvider.UpdateProfilesData, preferredIndex);
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
+            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmDialog.Prepare(true, Constants.FailDialog,
+                $"""
+                 Failed to update the profiles list!
+                 If the issue persists, you can try:
+                 {Constants.SolutionFilePermissions}
+                 """
+                );
             // Not-so-aggressive dialog
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"""
-                           Failed to update the profiles list!
-                           If the issue persists, you can try:
-                           {Constants.SolutionFilePermissions}
-                           """
-            });
+            await _dialogService.ShowDialog(confirmDialog);
         }
     }
 }

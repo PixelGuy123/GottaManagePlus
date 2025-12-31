@@ -5,7 +5,7 @@ dotnet restore
 dotnet-releaser build --force dotnet-releaser.toml
 
 # ** Deb fixer
-./deb-fixer.sh artifacts-dotnet-releaser/GottaManagePlus.2025.12.0.1.linux-x64.deb GottaManagePlus.png
+./deb-fixer.sh artifacts-dotnet-releaser/GottaManagePlus.*.linux-x64.deb GottaManagePlus.png
 
 # Attempt to move deb file
 mv GottaManagePlus.deb artifacts-dotnet-releaser/GottaManagePlus.deb

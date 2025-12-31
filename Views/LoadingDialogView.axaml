@@ -16,75 +16,69 @@
         <StyleInclude Source="/Styles/Buttons.axaml"/>
     </UserControl.Styles>
     
-    <Border 
-        Background="{DynamicResource MainMenus-Bg}" 
+    <Border
         CornerRadius="10"
-        ClipToBounds="True"
-        BorderBrush="{DynamicResource Generic-Border}"
-        BorderThickness="2"
-        Margin="10 35">
-        <Border.Effect>
-            <DropShadowEffect
-                OffsetX="0"
-                OffsetY="5"
-                BlurRadius="15"
-                />
-        </Border.Effect>
-        <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
-            <!-- Title -->
-            <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" 
-                    CornerRadius="8 8 0 0">
-                <TextBlock 
-                    Foreground="{DynamicResource BlackColor}"
-                    Text="{CompiledBinding Title}"
-                    MaxWidth="650"
+        Margin="10 20"
+        BoxShadow="0 5 25 1.5 Black">
+        <Border
+            Background="{DynamicResource MainMenus-Bg}"
+            CornerRadius="10"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+                <!-- Title -->
+                <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" >
+                    <TextBlock 
+                        Foreground="{DynamicResource BlackColor}"
+                        Text="{CompiledBinding Title, Mode=OneWay}"
+                        MaxWidth="650"
+                        HorizontalAlignment="Center"
+                        Padding="10"
+                        FontSize="25"
+                        TextTrimming="CharacterEllipsis"
+                        FontWeight="ExtraLight"
+                        FontFamily="{StaticResource WorkSans}"/>
+                </Border>
+                
+                <!-- Description -->
+                <Border Grid.Row="1" Padding="10">
+                    <StackPanel Orientation="Vertical">
+                        <ProgressBar
+                            IsVisible="{CompiledBinding !HideProgressBar, Mode=OneWay}"
+                            Foreground="{DynamicResource ProgressBar-Foreground}"
+                            MinHeight="15"
+                            Minimum="0"
+                            Maximum="{CompiledBinding ProgressMax, Mode=OneWay}"
+                            Value="{CompiledBinding ProgressValue, Mode=OneWay}"/>
+                        <TextBlock
+                            Name="ProgressText"
+                            IsVisible="{CompiledBinding !HideProgressBar, Mode=OneWay}"
+                            Text="{CompiledBinding ProgressPercentageText, Mode=OneWay}"
+                            FontFamily="{StaticResource WorkSans}"
+                            FontWeight="ExtraBlack"
+                            FontSize="14"
+                            TextAlignment="Center"/>
+                        <TextBlock
+                            Text="{CompiledBinding Status, Mode=OneWay}"
+                            FontFamily="{StaticResource WorkSans}"
+                            FontWeight="Bold"
+                            FontSize="16"
+                            MaxWidth="620"
+                            TextWrapping="Wrap"
+                            TextAlignment="Center"
+                            />
+                    </StackPanel>
+                </Border>
+                
+                <!-- Buttons -->
+                <Button Grid.Row="2"
+                    IsVisible="{CompiledBinding AllowCancellation, Mode=OneWay}"
+                    Content="{CompiledBinding CancelText, Mode=OneWay}" 
+                    Classes="DialogBtn DangerDialogBtn"
+                    Command="{CompiledBinding Cancel}"
+                    VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    Padding="10"
-                    FontSize="25"
-                    TextTrimming="CharacterEllipsis"
-                    FontWeight="ExtraLight"
-                    FontFamily="{StaticResource WorkSans}"/>
-            </Border>
-            
-            <!-- Description -->
-            <Border Grid.Row="1" Padding="10">
-                <StackPanel Orientation="Vertical">
-                    <ProgressBar
-                        IsVisible="{CompiledBinding !HideProgressBar}"
-                        Foreground="{DynamicResource ProgressBar-Foreground}"
-                        MinHeight="15"
-                        Minimum="0"
-                        Maximum="{CompiledBinding ProgressMax}"
-                        Value="{CompiledBinding ProgressValue}"/>
-                    <TextBlock
-                        Name="ProgressText"
-                        IsVisible="{CompiledBinding !HideProgressBar}"
-                        Text="{CompiledBinding ProgressPercentageText}"
-                        FontFamily="{StaticResource WorkSans}"
-                        FontWeight="ExtraBlack"
-                        FontSize="14"
-                        TextAlignment="Center"/>
-                    <TextBlock
-                        Text="{CompiledBinding Status}"
-                        FontFamily="{StaticResource WorkSans}"
-                        FontWeight="Bold"
-                        FontSize="16"
-                        MaxWidth="620"
-                        TextWrapping="Wrap"
-                        TextAlignment="Center"
-                        />
-                </StackPanel>
-            </Border>
-            
-            <!-- Buttons -->
-            <Button Grid.Row="2"
-                IsVisible="{CompiledBinding AllowCancellation}"
-                Content="{CompiledBinding CancelText}" 
-                Classes="DialogBtn DangerDialogBtn"
-                Command="{CompiledBinding Cancel}"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                Margin="10"/>
-        </Grid>
+                    Margin="10"/>
+            </Grid>
+        </Border>
     </Border>
 </UserControl>

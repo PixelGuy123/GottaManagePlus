@@ -27,7 +27,8 @@ public static class Constants
             string.Empty;
     
     // Extensions and names that the app uses
-    public const string AppRootFolder = ".gmp", ExportedProfileExtension = ".gmpProfile", ProfileExportFolder = "exports";
+    public const string AppRootFolder = ".gmp", ExportedProfileExtension = ".gmpProfile", ProfileExportFolder = "exports",
+        ModMetadataExtension = ".metadata";
     
     // File Picker Filters
     public static readonly FilePickerFileType ExportedProfileFilter = new($"Exported Profile (*{ExportedProfileExtension})")

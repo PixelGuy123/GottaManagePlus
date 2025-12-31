@@ -19,4 +19,7 @@ public partial class AppInfoDialogViewModel : DialogViewModel
     {
         Close();
     }
+
+    // Does nothing currently
+    protected override void Setup(params object?[]? args) { }
 }

@@ -15,7 +15,6 @@
         
         <!-- Menu Border -->
         <Style Selector="^.Menu_Border">
-            <Setter Property="BackgroundSizing" Value="OuterBorderEdge"/> <!-- Shall fix improper border fitting -->
             <Setter Property="Background" Value="{DynamicResource MainMenus-Bg}" />
             <!-- Top Menu Overrides -->
             <Style Selector="^.TopMenu_Border">
@@ -39,7 +38,6 @@
                             Source="/Assets/UI/MainHeaderBG_OldGamebananaHeader.jpg"
                             Stretch="UniformToFill"
                             AlignmentY="Top"
-                        
                         />
                     </Setter.Value>
                 </Setter>

@@ -1,19 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- DropShadowEffect (for any user control) -->
-    <Style Selector=":is(Control).BorderDropShadow">
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect
-                    Color="Black"
-                    BlurRadius="15"
-                    OffsetX="0"
-                    OffsetY="10"
-                    Opacity="0.5"
-                />
-            </Setter.Value>
-        </Setter>
-    </Style>
+
     <!-- Glow Shadow -->
     <Style Selector=":is(Control).GlowShadow">
         <Setter Property="Effect">

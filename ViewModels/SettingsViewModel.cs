@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -31,15 +32,16 @@ public partial class SettingsViewModel : PageViewModel
     internal void DisplayGameFolderRequirementFolder()
     {
         // Display the warning dialog to remind the user
-        Dispatcher.UIThread.InvokeAsync(() => _dialogService.ShowDialog(new ConfirmDialogViewModel(true, true)
+        Dispatcher.UIThread.InvokeAsync(() =>
         {
-            Title = Constants.WarningDialog,
-            Message = """
+            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            dialog.Prepare(true, Constants.WarningDialog, """
                       Looks like the BB+ folder is not set or is not valid.
                       If this is your first time using the tool, just select the executable of Baldi's Basics Plus inside Settings.
                       You cannot interact with "My Mods" section while under this condition.
-                      """
-        }));
+                      """);
+            return _dialogService.ShowDialog(dialog);
+        });
     }
     
     // Private members
@@ -74,12 +76,9 @@ public partial class SettingsViewModel : PageViewModel
                 return;
             }
 
-            await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.FailDialog,
-                Message =
-                    "Failed to locate the executable file or the directory, where this executable may be located, is invalid."
-            });
+            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            dialog.Prepare(true, Constants.FailDialog, "Failed to locate the executable file or the directory, where this executable may be located, is invalid.");
+            await _dialogService.ShowDialog(dialog);
             Debug.WriteLine("Failed to set the folder!", Constants.DebugWarning);
     }
 
@@ -98,23 +97,19 @@ public partial class SettingsViewModel : PageViewModel
         _gameFolderViewer.ValidateFolder(settings.BaldiPlusExecutablePath);
 
         // Saving dialog
-        var loadingDialog = new LoadingDialogViewModel(_settingsService.Save)
-        {
-            Title = "Saving settings...",
-            Status = "Saving..."
-        };
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Saving settings...", "Saving...", (Delegate)_settingsService.Save);
+        
         var status = await _dialogService.ShowLoadingDialog(loadingDialog);
         if (status) return;
 
-        await _dialogService.ShowDialog(new ConfirmDialogViewModel(true)
-        {
-            Title = Constants.FailDialog,
-            Message = $"""
+        var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        confirmDialog.Prepare(true, Constants.FailDialog, $"""
                        Failed to save the settings. You can try again.
                        If it doesn't work, you can try:
                        {Constants.SolutionFilePermissions}
-                       """
-        });
+                       """);
+        await _dialogService.ShowDialog(confirmDialog);
     }
 
     [RelayCommand]

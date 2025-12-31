@@ -19,6 +19,7 @@ namespace GottaManagePlus.Services;
 /// </summary>
 public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 {
+    private readonly ProfileItem _cachedComparerProfile = new(0, string.Empty);
     // Constants
     private const string ProfileFolderName = "profiles",
         TempContentZipFileSuffix = "_TEMP",
@@ -33,6 +34,30 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     
     // Public getters
     protected IGameFolderViewer GameFolderViewer => _gameFolderViewer ?? throw new NullReferenceException("GameFolderViewer is null.");
+
+    /// <summary>
+    /// Tells whether the game folder has a different setup from the current profile data.
+    /// </summary>
+    /// <inheritdoc/>
+    public bool HasProfileChanged {
+        get
+        {
+            if (_currentProfileItem == null) return false;
+            
+            // Populate the cached profile
+            GatherProfileFolderInformation(_cachedComparerProfile);
+            
+            // If the content scanned through that method is different from the current profile, return true
+            // * Configs
+            for (var i = 0; i < _cachedComparerProfile.ConfigsMetaDataList.Count && i < _currentProfileItem.ConfigsMetaDataList.Count; i++) if (_currentProfileItem.ConfigsMetaDataList[i].FullOsPath?.Equals(_cachedComparerProfile.ConfigsMetaDataList[i].FullOsPath, StringComparison.Ordinal) ?? false) return true;
+            // * Patchers
+            for (var i = 0; i < _cachedComparerProfile.PatchersMetaDataList.Count && i < _currentProfileItem.PatchersMetaDataList.Count; i++) if (_currentProfileItem.PatchersMetaDataList[i].FullOsPath?.Equals(_cachedComparerProfile.PatchersMetaDataList[i].FullOsPath, StringComparison.Ordinal) ?? false) return true;
+            // * Mods
+            for (var i = 0; i < _cachedComparerProfile.ModMetaDataList.Count && i < _currentProfileItem.ModMetaDataList.Count; i++) if (_currentProfileItem.ModMetaDataList[i].FullOsPath?.Equals(_cachedComparerProfile.ModMetaDataList[i].FullOsPath, StringComparison.Ordinal) ?? false) return true;
+
+            return false;
+        } 
+    }
 
 
     // Public implementation
@@ -419,10 +444,12 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
         // If the profile exists, try to still set the same profile active; otherwise, the first default
         if (_currentProfileItem != null && string.IsNullOrEmpty(defaultSelection))
-            return await SetActiveProfile(
-                _currentProfileItem.Id < _availableProfiles.Count ? _currentProfileItem.Id : 0,
-                progress);
-        
+        {
+            // Get Index and set profile
+            var index = _currentProfileItem.Id < _availableProfiles.Count ? _currentProfileItem.Id : 0;
+            return await SetActiveProfile(index, progress);
+        }
+
         // Update active profile
         // Get the index
         var defaultIndex = string.IsNullOrEmpty(defaultSelection) ? 

@@ -8,36 +8,38 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
+using GottaManagePlus.Services;
 
 namespace GottaManagePlus.ViewModels;
 
-public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool allowProfileDeletion, IFilesService filesService) : DialogViewModel
+public partial class PreviewProfileDialogViewModel : DialogViewModel
 {
     // Private members
-    private readonly IFilesService _filesService = filesService;
-    
-    // For previewer
-    [Obsolete("Used for designer. Use PreviewProfileDialogViewModel(ProfileItem profile) instead.", true)]
-    public PreviewProfileDialogViewModel() : this(
-        new ProfileItem(0, "Some cool long profile name that has never been used before and shall never be used with this length, Holy moly, this is huge!"),
-        true, null!)
-    {
-        if (!Design.IsDesignMode)
-            throw new NotSupportedException("Design mode is not enabled!");
-    }
+    private IFilesService _filesService = null!;
+    private DialogService _dialogService = null!;
     
     // Observables
     [ObservableProperty]
-    private ProfileItem _profile = profile;
+    private ProfileItem _profile = null!;
     [ObservableProperty]
     private string _closeText = "Close", _deleteText = "Delete", _exportText = "Export as package";
 
-    public bool AllowProfileDeletion { get; } = allowProfileDeletion;
+    [ObservableProperty]
+    private bool _allowProfileDeletion;
     
     // Public getters
     public bool ShouldDeleteProfile { get; private set; }
     public bool ShouldExportProfile { get; private set; }
     public DialogViewModel? SubDialogView { get; private set; }
+
+    public PreviewProfileDialogViewModel()
+    {
+        if (Design.IsDesignMode)
+        {
+            Profile = new ProfileItem(0, "Some cool long profile name that has never been used before and shall never be used with this length, Holy moly, this is huge!");
+            AllowProfileDeletion = true;
+        }
+    }
     
     // Commands
     [RelayCommand]
@@ -51,30 +53,27 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     public void CloseWithoutChanges() => Close();
 
     [RelayCommand]
-    public async Task OpenProfilePath()
+    public void OpenProfilePath()
     {
         const string profileFixSuggestion = "Try reloading the profiles list.";
-        var path = Path.GetDirectoryName(Profile.FullOsPath);
-        if (!Directory.Exists(path))
+        if (!File.Exists(Profile.FullOsPath))
         {
-            SubDialogView = new ConfirmDialogViewModel(true)
-            {
-              Title = Constants.FailDialog,
-              Message = $"The path to the profile is somehow invalid!\n{profileFixSuggestion}"
-            };
+            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            dialog.Prepare(true, Constants.FailDialog, $"The path to the profile is somehow invalid!\n{profileFixSuggestion}");
+            SubDialogView = dialog;
+            
             Debug.WriteLine("Failed to open profile path due to invalid path.", Constants.DebugError);
-            Debug.WriteLine(path, Constants.DebugError);
+            Debug.WriteLine(Profile.FullOsPath, Constants.DebugError);
             Close();
             return;
         }
         
-        if (!await _filesService.OpenDirectoryInfo(new DirectoryInfo(path)))
+        if (!_filesService.OpenFileInfo(new FileInfo(Profile.FullOsPath)))
         {
-            SubDialogView = new ConfirmDialogViewModel(true)
-            {
-                Title = Constants.FailDialog,
-                Message = $"Failed to open the path to the profile due to an unknown error!\n{profileFixSuggestion}"
-            };
+            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            dialog.Prepare(true, Constants.FailDialog, $"Failed to open the path to the profile due to an unknown error!\n{profileFixSuggestion}");
+            SubDialogView = dialog;
+            
             Debug.WriteLine("Failed to open profile path due to unknown error.", Constants.DebugError);
             Close();
         }
@@ -94,5 +93,25 @@ public partial class PreviewProfileDialogViewModel(ProfileItem profile, bool all
     {
         ShouldExportProfile = true;
         Close();
+    }
+
+    /// <summary>
+    /// Set up the dialog with the following parameters:
+    /// <list type="number">
+    ///     <item><description><see cref="ProfileItem"/> profile</description></item>
+    ///     <item><description><see cref="bool"/> allowProfileDeletion</description></item>
+    ///     <item><description><see cref="IFilesService"/> filesService</description></item>
+    ///     <item><description><see cref="DialogService"/> dialogService</description></item>
+    /// </list>
+    /// </summary>
+    /// <param name="args">The positional arguments as defined in the summary.</param>
+    protected override void Setup(params object?[]? args)
+    {
+        ResetState();
+        
+        Profile = GetValueOrException<ProfileItem>(args, 0);
+        AllowProfileDeletion = GetValueOrException<bool>(args, 1);
+        _filesService = GetValueOrException<IFilesService>(args, 2);
+        _dialogService = GetValueOrException<DialogService>(args, 3);
     }
 }

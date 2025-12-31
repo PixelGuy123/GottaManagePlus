@@ -27,7 +27,7 @@
         <StyleInclude Source="/Styles/style.axaml"/>
         
         <Style Selector=":is(Control).ModViewerHeader">
-            <Setter Property="VerticalAlignment" Value="{Binding $parent[StackPanel].VerticalAlignment}" />
+            <Setter Property="VerticalAlignment" Value="{CompiledBinding $parent[StackPanel].VerticalAlignment, Mode=OneWay}" />
         </Style>
         
         <!-- Styled Labels -->
@@ -40,173 +40,177 @@
     
     <!-- START of Profiles -->
     <Border
-    ClipToBounds="True"
-    Classes="Menu_Border BorderDropShadow AllCornerRadius"
-    Margin="25 0 10 10">
-        <Grid RowDefinitions="Auto, *">
-            <Border Grid.Row="0" 
-                    HorizontalAlignment="Stretch" 
-                    VerticalAlignment="Stretch"
-                    Classes="Menu_Header">
-                <Border.Background>
-                    <ImageBrush
-                        Source="/Assets/UI/Icon_ProfilesBg.png"
-                        TileMode="Tile"
-                        Stretch="None"
-                        DestinationRect="-32 34 64 64"
-                        Opacity="0.175"
-                        />
-                </Border.Background>
-            </Border> 
-            <!-- Mod Header -->
-            <StackPanel 
-                Margin="0 0 0 5"
-                Grid.Row="0"
-                Orientation="Vertical">
-                <Panel DockPanel.Dock="Left" HorizontalAlignment="Left"> <!-- Stack TextBlocks together -->
-                    <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                    <TextBlock 
-                        Text="Profiles" 
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Foreground="White"
-                        FontWeight="UltraBold"
-                        Classes="SideMenu-Label RightHeader GlowShadow"/>
-                    <TextBlock 
-                        Text="Profiles" 
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Classes="SideMenu-Label RightHeader"/>
-                </Panel>
-                <Grid ColumnDefinitions="Auto, *">
-                    <StackPanel
-                        Grid.Column="0"
-                        Margin="5 0"
-                        VerticalAlignment="Center"
-                        Orientation="Horizontal">
-                        <!-- Search field -->
-                        <AutoCompleteBox
-                            Classes="ModViewerHeader"
-                            Width="140"
-                            Watermark="Search"
-                            ItemsSource="{Binding ObservableUnchangedProfiles}"
-                            SelectedItem="{Binding CurrentProfileItem}"
-                            Text="{Binding Text}"
-                            ValueMemberBinding="{Binding ProfileName, DataType=models:ProfileItem}"
-                            FilterMode="Contains"
-                        />
-                        <Button 
-                            Classes="ModViewerHeader YCTPButton SmallYCTPButton"
-                            Margin="5 0 0 0"
-                            Command="{CompiledBinding ResetSearch}">
-                            <Image
-                                Source="/Assets/UI/Icon_Cancel_Generic.png"
+        Classes="Menu_Border AllCornerRadius"
+        Margin="25 0 10 10"
+        BoxShadow="0 3 10 2 #7D000000">
+        <Border
+            Classes="Menu_Border AllCornerRadius"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *">
+                <Border Grid.Row="0" 
+                        HorizontalAlignment="Stretch" 
+                        VerticalAlignment="Stretch"
+                        Classes="Menu_Header">
+                    <Border.Background>
+                        <ImageBrush
+                            Source="/Assets/UI/Icon_ProfilesBg.png"
+                            TileMode="Tile"
+                            Stretch="None"
+                            DestinationRect="-32 34 64 64"
+                            Opacity="0.175"
                             />
-                        </Button>
-                        
-                    </StackPanel>
-                    <StackPanel  
-                        Grid.Column="1"
-                        Margin="0 0 10 0"
-                        Spacing="5"
-                        Orientation="Horizontal">
-                        <!-- Add Profile Field -->
-                        <Button 
-                            HorizontalAlignment="Right"
-                            Command="{CompiledBinding UpdateProfilesData}"
-                            Classes="ModViewerHeader YCTPButton">
-                            <Image
-                                Source="/Assets/UI/Icon_Reload.png"
-                                Width="24"
-                                Height="24"
+                    </Border.Background>
+                </Border> 
+                <!-- Mod Header -->
+                <StackPanel 
+                    Margin="0 0 0 5"
+                    Grid.Row="0"
+                    Orientation="Vertical">
+                    <Panel DockPanel.Dock="Left" HorizontalAlignment="Left"> <!-- Stack TextBlocks together -->
+                        <!--TEMP COMMENT: USE LANGUAGE HERE-->
+                        <TextBlock 
+                            Text="Profiles" 
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            FontWeight="UltraBold"
+                            Classes="SideMenu-Label RightHeader GlowShadow"/>
+                        <TextBlock 
+                            Text="Profiles" 
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Classes="SideMenu-Label RightHeader"/>
+                    </Panel>
+                    <Grid ColumnDefinitions="Auto, *">
+                        <StackPanel
+                            Grid.Column="0"
+                            Margin="5 0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <!-- Search field -->
+                            <AutoCompleteBox
+                                Classes="ModViewerHeader"
+                                Width="140"
+                                Watermark="Search"
+                                ItemsSource="{CompiledBinding ObservableUnchangedProfiles, Mode=OneWay}"
+                                SelectedItem="{CompiledBinding CurrentProfileItem}"
+                                Text="{CompiledBinding Text}"
+                                ValueMemberBinding="{CompiledBinding ProfileName, DataType=models:ProfileItem, Mode=OneWay}"
+                                FilterMode="Contains"
                             />
-                        </Button>
-                        
-                        <!-- Add Profile Field -->
-                        <Button 
-                            HorizontalAlignment="Right"
-                            Command="{CompiledBinding CreateProfileUi}"
-                            Classes="ModViewerHeader YCTPButton">
-                            <Image
-                                Source="/Assets/UI/Icon_AddModContainer.png"
-                                Width="24"
-                                Height="24"
-                            />
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
-            <!-- Actual Mod Scroll Viewer -->
-            <ScrollViewer 
-            Grid.Row="1"
-            Background="{DynamicResource ProfilesBg}">
+                            <Button 
+                                Classes="ModViewerHeader YCTPButton SmallYCTPButton"
+                                Margin="5 0 0 0"
+                                Command="{CompiledBinding ResetSearch}">
+                                <Image
+                                    Source="/Assets/UI/Icon_Cancel_Generic.png"
+                                />
+                            </Button>
+                            
+                        </StackPanel>
+                        <StackPanel  
+                            Grid.Column="1"
+                            Margin="0 0 10 0"
+                            Spacing="5"
+                            Orientation="Horizontal">
+                            <!-- Add Profile Field -->
+                            <Button 
+                                HorizontalAlignment="Right"
+                                Command="{CompiledBinding UpdateProfilesData}"
+                                Classes="ModViewerHeader YCTPButton">
+                                <Image
+                                    Source="/Assets/UI/Icon_Reload.png"
+                                    Width="24"
+                                    Height="24"
+                                />
+                            </Button>
+                            
+                            <!-- Add Profile Field -->
+                            <Button 
+                                HorizontalAlignment="Right"
+                                Command="{CompiledBinding CreateProfileUi}"
+                                Classes="ModViewerHeader YCTPButton">
+                                <Image
+                                    Source="/Assets/UI/Icon_AddModContainer.png"
+                                    Width="24"
+                                    Height="24"
+                                />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+                <!-- Actual Mod Scroll Viewer -->
+                <ScrollViewer 
+                Grid.Row="1"
+                Background="{DynamicResource ProfilesBg}">
 
-            <ItemsControl
-                Name="ProfileListElement"
-                ItemsSource="{Binding ObservableProfiles}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:ProfileItem}">
-                            <Panel>
-                                <!--Background for the shade effect-->
-                                <Border
-                                    CornerRadius="5"
-                                    ClipToBounds="True"
-                                    BorderThickness="5"
-                                    BoxShadow="inset 50 -25 125 0 Black"
-                                    IsVisible="{CompiledBinding !IsSelectedProfile}"
-                                    Background="Gray"
-                                    BorderBrush="{DynamicResource YctpBg}"/>
-                                <Border
-                                    IsVisible="{CompiledBinding IsSelectedProfile}"
-                                    CornerRadius="5"
-                                    ClipToBounds="True"
-                                    BorderThickness="5"
-                                    BoxShadow="inset 50 -25 125 0 Black"
-                                    Background="Gray"
-                                    BorderBrush="{DynamicResource YctpBg-Selected}"/>
-                                
-                                <Grid ColumnDefinitions="*, Auto" 
-                                      HorizontalAlignment="Stretch" 
-                                      VerticalAlignment="Stretch"
-                                      Margin="0 5 10 5">
-                                    <!--Mod Name Layout-->
-                                    <Panel Grid.Column="0">
-                                        <StackPanel Margin="15 10" Orientation="Vertical">
-                                            <TextBlock
-                                                Text="{Binding ProfileName}"
-                                                Classes="ProfileLabel"
-                                                TextTrimming="CharacterEllipsis"/>
+                <ItemsRepeater
+                    Name="ProfileListElement"
+                    ItemsSource="{CompiledBinding ObservableProfiles, Mode=OneWay}">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:ProfileItem}">
+                                <Panel>
+                                    <!--Background for the shade effect-->
+                                    <Border
+                                        CornerRadius="5"
+                                        ClipToBounds="True"
+                                        BorderThickness="5"
+                                        BoxShadow="inset 50 -25 125 0 Black"
+                                        IsVisible="{CompiledBinding !IsSelectedProfile, Mode=OneWay}"
+                                        Background="Gray"
+                                        BorderBrush="{DynamicResource YctpBg}"/>
+                                    <Border
+                                        IsVisible="{CompiledBinding IsSelectedProfile, Mode=OneWay}"
+                                        CornerRadius="5"
+                                        ClipToBounds="True"
+                                        BorderThickness="5"
+                                        BoxShadow="inset 50 -25 125 0 Black"
+                                        Background="Gray"
+                                        BorderBrush="{DynamicResource YctpBg-Selected}"/>
+                                    
+                                    <Grid ColumnDefinitions="*, Auto" 
+                                          HorizontalAlignment="Stretch" 
+                                          VerticalAlignment="Stretch"
+                                          Margin="0 5 10 5">
+                                        <!--Mod Name Layout-->
+                                        <Panel Grid.Column="0">
+                                            <StackPanel Margin="15 10" Orientation="Vertical">
+                                                <TextBlock
+                                                    Text="{CompiledBinding ProfileName, Mode=OneWay}"
+                                                    Classes="ProfileLabel"
+                                                    TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </Panel>
+                                        <!--Mod Buttons/Options-->
+                                        <StackPanel Grid.Column="1" 
+                                                    Orientation="Horizontal"
+                                                    HorizontalAlignment="Right"
+                                                    Spacing="5">
+                                            <!-- Switch Default Button -->
+                                            <Button
+                                                Opacity="{CompiledBinding !IsSelectedProfile, Mode=OneWay}"
+                                                IsHitTestVisible="{CompiledBinding !IsSelectedProfile, Mode=OneWay}"
+                                                Classes="YCTPButton SmallYCTPButton"
+                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
+                                                CommandParameter="{CompiledBinding Id, Mode=OneWay}">
+                                                <Image Source="/Assets/UI/Icon_UpdateMod.png"/>
+                                            </Button>
+                                            <!-- Info Button -->
+                                            <Button
+                                                Classes="YCTPButton SmallYCTPButton"
+                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
+                                                CommandParameter="{CompiledBinding Id, Mode=OneWay}">
+                                                <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
+                                            </Button>
                                         </StackPanel>
-                                    </Panel>
-                                    <!--Mod Buttons/Options-->
-                                    <StackPanel Grid.Column="1" 
-                                                Orientation="Horizontal"
-                                                HorizontalAlignment="Right"
-                                                Spacing="5">
-                                        <!-- Switch Default Button -->
-                                        <Button
-                                            Opacity="{CompiledBinding !IsSelectedProfile}"
-                                            IsHitTestVisible="{CompiledBinding !IsSelectedProfile}"
-                                            Classes="YCTPButton SmallYCTPButton"
-                                            Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
-                                            CommandParameter="{CompiledBinding Id}">
-                                            <Image Source="/Assets/UI/Icon_UpdateMod.png"/>
-                                        </Button>
-                                        <!-- Info Button -->
-                                        <Button
-                                            Classes="YCTPButton SmallYCTPButton"
-                                            Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsControl}}"
-                                            CommandParameter="{CompiledBinding Id}">
-                                            <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </Panel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-        </Grid>
+                                    </Grid>
+                                </Panel>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+            </Grid>
+        </Border>
     </Border>
     <!-- END of Profiles -->
     

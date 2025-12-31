@@ -5,6 +5,8 @@ using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
+using System;
+using Avalonia.Dialogs;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -34,7 +36,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 
     [RelayCommand]
     public void GoToSettings() => GoTo<SettingsViewModel>();
-    
+
 
     [RelayCommand]
     public async Task RevealAboutSection() => await RevealAboutSectionUi();
@@ -61,6 +63,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         _gameFolderViewer = gameFolderViewer;
         _settingsService = settingsService;
         _profileProvider = profileProvider;
+        
+        // Cache on start
+        _dialogService.GetDialog<AppInfoDialogViewModel>();
 
         _settingsService.OnSaveSettings += UpdateExecutablePathValidation;
 
@@ -83,29 +88,29 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     public async Task<bool> HandleSettingsSave()
     {
         // Loading dialog for saving active profile
-        var loadingDialog = new LoadingDialogViewModel(_profileProvider.SaveActiveProfile)
-        {
-            Title = "Saving current active profile..."
-        };
-        if (await _dialogService.ShowLoadingDialog(loadingDialog))
+        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+        loadingDialog.Prepare("Saving current active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
+
+        if (_profileProvider.GetLoadedProfiles().Count == 0 || // Or, if there are no profiles to save, skip this dialog
+            await _dialogService.ShowLoadingDialog(loadingDialog))
         {
             // Then, one for saving settings
-            loadingDialog = new LoadingDialogViewModel(_settingsService.Save)
-            {
-                Title = "Saving settings..."
-            };
+            loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
+            loadingDialog.Prepare("Saving settings...", null, (Delegate)_settingsService.Save);
+            
             if (await _dialogService.ShowLoadingDialog(loadingDialog))
                 return true;
         }
         
         // If one of them fail, go here
-        var confirmViewModel = new ConfirmDialogViewModel
-        {
-            Title = "Failed to save settings!",
-            Message = "Are you sure you still want to leave the application without saving changes?",
-            ConfirmText = "Yes",
-            CancelText = "No"
-        };
+        var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        confirmViewModel.Prepare(
+            null,
+            "Failed to save settings!",
+            "Are you sure you still want to leave the application without saving changes?",
+            "Yes",
+            "No"
+        );
 
         // Show confirmation dialog
         await _dialogService.ShowDialog(confirmViewModel);
@@ -119,7 +124,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         if (CurrentPage is not TVm)
             CurrentPage = _pageFactory!.GetPageViewModel<TVm>();
     }
-    private async Task RevealAboutSectionUi() => await _dialogService.ShowDialog(new AppInfoDialogViewModel());
+    private async Task RevealAboutSectionUi()
+    {
+        var dialog = _dialogService.GetDialog<AppInfoDialogViewModel>();
+        dialog.Prepare();
+        await _dialogService.ShowDialog(dialog);
+    }
     
     private void UpdateExecutablePathValidation() => 
         ExecutablePathSet = 

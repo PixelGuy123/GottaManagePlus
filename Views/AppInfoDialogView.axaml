@@ -45,102 +45,96 @@
         </Style>
     </UserControl.Styles>
     
-    <Border 
-        Background="{DynamicResource MainMenus-Bg}"
+    <Border
         CornerRadius="10"
-        ClipToBounds="True"
-        BorderBrush="{DynamicResource Generic-Border}"
-        BorderThickness="2"
-        Margin="10 20">
-        <Border.Effect>
-            <DropShadowEffect
-                OffsetX="0"
-                OffsetY="5"
-                BlurRadius="15"
-                />
-        </Border.Effect>
-        <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
-            <!-- Title -->
-            <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" 
-                    CornerRadius="8 8 0 0">
-                <TextBlock 
-                    Foreground="{DynamicResource BlackColor}"
-                    Text="{CompiledBinding Title}"
-                    MaxWidth="650"
-                    HorizontalAlignment="Center"
-                    Padding="10"
-                    FontSize="25"
-                    TextTrimming="CharacterEllipsis"
-                    FontWeight="ExtraLight"
-                    FontFamily="{StaticResource WorkSans}"/>
-            </Border>
-            
-            <!-- Description -->
-            <Border Grid.Row="1" Padding="10">
-                <StackPanel Orientation="Vertical" Spacing="25">
-                    <Image 
-                        Source="/Assets/UI/PlaceholderLogo_256x256.webp"
-                        MaxWidth="128"
-                        MaxHeight="128"/>
-                    <TextBlock
-                        MaxWidth="650"
-                        TextWrapping="Wrap"
-                        FontSize="18"
-                        TextAlignment="Center"
-                        FontFamily="{StaticResource ComicRelief}"
-                    >
-                        <Run Foreground="Yellow" FontStyle="Italic" Text="Gotta Manage Plus"/>
-                        <Run Text="was carefully created by"/>
-                        <Run Text="PixelGuy123" FontWeight="Bold"/>
-                        <Run Text="and designed by its community in Discord."/>
-                        <LineBreak/>
-                        <Run Text="The initial development of this tool started at November, 2025."/>
-                        <LineBreak/>
-                        <Run Text="Thank you for using this tool!"/>
-                    </TextBlock>
-                    <!-- Version Display -->
+        Margin="10 20"
+        BoxShadow="0 5 25 1.5 Black">
+        <Border
+            Background="{DynamicResource MainMenus-Bg}"
+            CornerRadius="10"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+                <!-- Title -->
+                <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" >
                     <TextBlock 
-                        TextAlignment="Center"
+                        Foreground="{DynamicResource BlackColor}"
+                        Text="{CompiledBinding Title, Mode=OneWay}"
                         MaxWidth="650"
-                        TextWrapping="Wrap"
-                        Opacity="0.65"
-                        FontSize="16"
-                        FontStyle="Italic"
-                        FontFamily="{StaticResource ComicRelief}">
-                        <Run Text="Build:"/>
-                        <Run Text="{CompiledBinding AppVersion}"/>
-                        <LineBreak/>
-                        <Run Text="Avalonia UI Build:"/>
-                        <Run Text="{CompiledBinding AvaloniaVersion}"/>
-                    </TextBlock>
-                </StackPanel>
-            </Border>
-            
-            <!-- Buttons -->
-            <Grid 
-                ColumnDefinitions="*, Auto, *"
-                Grid.Row="2"
-                Margin="10">
-                <HyperlinkButton Grid.Column="0" HorizontalAlignment="Left" NavigateUri="{CompiledBinding KofiLink}">
+                        HorizontalAlignment="Center"
+                        Padding="10"
+                        FontSize="25"
+                        TextTrimming="CharacterEllipsis"
+                        FontWeight="ExtraLight"
+                        FontFamily="{StaticResource WorkSans}"/>
+                </Border>
+                
+                <!-- Description -->
+                <Border Grid.Row="1" Padding="10">
+                    <StackPanel Orientation="Vertical" Spacing="25">
+                        <Image 
+                            Source="/Assets/UI/PlaceholderLogo_256x256.webp"
+                            MaxWidth="128"
+                            MaxHeight="128"/>
+                        <TextBlock
+                            MaxWidth="650"
+                            TextWrapping="Wrap"
+                            FontSize="18"
+                            TextAlignment="Center"
+                            FontFamily="{StaticResource ComicRelief}"
+                        >
+                            <Run Foreground="Yellow" FontStyle="Italic" Text="Gotta Manage Plus"/>
+                            <Run Text="was carefully created by"/>
+                            <Run Text="PixelGuy123" FontWeight="Bold"/>
+                            <Run Text="and designed by its community in Discord."/>
+                            <LineBreak/>
+                            <Run Text="The initial development of this tool started at November, 2025."/>
+                            <LineBreak/>
+                            <Run Text="Thank you for using this tool!"/>
+                        </TextBlock>
+                        <!-- Version Display -->
+                        <TextBlock 
+                            TextAlignment="Center"
+                            MaxWidth="650"
+                            TextWrapping="Wrap"
+                            Opacity="0.65"
+                            FontSize="16"
+                            FontStyle="Italic"
+                            FontFamily="{StaticResource ComicRelief}">
+                            <Run Text="Build:"/>
+                            <Run Text="{CompiledBinding AppVersion, Mode=OneWay}"/>
+                            <LineBreak/>
+                            <Run Text="Avalonia UI Build:"/>
+                            <Run Text="{CompiledBinding AvaloniaVersion, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Buttons -->
+                <Grid 
+                    ColumnDefinitions="*, Auto, *"
+                    Grid.Row="2"
+                    Margin="10">
+                    <HyperlinkButton Grid.Column="0" HorizontalAlignment="Left" NavigateUri="{CompiledBinding KofiLink, Mode=OneWay}">
+                            <!-- Negative margin for correcting alignment -->
+                            <Image 
+                                Source="/Assets/UI/Button_Kofi.webp"
+                                Stretch="Uniform"
+                                />
+                        </HyperlinkButton>
+                    <Button
+                        Grid.Column="1"
+                        Command="{CompiledBinding Ok}"
+                        Content="{Binding ConfirmText}"
+                        Classes="DialogBtn GenericDialogBtn"/>
+                    <HyperlinkButton Grid.Column="2" HorizontalAlignment="Right" NavigateUri="{CompiledBinding DiscordLink, Mode=OneWay}">
                         <!-- Negative margin for correcting alignment -->
                         <Image 
-                            Source="/Assets/UI/Button_Kofi.webp"
+                            Source="/Assets/UI/Button_DiscordCommunity.png"
                             Stretch="Uniform"
-                            />
+                        />
                     </HyperlinkButton>
-                <Button
-                    Grid.Column="1"
-                    Command="{CompiledBinding Ok}"
-                    Content="{Binding ConfirmText}"
-                    Classes="DialogBtn GenericDialogBtn"/>
-                <HyperlinkButton Grid.Column="2" HorizontalAlignment="Right" NavigateUri="{CompiledBinding DiscordLink}">
-                    <!-- Negative margin for correcting alignment -->
-                    <Image 
-                        Source="/Assets/UI/Button_DiscordCommunity.png"
-                        Stretch="Uniform"
-                    />
-                </HyperlinkButton>
+                </Grid>
             </Grid>
-        </Grid>
+        </Border>
     </Border>
 </UserControl>

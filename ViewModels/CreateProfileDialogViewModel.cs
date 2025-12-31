@@ -51,28 +51,13 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
     private string? _selectedExistingProfile;
     
     // private members
-    private readonly IFilesService _filesService = null!;
+    private IFilesService _filesService = null!;
     
     // Constructors
     public CreateProfileDialogViewModel()
     {
         if (Design.IsDesignMode)
             ExistingProfiles = ["Default", "Only packs", "Gaming"];
-        else
-            throw new InvalidOperationException("Design Mode is disabled!");
-    }
-
-    public CreateProfileDialogViewModel(IFilesService filesService, params IEnumerable<string> profiles)
-    {
-        _filesService = filesService;
-        ExistingProfiles = new ObservableCollection<string>(profiles);
-        ProfileName = "My Profile";
-        
-        var counter = 2;
-        while (ExistingProfiles.Contains(ProfileName))
-            ProfileName = $"My Profile #{counter++}";
-        
-        Validate();
     }
 
     partial void OnSelectedTabIndexChanged(int value) => Validate();
@@ -143,5 +128,33 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
             return false;
         
         return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+    }
+    
+    // Setup method
+    /// <summary>
+    /// Set up the dialog with the following parameters:
+    /// <list type="number">
+    ///     <item><description><see cref="IFilesService"/> filesService</description></item>
+    ///     <item><description><see cref="IEnumerable{string}"/> Existing Profiles</description></item>
+    /// </list>
+    /// </summary>
+    /// <param name="args">The positional arguments as defined in the summary.</param>
+    protected override void Setup(params object?[]? args)
+    {
+        Confirmed = false;
+        
+        // _filesService
+        _filesService = GetValueOrException<IFilesService>(args, 0);
+        // _existingProfiles
+        ExistingProfiles = new ObservableCollection<string>(GetValueOrException<IEnumerable<string>>(args, 1));
+        
+        // Update profile name
+        ProfileName = "My Profile";
+        
+        var counter = 2;
+        while (ExistingProfiles.Contains(ProfileName))
+            ProfileName = $"My Profile #{counter++}";
+        
+        Validate();
     }
 }
