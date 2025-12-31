@@ -4,8 +4,12 @@ dotnet restore
 # All OS available
 dotnet-releaser build --force dotnet-releaser.toml
 
+# Get deb file if available
+first_deb=$(find artifacts-dotnet-releaser/ -iname "GottaManagePlus.*.linux-x64.deb")
+
+
 # ** Deb fixer
-./deb-fixer.sh artifacts-dotnet-releaser/GottaManagePlus.*.linux-x64.deb GottaManagePlus.png
+./deb-fixer.sh $first_deb GottaManagePlus.png
 
 # Attempt to move deb file
 mv GottaManagePlus.deb artifacts-dotnet-releaser/GottaManagePlus.deb
