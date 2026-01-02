@@ -40,6 +40,7 @@ public partial class App : Application
         collection.AddSingleton<SettingsService>();
         collection.AddSingleton<PlusFolderViewer>();
         collection.AddSingleton<ProfileProvider>();
+        collection.AddSingleton<ModReader>();
         
         // View Models
         collection.AddSingleton<MainWindowViewModel>(); // Singleton

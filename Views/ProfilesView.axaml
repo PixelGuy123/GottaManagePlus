@@ -40,8 +40,8 @@
     
     <!-- START of Profiles -->
     <Border
+        Name="BodyBorder"
         Classes="Menu_Border AllCornerRadius"
-        Margin="25 0 10 10"
         BoxShadow="0 3 10 2 #7D000000">
         <Border
             Classes="Menu_Border AllCornerRadius"

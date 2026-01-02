@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,11 +6,6 @@ namespace GottaManagePlus.ViewModels;
 
 public partial class ConfirmDialogViewModel : DialogViewModel
 {
-    // Only confirm button
-    public bool OnlyConfirmButton { get; private set; }
-
-    // Good for some cases where formatted text looks ugly
-    public TextAlignment DescriptionAlignment { get; private set; } = TextAlignment.Center;
     
     [ObservableProperty]
     private string _title = "Confirm?";
@@ -21,6 +15,10 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     private string _confirmText = "Confirm";
     [ObservableProperty]
     private string _cancelText = "Cancel";
+    [ObservableProperty] 
+    private bool _onlyConfirmButton;
+    [ObservableProperty] 
+    private TextAlignment _descriptionAlignment = TextAlignment.Center;
     
     [ObservableProperty] 
     private bool _confirmed;

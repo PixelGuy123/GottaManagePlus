@@ -1,0 +1,70 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:GottaManagePlus.Styles.Controls">
+    <Design.PreviewWith>
+        <Border
+            Padding="20"
+            MaxWidth="300"
+            Background="CadetBlue">
+            <StackPanel Spacing="5">
+                <controls:TrimmableTextBox
+                    Text="This is a text box WITH A VERY LONG TEXT THAT "/>
+                <controls:TrimmableTextBox
+                    Text=""
+                    Watermark="Something"/>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="controls|TrimmableTextBox">
+        <Setter Property="Background" Value="{DynamicResource TextControlBackground}"/>
+        <Setter Property="Opacity" Value="{DynamicResource TextControlBackgroundRestOpacity}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}"/>
+        <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}"/>
+        
+        <!-- Set Defaults -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_Border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <Panel
+                        Name="PART_Panel"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch">
+                        <SelectableTextBlock Name="PART_Content"
+                                             Padding="5"
+                                             IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                             Text="{TemplateBinding Text}"
+                                             TextTrimming="{TemplateBinding TextTrimming}"
+                                             SelectionBrush="{DynamicResource TextControlSelectionHighlightColor}" />
+                        <TextBlock Name="PART_Watermark"
+                                   Padding="5"
+                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                    Text="{TemplateBinding Watermark}"
+                                    Opacity="0.5"
+                                    HorizontalAlignment="Left"/>
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    
+    <Style Selector="controls|TrimmableTextBox:pointerover /template/ Border#PART_Border">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}"/>
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}"/>
+        <Setter Property="Opacity" Value="{DynamicResource TextControlBackgroundHoverOpacity}"/>
+    </Style>
+
+    <Style Selector="controls|TrimmableTextBox:focus-within /template/ Border#PART_Border">
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}"/>
+        <Setter Property="Opacity" Value="{DynamicResource TextControlBackgroundFocusedOpacity}"/>
+    </Style>
+</Styles>

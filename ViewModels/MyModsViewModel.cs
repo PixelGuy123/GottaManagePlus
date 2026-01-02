@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -19,43 +20,45 @@ namespace GottaManagePlus.ViewModels;
 public partial class MyModsViewModel : PageViewModel, IDisposable
 {
     private readonly List<ModItem> _allMods = [];
-    private ModItem? _lastSelectedItem;
     private readonly DialogService _dialogService = null!;
+    private readonly IGameFolderViewer _gameFolderViewer = null!;
     private readonly IProfileProvider _profileProvider = null!;
     private readonly IFilesService _filesService = null!;
-    
+
     // Observable Properties
-    [ObservableProperty]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasAnyModsToDisplay))]
     private ObservableCollection<ModItem> _observableUnchangedMods = [];
-    [ObservableProperty]
-    private ObservableCollection<ModItem> _observableMods = [];
-    [ObservableProperty]
-    private ModItem? _currentModItem;
-    [ObservableProperty]
-    private string? _text;
-    
+
+    [ObservableProperty] private ObservableCollection<ModItem> _observableMods = [];
+    [ObservableProperty] private ModItem? _currentModItem;
+    [ObservableProperty] private string? _text; // To clarify, it's Text from the AutoCompleteBox
+
+    public int NumberOfModsPerRow { get; } = 6;
     public bool HasAnyModsToDisplay => ObservableUnchangedMods.Count != 0;
-    
-    
+
+    public string CurrentPlusVersion =>
+        _gameFolderViewer?.GetGameVersion().ToString() ?? "0.13.1";
+
+
     // From the generator. https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/observableproperty
     partial void OnCurrentModItemChanged(ModItem? value) => UpdateModsList(value);
 
     // To update the display
     private void OnObservableUnchangedModsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
         OnPropertyChanged(nameof(HasAnyModsToDisplay));
-    
+
     [RelayCommand]
     public void ResetSearch() => Text = null;
 
     [RelayCommand]
     public async Task DeleteModItem(int id) => await DeleteModItemUiAsync(id);
-    
+
     [RelayCommand]
     public async Task OpenModPath(int id)
     {
         const string modFixSuggestion = "Try reloading the profiles list.";
         ConfirmDialogViewModel confirmDialog;
-        
+
         // Check if mod exists
         var index = _allMods.FindIndex(item => item.Id == id);
         if (index == -1) // If the item doesn't exist, skip
@@ -87,7 +90,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             await _dialogService.ShowDialog(confirmDialog);
             return;
         }
-        
+
         // Open the mod here
         if (!_filesService.OpenFileInfo(new FileInfo(mod.FullOsPath)))
         {
@@ -100,13 +103,14 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             await _dialogService.ShowDialog(confirmDialog);
         }
     }
-    
-    
+
+
     // For designer
-    public MyModsViewModel() : base(PageNames.Home, new ProfilesViewModel(null!, new ProfileProvider(null!), null!, null!, null!))
+    public MyModsViewModel() : base(PageNames.Home,
+        new ProfilesViewModel(null!, new ProfileProvider(null!), null!, null!, null!))
     {
         if (!Design.IsDesignMode) return;
-        
+
         // Initialize Data
         _allMods =
         [
@@ -115,43 +119,72 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             new ModItem(2, "Mod 3"),
             new ModItem(3, "Baldi's Basics Times"),
             new ModItem(4, "Baldi's Basics Advanced Edition"),
-            new ModItem(5, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(6, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(7, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(8, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(9, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(10, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(11, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(12, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(13, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(14, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(15, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(16, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(17, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(18, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(19, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(20, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(21, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(22, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(23, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(24, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(25, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(26, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(27, "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(5,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(6,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(7,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(8,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(9,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(10,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(11,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(12,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(13,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(14,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(15,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(16,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(17,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(18,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(19,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(20,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(21,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(22,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(23,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(24,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(25,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(26,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            new ModItem(27,
+                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
         ];
-        
+
         // Initialize collections
-        ObservableMods = new ObservableCollection<ModItem>(_allMods);
         ObservableUnchangedMods = new ObservableCollection<ModItem>(_allMods);
+        ObservableMods = new ObservableCollection<ModItem>(_allMods);
     }
-    
+
     // Constructor
-    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel, ProfileProvider profileProvider, FilesService filesService) : base(PageNames.Home, profilesViewModel)
+    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel,
+        ProfileProvider profileProvider, FilesService filesService, PlusFolderViewer viewer,
+        SettingsService settingsService) : base(PageNames.Home, profilesViewModel)
     {
         // Service
         _dialogService = dialogService;
         _profileProvider = profileProvider;
+        _gameFolderViewer = viewer;
         _filesService = filesService;
+        NumberOfModsPerRow = settingsService.CurrentSettings.NumberOfRowsPerMod;
+        
+        // Listeners
         profilesViewModel.AfterProfileUpdate += ProfilesProvider_OnProfilesUpdate;
         ObservableUnchangedMods.CollectionChanged += OnObservableUnchangedModsCollectionChanged;
     }
@@ -170,45 +203,27 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             _allMods.Clear();
             _allMods.AddRange(provider.GetInstanceActiveProfile().ModMetaDataList);
 
-            ObservableUnchangedMods.Clear();
-            foreach (var mod in _allMods)
-                ObservableUnchangedMods.Add(mod);
+            var newCollection = new ObservableCollection<ModItem>(_allMods);
+            newCollection.CollectionChanged += OnObservableUnchangedModsCollectionChanged;
+            ObservableUnchangedMods = newCollection;
 
             ResetListVisibleConfigurations();
         });
     }
-    
+
     private void UpdateModsList(ModItem? highlightedItem)
     {
         // If item is not null, insert it at the top
         if (highlightedItem != null)
         {
-            // Fix last selected item if needed
-            int index;
-            if (_lastSelectedItem != null)
-            {
-                index = _allMods.IndexOf(_lastSelectedItem);
-                if (index != -1)
-                {
-                    ObservableMods.RemoveAt(0); // Presumably where the selected item is located at
-                    ObservableMods.Insert(index, _lastSelectedItem);
-                }
-            }
-
-            _lastSelectedItem = highlightedItem;
-            index = ObservableMods.IndexOf(highlightedItem);
-            if (index != -1)
-            {
-                ObservableMods.RemoveAt(index);
-                ObservableMods.Insert(0, highlightedItem);
-                return;
-            }
+            ObservableMods = new ObservableCollection<ModItem>(
+                ObservableMods.OrderByDescending(mod => highlightedItem.ModName.ManyStartWith(mod.ModName)
+                ));
+            return;
         }
+
         // If highlighted item is null or not found, just reset the whole list
-        _lastSelectedItem = null;
-        ObservableMods.Clear();
-        foreach (var item in _allMods)
-            ObservableMods.Add(item);
+        ObservableMods = new ObservableCollection<ModItem>(_allMods.OrderBy(mod => mod.ModName));
     }
 
     private void ResetListVisibleConfigurations() // Basically reset the observable list
@@ -216,7 +231,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         UpdateModsList(null);
         ResetSearch();
     }
-    
+
     private async Task DeleteModItemUiAsync(int id) // Delete asynchronously the items
     {
         ConfirmDialogViewModel confirmDialog;
@@ -235,7 +250,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             await _dialogService.ShowDialog(confirmDialog);
             return;
         }
-        
+
         // Show confirmation dialog
         confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
         confirmDialog.Prepare(
@@ -246,14 +261,14 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             "No"
         );
         await _dialogService.ShowDialog(confirmDialog);
-        
+
         // Do not if not accepted
         if (!confirmDialog.Confirmed)
             return;
 
         // Get metadata for deleting in profile provider
         var modName = _allMods[index].ModName;
-        
+
         // Get active profile item and remove all the instances of the mod
         var profileItem = _profileProvider.GetInstanceActiveProfile();
         var tempModList = new ObservableCollection<ModItem>(profileItem.ModMetaDataList); // For reverting changes
@@ -261,7 +276,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         {
             var mod = profileItem.ModMetaDataList[i];
             if (mod.ModName != modName || string.IsNullOrEmpty(mod.FullOsPath)) continue;
-            
+
             // Try to manually delete
             try
             {
@@ -274,11 +289,11 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                 Debug.WriteLine(e.ToString(), Constants.DebugError);
                 break;
             }
-                
+
             // Remove item
             profileItem.ModMetaDataList.RemoveAt(i--);
         }
-        
+
         // Request save changes to the profile
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Saving changes...", null, (Delegate)_profileProvider.SaveActiveProfile);
@@ -287,12 +302,12 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         {
             // If the mod fails to be deleted, revert back to the old list
             profileItem.ModMetaDataList = tempModList;
-            
+
             confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(
                 Constants.FailDialog,
                 $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}"
-                );
+            );
             // Show dialog
             await _dialogService.ShowDialog(confirmDialog);
             return;
@@ -301,11 +316,11 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         // Update profile data (save)
         await WaitToUpdateData();
     }
-    
+
     private async Task WaitToUpdateData(string preferredIndex = "") // Copy-paste from ProfileViewModel.cs
     {
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Updating profile data...", null, 
+        loadingDialog.Prepare("Updating profile data...", null,
             (Delegate)_profileProvider.UpdateProfilesData, preferredIndex);
         if (!await _dialogService.ShowLoadingDialog(loadingDialog))
         {
@@ -316,7 +331,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                  If the issue persists, you can try:
                  {Constants.SolutionFilePermissions}
                  """
-                );
+            );
             // Not-so-aggressive dialog
             await _dialogService.ShowDialog(confirmDialog);
         }

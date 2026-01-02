@@ -9,8 +9,16 @@ using Microsoft.Extensions.Options;
 
 namespace GottaManagePlus.Services;
 
-public class SettingsService(IOptions<AppSettings> initialOptions) // Doesn't use an interface and I doubt this project would ever need a secondary configurations service
+public class SettingsService
 {
+    public SettingsService(IOptions<AppSettings> initialOptions) 
+        // Doesn't use an interface and I doubt this project would ever need a secondary configurations service)
+    {
+        CurrentSettings = initialOptions.Value;
+        // Clamps the number in case the user changes manually in settings
+        CurrentSettings.NumberOfRowsPerMod = Math.Clamp(CurrentSettings.NumberOfRowsPerMod, 4, 6);
+    }
+    
     private static readonly JsonSerializerOptions DefaultSerializerOptions = new() 
     { 
         WriteIndented = true,
@@ -19,7 +27,7 @@ public class SettingsService(IOptions<AppSettings> initialOptions) // Doesn't us
     
     private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
     
-    public AppSettings CurrentSettings { get; } = initialOptions.Value;
+    public AppSettings CurrentSettings { get; }
     public event Action? OnSaveSettings;
 
     public async Task<bool> Save()

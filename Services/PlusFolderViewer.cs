@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using GottaManagePlus.Interfaces;
+using GottaManagePlus.Models;
 using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Services;
@@ -43,7 +44,7 @@ public partial class PlusFolderViewer : IGameFolderViewer
         
         // Convert to long path if possible
         rootPath = FileUtils.GetLongPath(rootPath);
-        Version? gameVersion;
+        WrappedGameVersion? gameVersion;
         
         if (OperatingSystem.IsWindows())
         {
@@ -206,7 +207,7 @@ public partial class PlusFolderViewer : IGameFolderViewer
     /// <inheritdoc/>
     public string GetGameRootPath() => RootPath;
     /// <inheritdoc/>
-    public Version GetGameVersion() => _gameVersion;
+    public WrappedGameVersion GetGameVersion() => _gameVersion;
 
     // Public getters
     /// <summary>
@@ -221,11 +222,11 @@ public partial class PlusFolderViewer : IGameFolderViewer
 
     // Private members
     private string _baldiDataFolder = string.Empty;
-    private Version _gameVersion = new("0.0.0.0");
+    private WrappedGameVersion _gameVersion = new("0.0.0.0");
     private string _rootPath = string.Empty;
     
     // Private methods
-    private bool TryScanGlobalGameManagerFileAndGetGameVersion(string dataPath, out Version? gameVersion)
+    private bool TryScanGlobalGameManagerFileAndGetGameVersion(string dataPath, out WrappedGameVersion? gameVersion)
     {
         gameVersion = null;
         // Path to binary file
@@ -270,8 +271,8 @@ public partial class PlusFolderViewer : IGameFolderViewer
             Debug.WriteLine($"Retrieved version substring ({versionSubStr}).", Constants.DebugInfo);
 
             // Try to parse version
-            var couldParse = Version.TryParse(versionSubStr, out gameVersion);
-            Debug.WriteLine($"Managed to parse into valid version? ({couldParse}).");
+            gameVersion = new WrappedGameVersion(versionSubStr);
+            Debug.WriteLine($"Managed to parse into valid version? ({gameVersion}).");
             
             return true;
         }

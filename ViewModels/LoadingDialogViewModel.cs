@@ -21,17 +21,14 @@ public partial class LoadingDialogViewModel : DialogViewModel
     private CancellationTokenSource _cts = new();
     private bool _hasAlreadyInitiated;
 
-    // Public getters
-    public bool AllowCancellation { get; private set; }
-    public bool HideProgressBar { get; private set; }
-
     // Observable properties
     [ObservableProperty] private string _title = "Loading...";
     [ObservableProperty] private string? _status = "Loading...";
     [ObservableProperty] private string? _progressPercentageText;
     [ObservableProperty] private int _progressMax = 1;
-    [ObservableProperty] private int _progressValue = 0;
+    [ObservableProperty] private int _progressValue;
     [ObservableProperty] private string _cancelText = "Cancel";
+    [ObservableProperty] private bool _allowCancellation, _hideProgressBar;
     [ObservableProperty] private Progress<(int, int, string?)>? _progress;
 
     public async Task<bool> StartTask()
@@ -155,7 +152,8 @@ public partial class LoadingDialogViewModel : DialogViewModel
         if (args is { Length: > delegateHandlingOffset + 1 })
         {
             _providedArgs = new object?[args.Length - (delegateHandlingOffset + 1)];
-            Array.Copy(args, 1, _providedArgs, 0, args.Length - (delegateHandlingOffset + 1));
+            for (var i = 0; i < _providedArgs.Length; i++)
+                _providedArgs[i] = args[i + delegateHandlingOffset + 1];
         }
         else
         {

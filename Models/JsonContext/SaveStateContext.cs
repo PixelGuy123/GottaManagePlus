@@ -4,4 +4,4 @@ namespace GottaManagePlus.Models.JsonContext;
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(SaveState))]
-internal partial class SaveStateContext : JsonSerializerContext { }
+internal partial class SaveStateContext : JsonSerializerContext;

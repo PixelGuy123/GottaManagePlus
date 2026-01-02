@@ -3,11 +3,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:GottaManagePlus.Styles.Controls"
     mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     x:Class="GottaManagePlus.Views.SettingsView"
-    x:DataType="vm:SettingsViewModel"
-    >
+    x:DataType="vm:SettingsViewModel">
     <Design.DataContext>
         <vm:SettingsViewModel/>
     </Design.DataContext>
@@ -16,6 +16,16 @@
     </Design.DesignStyle>
     <UserControl.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
+        <Style Selector="Label">
+            <Setter Property="FontFamily" Value="{StaticResource Baskerville}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style Selector="controls|TrimmableTextBox">
+            <Setter Property="FontFamily" Value="{StaticResource WorkSans}"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="FontFamily" Value="{StaticResource WorkSans}"/>
+        </Style>
         
         <Style Selector="Border.PageSeparator">
             <Setter Property="BorderBrush" Value="{DynamicResource BlackColor}"/>
@@ -26,8 +36,8 @@
 
      <!-- START of Settings-->
      <Border
+         Name="BodyBorder"
          Classes="Menu_Border AllCornerRadius"
-         Margin="25 0 10 10"
          BoxShadow="0 3 10 2 #7D000000">
         <Border
             Classes="Menu_Border AllCornerRadius"
@@ -94,9 +104,12 @@
                             Grid.Row="0" 
                             Grid.Column="0" 
                             Margin="10 5"
+                            Spacing="10"
                             Orientation="Vertical">
+                            <!-- Executable Path Selection -->
+                            <StackPanel Orientation="Vertical">
                                 <Label Content="Baldi's Basics Plus' Executable Path:"/>
-                                <DockPanel HorizontalSpacing="5">
+                                <DockPanel HorizontalSpacing="2">
                                     <!-- Select file Dialog -->
                                     <Button
                                         Classes="YCTPButton SmallYCTPButton"
@@ -104,15 +117,40 @@
                                         Command="{CompiledBinding SetFilePathForPlusFolder}">
                                         <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
                                     </Button>
-                                    <TextBox
-                                        IsReadOnly="True"
-                                        Name="GamePathText"
+                                    <!-- Open folder -->
+                                    <Button
+                                        IsVisible="{CompiledBinding CurrentSaveState.GameExecutablePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}, Mode=OneWay}"
+                                        Classes="YCTPButton SmallYCTPButton"
+                                        DockPanel.Dock="Right"
+                                        Command="{CompiledBinding OpenExecutablePath}">
+                                        <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
+                                    </Button>
+                                    <controls:TrimmableTextBox
                                         Text="{CompiledBinding CurrentSaveState.GameExecutablePath, Mode=OneWay}"
-                                        Watermark="Select a path"/>
+                                        Watermark="Select a path"
+                                        TextTrimming="PrefixCharacterEllipsis"/>
                                 </DockPanel>
-                                
+                            </StackPanel>
                         </StackPanel>
                         <!-- END OF FIRST COLUMN -->
+                        
+                        <!-- SECOND COLUMN -->
+                        <StackPanel
+                            Grid.Row="0" 
+                            Grid.Column="1" 
+                            Margin="10 5"
+                            Spacing="10"
+                            Orientation="Vertical">
+                            <!-- Mod Grid Settings -->
+                            <StackPanel Orientation="Vertical">
+                                <Label Content="Number of mods per row:"/>
+                                <ComboBox
+                                    Name="NumOfModsPerRowCombo"
+                                    SelectedIndex="{CompiledBinding NumberOfRowsPerModIndex}"
+                                    ItemsSource="{CompiledBinding PossibleRowsPerModStates, Mode=OneTime}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <!-- END OF SECOND COLUMN -->
                         
                         <!-- START of Bottom Row (Buttons)-->
                         <StackPanel 

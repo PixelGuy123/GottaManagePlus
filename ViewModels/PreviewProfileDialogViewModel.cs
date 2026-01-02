@@ -78,15 +78,6 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
             Close();
         }
     }
-    
-    // Internal/Public methods
-    public void ResetState()
-    {
-        SubDialogView = null;
-        ShouldExportProfile = false;
-        ShouldDeleteProfile = false;
-        IsDialogOpen = false;
-    }
 
     [RelayCommand]
     public void ExportProfile()
@@ -107,7 +98,10 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
     /// <param name="args">The positional arguments as defined in the summary.</param>
     protected override void Setup(params object?[]? args)
     {
-        ResetState();
+        SubDialogView = null;
+        ShouldExportProfile = false;
+        ShouldDeleteProfile = false;
+        IsDialogOpen = false;
         
         Profile = GetValueOrException<ProfileItem>(args, 0);
         AllowProfileDeletion = GetValueOrException<bool>(args, 1);

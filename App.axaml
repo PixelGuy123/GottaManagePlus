@@ -11,6 +11,7 @@
   
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="/Styles/Controls/TrimmableTextBox.axaml"/>
     </Application.Styles>
 
     <Application.Resources>

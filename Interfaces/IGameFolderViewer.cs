@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using GottaManagePlus.Models;
 
 namespace GottaManagePlus.Interfaces;
 
@@ -39,7 +40,7 @@ public interface IGameFolderViewer
     /// The implementation should return the current version scanned of the game.
     /// </summary>
     /// <returns>The game's current version.</returns>
-    Version GetGameVersion();
+    WrappedGameVersion GetGameVersion();
     
     /// <summary>
     /// The implementation should verify if the provided path points to a valid game executable.

@@ -23,7 +23,7 @@ public class DialogService
     // Basic pooling system
     // Uses thread-safety since it might get called in multiple threads
     public TDialogViewModel GetDialog<TDialogViewModel>()
-        where TDialogViewModel : DialogViewModel
+        where TDialogViewModel : DialogViewModel, new()
     {
         // Get type stored
         var tDialogType = typeof(TDialogViewModel);

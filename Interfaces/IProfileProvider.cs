@@ -90,9 +90,4 @@ public interface IProfileProvider
     /// Occurs when the profiles collection is updated or the active profile changes.
     /// </summary>
     public event Action<IProfileProvider>? OnProfilesUpdate;
-    
-    /// <summary>
-    /// The implementation should detect whether the content in the game's folder is different from the profile's data.
-    /// </summary>
-    public bool HasProfileChanged { get; }
 }

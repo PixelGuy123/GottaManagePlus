@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
              xmlns:models="clr-namespace:GottaManagePlus.Models"
+             xmlns:controls="using:GottaManagePlus.Styles.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="GottaManagePlus.Views.PreviewProfileDialogView"
              x:DataType="vm:PreviewProfileDialogViewModel"
@@ -154,9 +155,9 @@
                                     DockPanel.Dock="Right">
                                     <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
                                 </Button>
-                                <TextBox
-                                    IsReadOnly="True"
-                                    Text="{CompiledBinding Profile.RelativeOsPath, Mode=OneWay}"
+                                <controls:TrimmableTextBox
+                                    TextTrimming="LeadingCharacterEllipsis"
+                                    Text="{CompiledBinding Profile.FullOsPath, Mode=OneWay}"
                                     Watermark="Path missing!"/>
                             </DockPanel>
 

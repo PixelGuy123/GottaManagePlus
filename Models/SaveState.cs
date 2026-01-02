@@ -33,6 +33,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
         // Update State Fields
         var currentSettings = settingsService.CurrentSettings;
         state.GameExecutablePath = currentSettings.BaldiPlusExecutablePath;
+        state.NumberOfModsPerRow = currentSettings.NumberOfRowsPerMod;
         
         // Serialize last saved state
         state._savedState = JsonSerializer.Serialize(state, DefaultOptions);
@@ -42,6 +43,8 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
     // *** Observables ***
     // Observable Private Members
     private string? _gameExecutablePath;
+    private int _numberOfModsPerRow = 6;
+    
     // Observable Properties
     public string? GameExecutablePath
     {
@@ -49,7 +52,12 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
         set { _gameExecutablePath = value; OnPropertyChanged(nameof(GameExecutablePath)); OnPropertyChanged(nameof(HasChanged)); }
     }
     
-    // Public members
+    public int NumberOfModsPerRow
+    {
+        get => _numberOfModsPerRow;
+        set { _numberOfModsPerRow = value; OnPropertyChanged(nameof(NumberOfModsPerRow)); OnPropertyChanged(nameof(HasChanged)); }
+    }
+
     [JsonIgnore]
     public SaveState LastSavedState {
         get

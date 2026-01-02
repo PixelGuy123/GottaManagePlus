@@ -19,7 +19,6 @@ namespace GottaManagePlus.Services;
 /// </summary>
 public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 {
-    private readonly ProfileItem _cachedComparerProfile = new(0, string.Empty);
     // Constants
     private const string ProfileFolderName = "profiles",
         TempContentZipFileSuffix = "_TEMP",
@@ -34,30 +33,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     
     // Public getters
     protected IGameFolderViewer GameFolderViewer => _gameFolderViewer ?? throw new NullReferenceException("GameFolderViewer is null.");
-
-    /// <summary>
-    /// Tells whether the game folder has a different setup from the current profile data.
-    /// </summary>
-    /// <inheritdoc/>
-    public bool HasProfileChanged {
-        get
-        {
-            if (_currentProfileItem == null) return false;
-            
-            // Populate the cached profile
-            GatherProfileFolderInformation(_cachedComparerProfile);
-            
-            // If the content scanned through that method is different from the current profile, return true
-            // * Configs
-            for (var i = 0; i < _cachedComparerProfile.ConfigsMetaDataList.Count && i < _currentProfileItem.ConfigsMetaDataList.Count; i++) if (_currentProfileItem.ConfigsMetaDataList[i].FullOsPath?.Equals(_cachedComparerProfile.ConfigsMetaDataList[i].FullOsPath, StringComparison.Ordinal) ?? false) return true;
-            // * Patchers
-            for (var i = 0; i < _cachedComparerProfile.PatchersMetaDataList.Count && i < _currentProfileItem.PatchersMetaDataList.Count; i++) if (_currentProfileItem.PatchersMetaDataList[i].FullOsPath?.Equals(_cachedComparerProfile.PatchersMetaDataList[i].FullOsPath, StringComparison.Ordinal) ?? false) return true;
-            // * Mods
-            for (var i = 0; i < _cachedComparerProfile.ModMetaDataList.Count && i < _currentProfileItem.ModMetaDataList.Count; i++) if (_currentProfileItem.ModMetaDataList[i].FullOsPath?.Equals(_cachedComparerProfile.ModMetaDataList[i].FullOsPath, StringComparison.Ordinal) ?? false) return true;
-
-            return false;
-        } 
-    }
 
 
     // Public implementation
@@ -650,7 +625,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                     item.ConfigsMetaDataList.Add(new ItemWithPath(item.ConfigsMetaDataList.Count)
                     {
                         FullOsPath = config,
-                        RelativeOsPath = Path.GetRelativePath(rootPath, config)
                     });
             }
 
@@ -662,7 +636,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                     item.PatchersMetaDataList.Add(new ItemWithPath(item.PatchersMetaDataList.Count)
                     {
                         FullOsPath = patcher,
-                        RelativeOsPath = Path.GetRelativePath(rootPath, patcher)
                     });
             }
 
@@ -677,7 +650,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
                         Path.GetFileNameWithoutExtension(mod))
                     {
                         FullOsPath = mod,
-                        RelativeOsPath = Path.GetRelativePath(rootPath, mod)
                     });
             }
 
@@ -716,7 +688,6 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         
         // Update ProfileItem metadata
         profileItem.FullOsPath = zipPath;
-        profileItem.RelativeOsPath = Path.GetRelativePath(GameFolderViewer.GetGameRootPath(), zipPath);
         
         // Try to generate profile info
         try

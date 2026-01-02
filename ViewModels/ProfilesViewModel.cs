@@ -109,9 +109,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             _allProfiles.Clear();
             _allProfiles.AddRange(_profileProvider.GetLoadedProfiles());
 
-            ObservableUnchangedProfiles.Clear();
-            foreach (var profile in _allProfiles)
-                ObservableUnchangedProfiles.Add(profile);
+            ObservableUnchangedProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
             
             ResetListVisibleConfigurations();
             
@@ -152,9 +150,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         }
         // If highlighted item is null or not found, just reset the whole list
         _lastSelectedItem = null;
-        ObservableProfiles.Clear();
-        foreach (var item in _allProfiles)
-            ObservableProfiles.Add(item);
+        ObservableProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
     }
 
     private void ResetListVisibleConfigurations() // Basically reset the observable list
@@ -188,16 +184,17 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 
         // Create profile viewer
         var profileViewer = _dialogService.GetDialog<PreviewProfileDialogViewModel>();
-        profileViewer.Prepare(
-            _allProfiles[index], 
-            _allProfiles.Count > 1, 
-            _filesService,
-            _dialogService);
+        
         
         // Loop until the dialog is truly closed
         while (true)
         {
-            profileViewer.ResetState(); // Reset dialog state (IsDialogOpen, for example)
+            // Prepare viewer before showing again
+            profileViewer.Prepare(
+                _allProfiles[index], 
+                _allProfiles.Count > 1, 
+                _filesService,
+                _dialogService);
             await _dialogService.ShowDialog(profileViewer);
             
             if (profileViewer.ShouldDeleteProfile)

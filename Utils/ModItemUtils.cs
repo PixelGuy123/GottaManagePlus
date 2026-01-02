@@ -13,15 +13,18 @@ public static class ModItemUtils
 
     public static Bitmap? GetThumbnailImageAsBitmap(this ModItem item)
     {
-        if (string.IsNullOrEmpty(item.ThumbnailFullPath)) return null;
+        if (item.MetaData == null)
+            return null;
+        
+        if (string.IsNullOrEmpty(item.MetaData.Thumbnail)) return null;
 
         // Try to get a cached Bitmap
-        if (BitmapThumbnailCache.TryGetValue(item.ThumbnailFullPath, out var image))
+        if (BitmapThumbnailCache.TryGetValue(item.MetaData.Thumbnail, out var image))
             return image;
 
         // Otherwise, just load it and cache it
-        image = new Bitmap(AssetLoader.Open(new Uri(item.ThumbnailFullPath)));
-        BitmapThumbnailCache.Add(item.ThumbnailFullPath, image);
+        image = new Bitmap(AssetLoader.Open(new Uri(item.MetaData.Thumbnail)));
+        BitmapThumbnailCache.Add(item.MetaData.Thumbnail, image);
         return image;
     }
 }

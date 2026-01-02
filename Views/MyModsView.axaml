@@ -6,7 +6,7 @@
     mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     xmlns:models="using:GottaManagePlus.Models"
-    xmlns:local="using:GottaManagePlus.Styles"
+    xmlns:converters="using:GottaManagePlus.Styles.Converters"
     x:Class="GottaManagePlus.Views.MyModsView"
     x:DataType="vm:MyModsViewModel">
     <Design.DataContext>
@@ -15,18 +15,13 @@
     <Design.DesignStyle>
         <StyleInclude Source="/Styles/style.axaml" />
     </Design.DesignStyle>
-
+    
     <UserControl.Resources>
         <ResourceDictionary>
-            <LinearGradientBrush
-                x:Key="YctpBg"
-                StartPoint="0% 100%"
-                EndPoint="0% 0%">
-                <LinearGradientBrush.GradientStops>
-                    <GradientStop Color="#118500" Offset="0.0" />
-                    <GradientStop Color="#12FF00" Offset="0.5" />
-                </LinearGradientBrush.GradientStops>
-            </LinearGradientBrush>
+            <Bitmap x:Key="DefaultThumbnail">/Assets/UI/Image_Mod_NoThumbnail.png</Bitmap>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Styles/ProfileVisualization/ProfileResources.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -37,24 +32,21 @@
             <Setter Property="VerticalAlignment" Value="{Binding $parent[StackPanel].VerticalAlignment, Mode=OneWay}" />
         </Style>
         <!--MOD NAME STYLING-->
-        <Style Selector=":is(TextBlock).ModLabel" x:DataType="models:ModItem">
-            <Setter Property="HorizontalAlignment" Value="Left" />
+        <Style Selector=":is(TextBlock).ModLabel">
+            <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="FontFamily" Value="{StaticResource ComicRelief}" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="Foreground" Value="White" />
-        </Style>
-        <Style Selector="local|OutlinedTextBlock.ModLabel">
-            <Setter Property="OutlineColor" Value="Black" />
-            <Setter Property="OutlineWidth" Value="1.5" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         </Style>
     </UserControl.Styles>
 
     <!-- Content Below -->
     <!-- START of Mod List-->
     <Border
+        Name="BodyBorder"
         Classes="Menu_Border AllCornerRadius"
-        Margin="25 0 10 10"
         BoxShadow="0 3 10 2 #7D000000">
         <Border
             Classes="Menu_Border AllCornerRadius"
@@ -77,23 +69,26 @@
                 <Grid Grid.Row="0"
                       Margin="0 5"
                       ColumnDefinitions="Auto, *">
-                    <Panel Grid.Column="0"> <!-- Stack TextBlocks together -->
-                        <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                        <TextBlock
-                            Text="Installed Mods"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Foreground="White"
-                            FontWeight="UltraBold"
-                            Classes="SideMenu-Label RightHeader GlowShadow" />
-                        <TextBlock
-                            Text="Installed Mods"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Classes="SideMenu-Label RightHeader" />
-                    </Panel>
+                    <StackPanel Grid.Column="0" 
+                                Spacing="15"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left">
+                        <Panel> <!-- Stack TextBlocks together -->
+                            <!--TEMP COMMENT: USE LANGUAGE HERE-->
+                            <TextBlock
+                                Text="Installed Mods"
+                                Foreground="White"
+                                FontWeight="UltraBold"
+                                Classes="SideMenu-Label RightHeader GlowShadow" />
+                            <TextBlock
+                                Text="Installed Mods"
+                                Classes="SideMenu-Label RightHeader" />
+                        </Panel>
+                    </StackPanel>
                     <StackPanel
                         Grid.Column="1"
+                        Spacing="10"
                         HorizontalAlignment="Right"
                         Margin="10 0"
                         VerticalAlignment="Center"
@@ -119,13 +114,21 @@
                             FilterMode="Contains" />
                         <Button
                             Classes="ModViewerHeader YCTPButton"
-                            Margin="5 0 0 0"
                             Command="{CompiledBinding ResetSearch}">
                             <Image
                                 Source="/Assets/UI/Icon_Cancel_Generic.png"
                                 Width="32"
                                 Height="32" />
                         </Button>
+                        <!-- Current version display -->
+                        <TextBlock 
+                            Foreground="PowderBlue"
+                            FontWeight="Bold"
+                            TextDecorations="Underline"
+                            FontSize="22"
+                            FontFamily="{StaticResource ComicRelief}"
+                            Text="{CompiledBinding CurrentPlusVersion, Mode=OneWay}"
+                            Classes="SideMenu-Label"/>
                     </StackPanel>
                 </Grid>
 
@@ -140,7 +143,7 @@
                                    VerticalAlignment="Center"
                                    Opacity="0.35"
                                    FontFamily="{StaticResource ComicRelief}"
-                                   Text="No mod available!">
+                                   Text="No mods available!">
                             <TextBlock.RenderTransform>
                                 <RotateTransform Angle="12.5" />
                             </TextBlock.RenderTransform>
@@ -148,59 +151,105 @@
 
                         <ItemsRepeater IsVisible="{CompiledBinding HasAnyModsToDisplay, Mode=OneWay}"
                                        ItemsSource="{CompiledBinding ObservableMods, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout ItemsStretch="Fill" 
+                                                   Orientation="Horizontal" 
+                                                   MaximumRowsOrColumns="{CompiledBinding NumberOfModsPerRow, Mode=OneTime}" 
+                                                   MinItemWidth="150" 
+                                                   MinItemHeight="250"
+                                                   MinColumnSpacing="10" 
+                                                   MinRowSpacing="10" />
+                            </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate DataType="{x:Type models:ModItem}">
-                                    <Border Margin="5,0,5,5"
-                                            Padding="30"
+                                    <Border
+                                            Padding="14 4"
                                             CornerRadius="35"
                                             ClipToBounds="True"
                                             BorderThickness="5"
-                                            BoxShadow="inset 50 -25 125 0 Black"
+                                            Background="Black"
                                             BorderBrush="{DynamicResource YctpBg}">
-                                        <Border.Background>
-                                            <ImageBrush Source="/Assets/UI/ModList_Header.png"
-                                                        Stretch="UniformToFill"
-                                                        AlignmentX="Center"
-                                                        AlignmentY="Center" />
-                                        </Border.Background>
-
-                                        <Grid ColumnDefinitions="*, Auto">
-                                            <StackPanel Grid.Column="0"
-                                                        Margin="15,10"
-                                                        Orientation="Vertical"
-                                                        VerticalAlignment="Center">
-                                                <local:OutlinedTextBlock Text="{CompiledBinding ModName, Mode=OneWay}"
-                                                                         FontSize="32"
-                                                                         TextTrimming="CharacterEllipsis"
-                                                                         Classes="ModLabel" />
-                                                <local:OutlinedTextBlock
-                                                    Text="{CompiledBinding ModVersion, Mode=OneWay}"
-                                                    FontSize="20"
-                                                    HorizontalAlignment="Left"
-                                                    OutlineWidth="0.65"
-                                                    Classes="ModLabel" />
+                                        <Grid
+                                            RowDefinitions="Auto, *, Auto">
+                                            <!-- Metadata Display -->
+                                            <StackPanel
+                                                Grid.Row="0"
+                                                VerticalAlignment="Top"
+                                                Orientation="Vertical">
+                                                <!-- Mod Name display -->
+                                                <TextBlock
+                                                    MaxHeight="75"
+                                                    Classes="ModLabel"
+                                                    Text="{CompiledBinding ModName, Mode=OneWay}"
+                                                    FontSize="{CompiledBinding ModName, Converter={x:Static converters:FontConverters.Max20TextToSizeConverter}, Mode=OneWay}"/>
+                                                <!-- Version and Support display -->
+                                                <TextBlock
+                                                    Foreground="{CompiledBinding SupportsCurrentVersion, Mode=OneWay, Converter={x:Static converters:ForegroundConverters.BoolToColor}}"
+                                                    FontSize="12"
+                                                    Text="{CompiledBinding MetaData.Version, FallbackValue=0.0.0, Mode=OneWay}"
+                                                    Classes="ModLabel"/>
+                                                <!-- Supports -->
+                                                <TextBlock
+                                                    IsVisible="{CompiledBinding SupportsCurrentVersion, Mode=OneWay}"
+                                                    Foreground="{CompiledBinding SupportsCurrentVersion, Mode=OneWay, Converter={x:Static converters:ForegroundConverters.BoolToColor}}"
+                                                    Classes="ModLabel"
+                                                    FontWeight="Bold"
+                                                    TextTrimming="None"
+                                                    TextWrapping="WrapWithOverflow"
+                                                    Text="Supports this version."
+                                                    FontSize="10"/>
+                                                <!-- NOT Support -->
+                                                <TextBlock
+                                                    IsVisible="{CompiledBinding !SupportsCurrentVersion, Mode=OneWay}"
+                                                    Foreground="{CompiledBinding SupportsCurrentVersion, Mode=OneWay, Converter={x:Static converters:ForegroundConverters.BoolToColor}}"
+                                                    Classes="ModLabel"
+                                                    FontWeight="Bold"
+                                                    TextTrimming="None"
+                                                    TextWrapping="WrapWithOverflow"
+                                                    Text="Doesn't support this version."
+                                                    FontSize="10">
+                                                </TextBlock>
                                             </StackPanel>
-
-                                            <StackPanel Grid.Column="1"
+                                            <!-- Image Display -->
+                                            <Border Grid.Row="1" Margin="5"
+                                                    MaxWidth="{CompiledBinding MaxHeight, RelativeSource={RelativeSource Self}, Mode=OneWay}"
+                                                    MaxHeight="128"
+                                                    Padding="10"
+                                                    CornerRadius="10"
+                                                    ClipToBounds="True"
+                                                    BorderThickness="5"
+                                                    BorderBrush="{DynamicResource YctpBg-Selected}">
+                                                <Border.Background>
+                                                    <ImageBrush
+                                                        Stretch="UniformToFill"
+                                                        Source="{CompiledBinding Thumbnail, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay}"/>
+                                                </Border.Background>
+                                            </Border>
+                                            <!-- Button Display -->
+                                            <StackPanel Grid.Row="2"
                                                         Orientation="Horizontal"
-                                                        HorizontalAlignment="Right"
+                                                        HorizontalAlignment="Center"
                                                         VerticalAlignment="Center"
-                                                        Spacing="10">
+                                                        Spacing="35">
 
                                                 <Button Classes="YCTPButton"
+                                                        HorizontalAlignment="Left"
                                                         Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).OpenModPath, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
                                                         CommandParameter="{CompiledBinding Id, Mode=OneWay}">
-                                                    <Image Source="/Assets/UI/Icon_SelectFolder.png" />
-                                                </Button>
-
-                                                <Button Classes="YCTPButton">
-                                                    <Image Source="/Assets/UI/Icon_Reload.png" />
+                                                    <Image 
+                                                        Width="32"
+                                                        Height="32"
+                                                        Source="/Assets/UI/Icon_SelectFolder.png"/>
                                                 </Button>
 
                                                 <Button Classes="YCTPButton"
+                                                        HorizontalAlignment="Right"
                                                         Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModItem, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
                                                         CommandParameter="{CompiledBinding Id, Mode=OneWay}">
-                                                    <Image Source="/Assets/UI/Icon_DeleteMod.png" />
+                                                    <Image
+                                                        Width="32"
+                                                        Height="32"
+                                                        Source="/Assets/UI/Icon_DeleteMod.png"/>
                                                 </Button>
                                             </StackPanel>
                                         </Grid>

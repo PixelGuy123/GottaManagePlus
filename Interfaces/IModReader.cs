@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using GottaManagePlus.Models;
 
@@ -8,8 +9,8 @@ namespace GottaManagePlus.Interfaces;
 // that are going to be read through their names inside the JsonDocument.
 public interface IModReader
 {
-    public Task<ModItem?> ExtractModStructure(string extractTo, ModMetadata metadata);
-    public Task<ModMetadata?> LoadMetadataFile(string metadataPath);
-    public Task<bool> CheckForUnknownFileTypesInModStructure(ModItem modToAnalyze);
-    public Task<bool> ValidateMetadataFile(string metadataPath);
+    public ModItem? ExtractModStructure(string extractTo, ModMetadata metadata);
+    public ModMetadata? LoadMetadataFile(string metadataPath);
+    public List<string>? CheckForUnknownFileTypesInModStructure(ModItem modToAnalyze); // Security purposes
+    public bool ValidateMetadataFile(string metadataPath);
 }

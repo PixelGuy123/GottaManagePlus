@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             xmlns:controls="using:GottaManagePlus.Styles.Controls"
              x:DataType="vm:CreateProfileDialogViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="GottaManagePlus.Views.CreateProfileDialogView"
@@ -165,10 +166,9 @@
                                             Command="{CompiledBinding BrowseFile}">
                                             <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
                                         </Button>
-                                        <TextBox Text="{CompiledBinding ProfileImportPath}"
+                                        <controls:TrimmableTextBox Text="{CompiledBinding ProfileImportPath}"
                                                  Watermark="No package selected!"
-                                                 TextWrapping="Wrap"
-                                                 IsReadOnly="True"
+                                                 TextTrimming="PrefixCharacterEllipsis"
                                                  FontFamily="{StaticResource WorkSans}"/>
                                     </DockPanel>
                                 </StackPanel>
