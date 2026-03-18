@@ -12,6 +12,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
+using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 using GottaManagePlus.Utils;
 
@@ -52,6 +53,9 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     [RelayCommand]
     public async Task DeleteModItem(int id) => await DeleteModItemUiAsync(id);
+    
+    [RelayCommand]
+    public async Task AddModRequest() => await AddModUiAsync();
 
     [RelayCommand]
     public async Task OpenModPath(int id)
@@ -232,6 +236,11 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         ResetSearch();
     }
 
+    private async Task AddModUiAsync() // Popup for adding a mod
+    {
+        
+    }
+
     private async Task DeleteModItemUiAsync(int id) // Delete asynchronously the items
     {
         ConfirmDialogViewModel confirmDialog;
@@ -243,8 +252,8 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                 true,
                 Constants.FailDialog,
                 $"""
-                 Failed to delete the profile!
-                 For some reason, there's no profile with the id ({id}).
+                 Failed to delete the mod!
+                 For some reason, there's no mod with the id ({id}).
                  """
             );
             await _dialogService.ShowDialog(confirmDialog);
@@ -298,7 +307,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Saving changes...", null, (Delegate)_profileProvider.SaveActiveProfile);
         // Try to delete mod
-        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (!await _dialogService.ShowDialog(loadingDialog))
         {
             // If the mod fails to be deleted, revert back to the old list
             profileItem.ModMetaDataList = tempModList;
@@ -322,7 +331,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Updating profile data...", null,
             (Delegate)_profileProvider.UpdateProfilesData, preferredIndex);
-        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (!await _dialogService.ShowDialog(loadingDialog))
         {
             var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(true, Constants.FailDialog,

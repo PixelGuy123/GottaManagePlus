@@ -1,0 +1,51 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:GottaManagePlus.Styles.Controls">
+    <Design.PreviewWith>
+        <controls:FileBrowser/>
+    </Design.PreviewWith>
+
+    <!-- Add necessary styles -->
+    <StyleInclude Source="/Styles/style.axaml"/>
+    
+    <!-- Component -->
+    <Style Selector="controls|FileBrowser">
+        <!-- Set Defaults -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Name="PART_StackPanel" Orientation="Vertical">
+                    <TextBlock
+                        Name="PART_Label"
+                        Text="{TemplateBinding Label}"
+                        FontFamily="{TemplateBinding LabelFontFamily}"
+                    />
+                    <DockPanel Name="PART_DockPanel">
+                        <Button
+                            Margin="5 0 0 0"
+                            Classes="YCTPButton SmallYCTPButton"
+                            IsVisible="{TemplateBinding SelectFileCommand, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Command="{TemplateBinding SelectFileCommand}"
+                            Name="PART_SelectButton"
+                            DockPanel.Dock="{TemplateBinding ButtonAlignment}">
+                            <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
+                        </Button>
+                        <Button
+                            Name="PART_OpenButton"
+                            DockPanel.Dock="{TemplateBinding ButtonAlignment}"
+                            Margin="5 0 0 0"
+                            Classes="YCTPButton SmallYCTPButton"
+                            IsVisible="{TemplateBinding OpenFileCommand, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Command="{TemplateBinding OpenFileCommand}">
+                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                        </Button>
+                        <controls:TrimmableTextBox Text="{TemplateBinding FilePath}"
+                                                   Name="PART_TrimmableTextBox"
+                                                   Watermark="{TemplateBinding Placeholder}"
+                                                   TextTrimming="PrefixCharacterEllipsis"
+                                                   FontFamily="{TemplateBinding PlaceholderFontFamily}"/>
+                    </DockPanel>
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

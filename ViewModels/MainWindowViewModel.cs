@@ -92,13 +92,13 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         loadingDialog.Prepare("Saving current active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
 
         if (_profileProvider.GetLoadedProfiles().Count == 0 || // Or, if there are no profiles to save, skip this dialog
-            await _dialogService.ShowLoadingDialog(loadingDialog))
+            await _dialogService.ShowDialog(loadingDialog))
         {
             // Then, one for saving settings
             loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
             loadingDialog.Prepare("Saving settings...", null, (Delegate)_settingsService.Save);
             
-            if (await _dialogService.ShowLoadingDialog(loadingDialog))
+            if (await _dialogService.ShowDialog(loadingDialog))
                 return true;
         }
         

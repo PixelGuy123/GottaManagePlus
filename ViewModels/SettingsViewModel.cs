@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 
 namespace GottaManagePlus.ViewModels;
@@ -25,7 +26,7 @@ public partial class SettingsViewModel : PageViewModel
         _filesService = filesService;
         _settingsService = settingsService;
         _dialogService = dialogService;
-        CurrentSaveState = Models.SaveState.InitializeState(settingsService);
+        CurrentSaveState = Models.UI.SaveState.InitializeState(settingsService);
         _gameFolderViewer = gameFolderViewer;
 
         // Update this index
@@ -127,7 +128,7 @@ public partial class SettingsViewModel : PageViewModel
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Saving settings...", "Saving...", (Delegate)_settingsService.Save);
         
-        var status = await _dialogService.ShowLoadingDialog(loadingDialog);
+        var status = await _dialogService.ShowDialog(loadingDialog);
         if (status) return;
 
         var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();

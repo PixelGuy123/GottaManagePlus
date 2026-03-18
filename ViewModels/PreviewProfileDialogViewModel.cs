@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
+using ProfileItem = GottaManagePlus.Models.UI.ProfileItem;
 
 namespace GottaManagePlus.ViewModels;
 

@@ -153,25 +153,11 @@
                         <!-- Import a profile locally -->
                         <TabItem Header="Import locally...">
                             <Border Padding="10">
-                                <StackPanel Orientation="Vertical">
-                                    <TextBlock
-                                        Text="Select a profile package:"
-                                        FontFamily="{StaticResource Baskerville}"
-                                        />
-                                    <DockPanel>
-                                        <Button
-                                            DockPanel.Dock="Right"
-                                            Margin="5 0 0 0"
-                                            Classes="YCTPButton SmallYCTPButton"
-                                            Command="{CompiledBinding BrowseFile}">
-                                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
-                                        </Button>
-                                        <controls:TrimmableTextBox Text="{CompiledBinding ProfileImportPath}"
-                                                 Watermark="No package selected!"
-                                                 TextTrimming="PrefixCharacterEllipsis"
-                                                 FontFamily="{StaticResource WorkSans}"/>
-                                    </DockPanel>
-                                </StackPanel>
+                                <controls:FileBrowser
+                                    Label="Select a profile package:"
+                                    Placeholder="No package selected!"
+                                    FilePath="{CompiledBinding ProfileImportPath}"
+                                    OpenFileCommand="{CompiledBinding BrowseFile}"/>
                             </Border>
                         </TabItem>
                     </TabControl>

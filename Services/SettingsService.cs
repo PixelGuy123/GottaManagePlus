@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.JsonContext;
 using Microsoft.Extensions.Options;
+using AppSettingsContext = GottaManagePlus.Models.SourceGenerators.AppSettingsContext;
 
 namespace GottaManagePlus.Services;
 
-public class SettingsService
+public sealed class SettingsService
 {
     public SettingsService(IOptions<AppSettings> initialOptions) 
-        // Doesn't use an interface and I doubt this project would ever need a secondary configurations service)
+        // Doesn't use an interface and I doubt this project would ever need a secondary configurations service
     {
         CurrentSettings = initialOptions.Value;
         // Clamps the number in case the user changes manually in settings

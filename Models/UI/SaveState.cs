@@ -2,11 +2,10 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using GottaManagePlus.Models.JsonContext;
 using GottaManagePlus.Services;
+using SaveStateContext = GottaManagePlus.Models.SourceGenerators.SaveStateContext;
 
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.UI;
 
 public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
                                                 // Manually implements INotify due to source generators issue (https://github.com/AvaloniaUI/Avalonia/discussions/18593)

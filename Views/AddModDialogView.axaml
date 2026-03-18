@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GottaManagePlus.Views.AddModDialogView"
+             xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             xmlns:controls="using:GottaManagePlus.Styles.Controls"
+             x:DataType="vm:AddModDialogViewModel"
+             MaxWidth="450"
+             MinHeight="200">
+    <Design.DataContext><vm:AddModDialogViewModel/></Design.DataContext>
+    
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/Buttons.axaml"/>
+        <StyleInclude Source="/Styles/Labels.axaml"/>
+    </UserControl.Styles>
+    
+    <Border
+        CornerRadius="10"
+        Margin="10 20"
+        BoxShadow="0 5 25 1.5 Black">
+        <Border
+            Background="{DynamicResource MainMenus-Bg}"
+            CornerRadius="10"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+                <!-- Title -->
+                <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
+                    <TextBlock 
+                        Foreground="{DynamicResource BlackColor}"
+                        Text="{CompiledBinding Title, Mode=OneWay}"
+                        MaxWidth="650"
+                        HorizontalAlignment="Center"
+                        Padding="10"
+                        FontSize="25"
+                        TextTrimming="CharacterEllipsis"
+                        FontWeight="ExtraLight"
+                        FontFamily="{StaticResource WorkSans}"/>
+                </Border>
+                
+                <!-- Description -->
+                <Border Grid.Row="1" Padding="10">
+                    <StackPanel>
+                        <!-- Mod Selector -->
+                        <controls:FileBrowser
+                            Label="Select a contained mod file:"
+                            FilePath="{CompiledBinding ModImportPath}"
+                        />
+                        
+                        <!-- Metadata Display -->
+                    </StackPanel>
+                </Border>
+                
+                <!-- Buttons -->
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    Spacing="20"
+                    Margin="10">
+                    <Button
+                        Content="{CompiledBinding CancelText, Mode=OneWay}" 
+                        Classes="DialogBtn DangerDialogBtn"
+                        Command="{CompiledBinding Cancel}"/>
+                    <Button
+                        Content="{CompiledBinding ConfirmText, Mode=OneWay}" 
+                        Classes="DialogBtn GenericDialogBtn"
+                        Command="{CompiledBinding Confirm}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

@@ -7,7 +7,7 @@ using GottaManagePlus.ViewModels;
 
 namespace GottaManagePlus.Services;
 
-public class DialogService
+public sealed class DialogService
 {
     // Dictionary for caching view models
     // Thread-safe dictionary
@@ -41,7 +41,7 @@ public class DialogService
         return tDialog;
     }
     
-    public async Task ShowDialog<TDialogViewModel>(TDialogViewModel dialogViewModel) 
+    public async Task<bool> ShowDialog<TDialogViewModel>(TDialogViewModel dialogViewModel) 
         where TDialogViewModel : DialogViewModel
     {
         if (_dialogProvider == null)
@@ -51,20 +51,12 @@ public class DialogService
         _dialogProvider.Dialog = dialogViewModel;
         dialogViewModel.Show();
         
+        // If the view model is LoadingDialogViewModel, load it with a task instead
+        if (dialogViewModel is LoadingDialogViewModel loadingDialogViewModel)
+            return await loadingDialogViewModel.StartTask(); // Wait for dialog to close after loading
+        
         // Wait for dialog to close
         await dialogViewModel.WaitAsync();
-    }
-
-    public async Task<bool> ShowLoadingDialog(LoadingDialogViewModel loadViewModel)
-    {
-        if (_dialogProvider == null)
-            throw new InvalidOperationException("DialogProvider has not been registered yet.");
-        
-        // Open up dialog and assign it
-        _dialogProvider.Dialog = loadViewModel;
-        loadViewModel.Show();
-        
-        // Wait for dialog to close after loading
-        return await loadViewModel.StartTask();
+        return true;
     }
 }

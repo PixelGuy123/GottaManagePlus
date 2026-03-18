@@ -29,7 +29,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
     [ObservableProperty] private int _progressValue;
     [ObservableProperty] private string _cancelText = "Cancel";
     [ObservableProperty] private bool _allowCancellation, _hideProgressBar;
-    [ObservableProperty] private Progress<(int, int, string?)>? _progress;
+    [ObservableProperty] private Progress<ProgressReport>? _progress;
 
     public async Task<bool> StartTask()
     {
@@ -58,7 +58,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 {
                     finalArgs[i] = _cts.Token;
                 } // Otherwise, check if it is a IProgress
-                else if (typeof(IProgress<(int, int, string?)>).IsAssignableFrom(pType))
+                else if (typeof(IProgress<ProgressReport>).IsAssignableFrom(pType))
                 {
                     finalArgs[i] = Progress;
                 } // Below them, just use these as arguments
@@ -110,7 +110,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
         }
     }
 
-    private void OnProgressChanged(object? sender, (int, int, string?) e)
+    private void OnProgressChanged(object? sender, ProgressReport e)
     {
         ProgressPercentageText = $"{e.Item1}/{e.Item2} ";
         ProgressMax = e.Item2;
@@ -165,10 +165,10 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
         // Dynamic UI State Detection
         AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
-        HideProgressBar = !parameters.Any(p => typeof(IProgress<(int, int, string?)>).IsAssignableFrom(p.ParameterType));
+        HideProgressBar = !parameters.Any(p => typeof(IProgress<ProgressReport>).IsAssignableFrom(p.ParameterType));
         
         if (!HideProgressBar) // If there's progress bar, there's progress instance
-            Progress = new Progress<(int, int, string?)>();
+            Progress = new Progress<ProgressReport>();
         
         // Update UI Elements
         Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";

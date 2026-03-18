@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using GottaManagePlus.Interfaces;
 
 namespace GottaManagePlus.Utils;
@@ -72,69 +73,49 @@ public static class FileUtils
 
         return prefix + fullPath.Replace('/', '\\'); // Replace / with \ for the prefix syntax
     }
-    
     /// <summary>
-    /// Determines if the current directory is located within the manager's root directory, 
-    /// stopping the search if the game root folder is reached.
+    /// Checks whether given path is still inside an expected base directory.
     /// </summary>
-    /// <param name="directory">The directory to start the search from.</param>
-    /// <param name="viewer">The <see cref="IGameFolderViewer"/> providing context for the game root path.</param>
-    /// <returns><see langword="true"/> if <see cref="Constants.AppRootFolder"/> is a parent of the current directory; otherwise, <see langword="false"/>.</returns>
-    public static bool IsWithinManagerRootDirectory(this DirectoryInfo directory, IGameFolderViewer viewer) =>
-        IsWithinFolderName(directory, 
-            Constants.AppRootFolder, // Get manager root folder
-            Path.GetFileName(Path.GetDirectoryName(viewer.GetGameRootPath()))); // get game root folder
-    
-    /// <summary>
-    /// Determines if the current directory is located within the manager's root directory, 
-    /// stopping the search if the game root folder is reached.
-    /// </summary>
-    /// <param name="path">The directory to start the search from.</param>
-    /// <param name="viewer">The <see cref="IGameFolderViewer"/> providing context for the game root path.</param>
-    /// <returns><see langword="true"/> if <see cref="Constants.AppRootFolder"/> is a parent of the current directory; otherwise, <see langword="false"/>.</returns>
-    public static bool IsWithinManagerRootDirectory(string path, IGameFolderViewer viewer) => 
-        new DirectoryInfo(path).IsWithinManagerRootDirectory(viewer);
-    
-    /// <summary>
-    /// Determines if the current directory is located within the game's root directory.
-    /// </summary>
-    /// <param name="directory">The directory to start the search from.</param>
-    /// <param name="viewer">The <see cref="IGameFolderViewer"/> providing context for the game root path.</param>
-    /// <returns><see langword="true"/> if the game folder name is found in the directory's parent hierarchy; otherwise, <see langword="false"/>.</returns>
-    public static bool IsWithinGameRootDirectory(this DirectoryInfo directory, IGameFolderViewer viewer) => 
-        IsWithinFolderName(directory, 
-            Path.GetFileName(Path.GetDirectoryName(viewer.GetGameRootPath())) ?? "Baldi's Basics Plus"
-            );
-    /// <summary>
-    /// Determines if the current directory is located within the game's root directory.
-    /// </summary>
-    /// <param name="path">The directory to start the search from.</param>
-    /// <param name="viewer">The <see cref="IGameFolderViewer"/> providing context for the game root path.</param>
-    /// <returns><see langword="true"/> if the game folder name is found in the directory's parent hierarchy; otherwise, <see langword="false"/>.</returns>
-    public static bool IsWithinGameRootDirectory(string path, IGameFolderViewer viewer) =>
-        new DirectoryInfo(path).IsWithinGameRootDirectory(viewer);
-    
-    
-    // Private methods
-    /// <summary>
-    /// Iterates up the directory tree to check if the current directory is a child of a specific folder name.
-    /// </summary>
-    /// <param name="directory">The starting directory.</param>
-    /// <param name="expectedParent">The folder name to search for in the hierarchy.</param>
-    /// <param name="limitParent">An optional folder name that, if encountered, stops the upward search.</param>
-    /// <returns><see langword="true"/> if <paramref name="expectedParent"/> is found before the root or <paramref name="limitParent"/>; otherwise, <see langword="false"/>.</returns>
-    private static bool IsWithinFolderName(DirectoryInfo directory, string expectedParent, string? limitParent = null)
+    /// <param name="fullPath">The path to be checked.</param>
+    /// <param name="baseDirectory">The expected directory the path should be inside.</param>
+    /// <returns><see langword="true"/> if the path is indeed inside the base directory; otherwise, <see langword="false"/>.</returns>
+    public static bool IsPathWithinBase(string fullPath, string baseDirectory)
     {
-        // Check parent folder
-        var parent = directory.Parent;
-        while (parent != null && (limitParent == null || !parent.Name.Equals(limitParent, StringComparison.Ordinal)))
-        {
-            // If at least the parent folder is .gmp, everything's fine
-            if (parent.Name.Equals(expectedParent, StringComparison.OrdinalIgnoreCase))
-                return true;
-            
-            parent = parent.Parent;
-        }
-        return false;
+        if (string.IsNullOrEmpty(fullPath) || string.IsNullOrEmpty(baseDirectory))
+            return false;
+    
+        var normalizedFullPath = Path.GetFullPath(fullPath);
+        var normalizedBasePath = Path.GetFullPath(baseDirectory);
+    
+        // Ensure the path starts with the base directory
+        return normalizedFullPath.StartsWith(normalizedBasePath, StringComparison.OrdinalIgnoreCase);
     }
+
+    /// <summary>
+    /// Replace all invalid characters in a string with '_'.
+    /// </summary>
+    /// <param name="path">The path/string to be corrected.</param>
+    /// <returns>A filtered out <see cref="string"/> with '_' in the place of where invalid characters were located.</returns>
+    public static string FilterOutInvalidChars(string path)
+    {
+        var newPath = path.ToCharArray();
+        for (var i = 0; i < newPath.Length; i++)
+        {
+            var c = newPath[i];
+            if (!Path.GetInvalidPathChars().Contains(c)) continue;
+
+            newPath[i] = '_'; // Update back the array to replace the invalid character
+        }
+
+        return new string(newPath);
+    }
+
+    /// <summary>
+    /// Assures that given path string has the current path separator character in the running OS.
+    /// </summary>
+    /// <param name="path">The path to be corrected.</param>
+    /// <returns>A path that respects the separator character used by the current environment.</returns>
+    public static string CorrectForeignPathToEnvironment(string path) =>
+        path.Replace('/', Path.DirectorySeparatorChar)
+            .Replace('\\', Path.DirectorySeparatorChar);
 }

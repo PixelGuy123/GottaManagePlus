@@ -1,16 +1,16 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using GottaManagePlus.Factories;
-using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 using GottaManagePlus.ViewModels;
 using GottaManagePlus.Views;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace GottaManagePlus;
 
@@ -23,38 +23,27 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // Collection creation
         var collection = new ServiceCollection();
         
-        // Configuration Setup
-        var config = new ConfigurationBuilder()
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddJsonFile("AppSettings.json", optional: false, reloadOnChange: true)
-            .Build();
-        collection.AddSingleton<IConfiguration>(config);
-        collection.Configure<AppSettings>(config.GetSection(nameof(AppSettings)));
-        
-        // Services
-        collection.AddSingleton<PageFactory>();
-        collection.AddSingleton<DialogService>();
-        collection.AddSingleton<FilesService>();
-        collection.AddSingleton<SettingsService>();
-        collection.AddSingleton<PlusFolderViewer>();
-        collection.AddSingleton<ProfileProvider>();
-        collection.AddSingleton<ModReader>();
-        
-        // View Models
-        collection.AddSingleton<MainWindowViewModel>(); // Singleton
-        collection.AddTransient<MyModsViewModel>(); // Transient means the instance only exists when requested and destroys itself when not used
-        collection.AddTransient<SettingsViewModel>();
-        collection.AddTransient<ProfilesViewModel>();
-        
-        // Factory Function
-        collection.AddSingleton<Func<Type, PageViewModel>>(
-            serviceProvider => type =>
-                !type.IsAssignableTo(typeof(PageViewModel)) ? 
-                    throw new NotImplementedException("Non PageViewModel supported.") :
-                    (PageViewModel)serviceProvider.GetRequiredService(type));
+        // Setup Global Logging System
+        var logLocation = Path.Combine(Constants.ApplicationLocation, "Logs", DateTime.Now.ToLongTimeString() + ".log");
 
+        // Create the logger
+        Log.Logger = new LoggerConfiguration()
+#if  DEBUG
+            .WriteTo.Console()
+#endif
+            .WriteTo.File(logLocation)
+            .CreateLogger();
+        
+        // Services to set up
+        SetupConfiguration(collection);
+        SetupSingletonServices(collection);
+        SetupTransientServices(collection);
+        SetupViewModels(collection);
+
+        // Build service provider
         var services = collection.BuildServiceProvider();
         
         // Setup Services
@@ -71,11 +60,14 @@ public partial class App : Application
             {
                 DataContext = services.GetRequiredService<MainWindowViewModel>(),
             };
-            
-            // Assign services dependent on the MainWindow
-            var filesService = services.GetRequiredService<FilesService>();
-            filesService.RegisterProvider(desktop.MainWindow.StorageProvider);
-            filesService.RegisterLauncher(desktop.MainWindow.Launcher);
+
+            desktop.Exit += (_, _) =>
+            {
+                // Ensure the logger is closed beforehand
+                Log.CloseAndFlush();
+            };
+
+            SetupServicesForWindowAttributes(services, desktop.MainWindow);
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace GottaManagePlus.Models.JsonContext;
+namespace GottaManagePlus.Models.SourceGenerators;
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(AppSettings))]

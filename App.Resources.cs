@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using Avalonia.Platform.Storage;
 
 namespace GottaManagePlus;
@@ -25,9 +26,15 @@ public static class Constants
         // IF Linux, use following path
         OperatingSystem.IsLinux() ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".steam", "steam", "steamapps", "common", "Baldi's Basics Plus") :
             string.Empty;
+
+    // The path to this GMP instance
+    public static readonly string ApplicationLocation = Assembly.GetExecutingAssembly().Location;
     
     // Extensions and names that the app uses
-    public const string AppRootFolder = ".gmp", ExportedProfileExtension = ".gmpProfile", ProfileExportFolder = "exports";
+    public const string 
+        AppRootFolder = ".gmp", App_SpecialFolderForMods_Name = "_gmp",App_ProfileExportFolder = "exports", AppProfilesFolder = "profiles",
+        ProfileMetadataFileName = ".metadata", ExportedProfileExtension = ".gmpProfile", 
+        ModSupportForGameVersionPreviewFilePrefixName = "supVer_", BepInExFolderName = "BepInEx";
     
     // File Picker Filters
     public static readonly FilePickerFileType ExportedProfileFilter = new($"Exported Profile (*{ExportedProfileExtension})")

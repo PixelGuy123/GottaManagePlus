@@ -9,11 +9,6 @@
         <local:ViewLocator/>
     </Application.DataTemplates>
   
-    <Application.Styles>
-        <FluentTheme />
-        <StyleInclude Source="/Styles/Controls/TrimmableTextBox.axaml"/>
-    </Application.Styles>
-
     <Application.Resources>
         <ResourceDictionary>
             <FontFamily x:Key="Baskerville">/Assets/Fonts/Baskervville/Baskervville-Regular.ttf#Baskervville</FontFamily>
@@ -24,5 +19,12 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
+             
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="/Styles/Controls/TrimmableTextBox.axaml"/>
+        <StyleInclude Source="/Styles/Controls/FileBrowser.axaml"/>
+    </Application.Styles>
+
 
 </Application>

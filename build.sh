@@ -3,13 +3,16 @@
 # Configuration
 PROJECT_ROOT="/home/pixeldesktop/Documentos/Github/GottaManagePlus"
 PROJECT_NAME="GottaManagePlus"
-# Extract version from <AssemblyVersion> or <Version> tags
-VERSION=$(grep -oPm1 "(?<=<AssemblyVersion>)[^<]+" "$CSPROJ_FILE")
 
-# Fallback: If AssemblyVersion is missing, try the Version tag
-if [ -z "$VERSION" ]; then
-    VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" "$CSPROJ_FILE")
-fi
+# Project Settings
+SELF_CONTAINED=true
+PUBLISH_SINGLE_FILE=true
+PUBLISH_TRIMMED=false
+PUBLISH_AOT=false
+BUILT_IN_COM_INTEROP_SUPPORT=!$PUBLISH_AOT
+
+# Extract version from <AssemblyVersion> or <Version> tags
+VERSION="2026.01.0.3"
 AUTHOR="PixelGuy123"
 DESCRIPTION="Gotta Manage Plus is a project made to manage the modding aspect of the game Baldi's Basics Plus, through the usage of BepInEx."
 OUTPUT_DIR="$PROJECT_ROOT/bin/builds"
@@ -30,26 +33,28 @@ echo "Publishing for Windows (x64)..."
 dotnet publish "$PROJECT_ROOT" \
     -c Release \
     -r "$WIN_RID" \
-    --self-contained true \
-    -p:PublishSingleFile=true \
-    -p:PublishTrimmed=false \
-    -p:PublishAot=false \
+    --self-contained "$SELF_CONTAINED" \
+    -p:PublishSingleFile="$PUBLISH_SINGLE_FILE" \
+    -p:PublishTrimmed="$PUBLISH_TRIMMED" \
+    -p:PublishAot="$PUBLISH_AOT" \
+    -p:BuiltInComInteropSupport="$BUILT_IN_COM_INTEROP_SUPPORT" \
     -o "$BUILD_TEMP/$WIN_RID"
 
 # Create Windows Zip
-cd "$BUILD_TEMP/$WIN_RID"
+cd "$BUILD_TEMP/$WIN_RID" || exit
 zip -r "$OUTPUT_DIR/${PROJECT_NAME}_Windows.zip" .
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT" || exit
 
 # 2. Linux Build (Not Single File, Contained, No AOT/Trim)
 echo "Publishing for Linux (x64)..."
 dotnet publish "$PROJECT_ROOT" \
     -c Release \
     -r "$LINUX_RID" \
-    --self-contained true \
-    -p:PublishSingleFile=true \
-    -p:PublishTrimmed=false \
-    -p:PublishAot=false \
+    --self-contained "$SELF_CONTAINED" \
+    -p:PublishSingleFile="$PUBLISH_SINGLE_FILE" \
+    -p:PublishTrimmed="$PUBLISH_TRIMMED" \
+    -p:PublishAot="$PUBLISH_AOT" \
+    -p:BuiltInComInteropSupport="$BUILT_IN_COM_INTEROP_SUPPORT" \
     -o "$BUILD_TEMP/$LINUX_RID"
 
 # Apply Permissions for Linux build
@@ -58,9 +63,9 @@ chmod 666 "$BUILD_TEMP/$LINUX_RID/AppSettings.json"
 chmod 777 "$BUILD_TEMP/$LINUX_RID/$PROJECT_NAME"
 
 # Create Linux Tar.gz
-cd "$BUILD_TEMP/$LINUX_RID"
+cd "$BUILD_TEMP/$LINUX_RID" || exit
 tar -czvf "$OUTPUT_DIR/${PROJECT_NAME}_Linux.tar.gz" .
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT" || exit
 
 # 3. Debian Package Creation
 echo "Constructing Debian package..."
@@ -116,13 +121,12 @@ rm -rf "$BUILD_TEMP"
 echo "Build complete. Files located in $OUTPUT_DIR"
 
 # MAC OS Bundle
-dotnet msbuild -r -t:BundleApp -p:RuntimeIdentifier=osx-x64;Configuration=Release;PublishTrimmed=false;PublishSingleFile=false;SelfContained=true;PublishReadyToRun=true;CopyOutputSymbolsToPublishDirectory=false;SkipCopyingSymbolsToOutputDirectory=true
+dotnet msbuild -r -t:BundleApp -p:RuntimeIdentifier=osx-x64;Configuration=Release;PublishAot="$PUBLISH_AOT";BuiltInComInteropSupport="$BUILT_IN_COM_INTEROP_SUPPORT";PublishTrimmed="$PUBLISH_TRIMMED";PublishSingleFile="$PUBLISH_SINGLE_FILE";SelfContained="$SELF_CONTAINED";PublishReadyToRun=true;CopyOutputSymbolsToPublishDirectory=false;SkipCopyingSymbolsToOutputDirectory=true
 
 # ** Bundle Fix
 # Relative path to the Info.plist
 # The beginning is basically a way to get full path
 TARGET_FILE="bin/Debug/net9.0/osx-x64/publish/Gotta Manage Plus.app/Contents/Info.plist"
-TARGET_FOLDER="bin/Debug/net9.0/osx-x64/publish/Gotta Manage Plus.app/Contents/"
 
 # 1. Check if the file exists before anything
 if [ ! -f "$TARGET_FILE" ]; then

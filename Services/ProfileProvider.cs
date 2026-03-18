@@ -7,10 +7,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.UI;
 using GottaManagePlus.Utils;
 using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Writers;
+using ItemWithPath = GottaManagePlus.Models.UI.ItemWithPath;
+using ProfileItem = GottaManagePlus.Models.UI.ProfileItem;
 
 namespace GottaManagePlus.Services;
 
@@ -36,33 +39,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
 
     // Public implementation
-    /// <summary>
-    /// Adds a profile to the internal list if a profile with the same name does not already exist.
-    /// </summary>
-    /// <inheritdoc/>
-    public async Task<bool> AddProfile(string profileName, bool deleteExistingStorage, IProgress<(int, int, string?)>? progress = null)
-    {
-        // Check if there's already a profile with same name
-        if (_availableProfiles.Exists(p =>
-                p.ProfileName.Equals(profileName, StringComparison.OrdinalIgnoreCase)))
-            return false;
-        
-        // Create new profile item instance
-        var profileItem = new ProfileItem(
-            _availableProfiles.Count,
-            profileName
-        );
-
-        // Add profile to the list
-        _availableProfiles.Add(profileItem);
-        
-        // Add profile and update data
-        await GenerateProfileDataFromProfileItem(profileItem, 
-            generateNewContentStorage: true, 
-            deleteExistingStorage: deleteExistingStorage, 
-            progress); 
-        return await SetActiveProfile(_availableProfiles.Count - 1, progress); // Set as active profile to copy the data properly from the game
-    }
+    
 
     /// <summary>
     /// Clone profile based on the given index and rename it.
@@ -152,7 +129,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="UnauthorizedAccessException">Thrown if the profile path is outside the manager root.</exception>
-    public async Task<bool> DeleteProfile(int profileIndex, IProgress<(int, int, string?)>? progress = null)
+    public async Task<bool> DeleteProfile(int profileIndex, IProgress<ProgressReport>? progress = null)
     {
         if (profileIndex < 0 || profileIndex >= _availableProfiles.Count)
             throw new IndexOutOfRangeException($"profileIndex ({profileIndex}) is out of range.");
@@ -166,7 +143,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
         try
         {
-            if (!FileUtils.IsWithinManagerRootDirectory(profile.FullOsPath, GameFolderViewer))
+            if (!FileUtils.IsPathWithinBase(profile.FullOsPath, GameFolderViewer.SearchPath(Constants.AppRootFolder)))
                 throw new UnauthorizedAccessException("Profile path is located outside the expected location!");
             
             // Delete profile folder
@@ -377,7 +354,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Clears current data and re-populates the profile list from the "profiles" directory.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> UpdateProfilesData(string defaultSelection = "", IProgress<(int, int, string?)>? progress = null)
+    public async Task<bool> UpdateProfilesData(string defaultSelection = "", IProgress<ProgressReport>? progress = null)
     {
         // Get the profile
         var profilesFolder = GetOrCreateProfilesFolder();
@@ -445,7 +422,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Sets the active profile and triggers the <see cref="OnProfilesUpdate"/> event.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> SetActiveProfile(int profileIndex, IProgress<(int, int, string?)>? progress = null)
+    public async Task<bool> SetActiveProfile(int profileIndex, IProgress<ProgressReport>? progress = null)
     {
         var noPrevProfileDetected = false;
         // Previous profile
@@ -471,7 +448,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
     /// Saves the current active profile.
     /// </summary>
     /// <inheritdoc/>
-    public async Task<bool> SaveActiveProfile(IProgress<(int, int, string?)>? progress = null) => await GenerateProfileDataFromProfileItem(this.GetInstanceActiveProfile(), true,  progress: progress);
+    public async Task<bool> SaveActiveProfile(IProgress<ProgressReport>? progress = null) => await GenerateProfileDataFromProfileItem(this.GetInstanceActiveProfile(), true,  progress: progress);
 
 
     // Public events
@@ -676,7 +653,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
         ProfileItem profileItem, 
         bool generateNewContentStorage = false,
         bool deleteExistingStorage = false,
-        IProgress<(int, int, string?)>? progress = null)
+        IProgress<ProgressReport>? progress = null) // ZIP FILE GENERATOR
     {
         // Generate folder path
         var profilesFolderPath = GameFolderViewer.SearchPath(
@@ -939,7 +916,7 @@ public class ProfileProvider(PlusFolderViewer viewer) : IProfileProvider
 
     private async Task<bool> UnzipAndDistributeProfileContent(
     ProfileItem profileItem, 
-    IProgress<(int, int, string?)>? progress = null)
+    IProgress<ProgressReport>? progress = null)
     {
         // Don't allow unzipping the same profile item twice for performance reasons
         if (_lastUnzippedProfileItem?.ProfileName == profileItem.ProfileName)

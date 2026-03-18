@@ -5,8 +5,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
-    xmlns:models="using:GottaManagePlus.Models"
+    xmlns:models="using:GottaManagePlus.Models.UI"
     xmlns:converters="using:GottaManagePlus.Styles.Converters"
+    xmlns:ui="clr-namespace:GottaManagePlus.Models.UI"
     x:Class="GottaManagePlus.Views.MyModsView"
     x:DataType="vm:MyModsViewModel">
     <Design.DataContext>
@@ -96,6 +97,7 @@
                         <!--TEMP COMMENT: USE LANGUAGE HERE-->
                         <!--Scroll viewer search box-->
                         <Button
+                            Command="{CompiledBinding AddModRequest}"
                             Margin="10 0"
                             Classes="ModViewerHeader YCTPButton">
                             <Image
@@ -110,7 +112,7 @@
                             ItemsSource="{Binding ObservableUnchangedMods, Mode=OneWay}"
                             SelectedItem="{Binding CurrentModItem}"
                             Text="{Binding Text}"
-                            ValueMemberBinding="{Binding ModName, DataType=models:ModItem, Mode=OneWay}"
+                            ValueMemberBinding="{Binding ModName, DataType=ui:ModItem, Mode=OneWay}"
                             FilterMode="Contains" />
                         <Button
                             Classes="ModViewerHeader YCTPButton"
@@ -161,7 +163,7 @@
                                                    MinRowSpacing="10" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
-                                <DataTemplate DataType="{x:Type models:ModItem}">
+                                <DataTemplate DataType="{x:Type ui:ModItem}">
                                     <Border
                                             Padding="14 4"
                                             CornerRadius="35"

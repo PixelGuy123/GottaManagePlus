@@ -3,8 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
-             xmlns:models="clr-namespace:GottaManagePlus.Models"
+             xmlns:models="clr-namespace:GottaManagePlus.Models.UI"
              xmlns:controls="using:GottaManagePlus.Styles.Controls"
+             xmlns:ui="clr-namespace:GottaManagePlus.Models.UI"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="GottaManagePlus.Views.PreviewProfileDialogView"
              x:DataType="vm:PreviewProfileDialogViewModel"
@@ -93,7 +94,7 @@
                                     VerticalAlignment="Stretch"
                                     ItemsSource="{CompiledBinding Profile.ModMetaDataList, Mode=OneWay}">
                                     <ItemsRepeater.ItemTemplate>
-                                        <DataTemplate DataType="models:ModItem">
+                                        <DataTemplate DataType="ui:ModItem">
                                             <Panel>
                                                 <StackPanel Margin="0 2" Orientation="Vertical">
                                                     <Border
@@ -146,21 +147,11 @@
                             <Label Content="Last modified:"/>
                             <TextBlock Text="{CompiledBinding Profile.UpdateDate, Mode=OneWay}"/>
                             <!-- Profile Path -->
-                            <Label Content="Profile Path:"/>
-                            <DockPanel>
-                                <Button
-                                    Margin="5 0 0 0"
-                                    Classes="YCTPButton SmallYCTPButton"
-                                    Command="{CompiledBinding OpenProfilePath}"
-                                    DockPanel.Dock="Right">
-                                    <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
-                                </Button>
-                                <controls:TrimmableTextBox
-                                    TextTrimming="LeadingCharacterEllipsis"
-                                    Text="{CompiledBinding Profile.FullOsPath, Mode=OneWay}"
-                                    Watermark="Path missing!"/>
-                            </DockPanel>
-
+                            <controls:FileBrowser
+                                LabelFontFamily="{StaticResource WorkSans}"
+                                SelectFileCommand="{CompiledBinding OpenProfilePath}"
+                                Placeholder="File missing"
+                                Label="Profile Path:"/>
                         </StackPanel>
                     </Panel>
                     <!-- Configs Displayer -->
@@ -178,7 +169,7 @@
                                     <ItemsRepeater
                                         ItemsSource="{CompiledBinding Profile.ConfigsMetaDataList, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
-                                            <DataTemplate DataType="models:ItemWithPath">
+                                            <DataTemplate DataType="ui:ItemWithPath">
                                                 <Panel>
                                                     <StackPanel Margin="0 2" Orientation="Vertical">
                                                         <Border

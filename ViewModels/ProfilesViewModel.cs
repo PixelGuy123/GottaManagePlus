@@ -12,6 +12,7 @@ using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 using GottaManagePlus.Utils;
+using ProfileItem = GottaManagePlus.Models.UI.ProfileItem;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -243,7 +244,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Profile Export", "Exporting profile...", (Delegate)_profileProvider.ExportProfile, index);
         
-        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (!await _dialogService.ShowDialog(loadingDialog))
         {
             // If it fails, show dialog
             var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
@@ -279,7 +280,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Deleting profile...", null, (Delegate)_profileProvider.DeleteProfile, index);
         
-        if (await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (await _dialogService.ShowDialog(loadingDialog))
         {
             var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(true, Constants.SuccessDialog, $"Successfully deleted the profile (id: {index}).");
@@ -313,7 +314,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Saving currently active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
         
-        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (!await _dialogService.ShowDialog(loadingDialog))
         {
             // If failed, show a dialog
             var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
@@ -338,7 +339,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
                     true); // Destroy exiting storage
                 
                 // If it worked, success dialog; otherwise, fail dialog
-                if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+                if (!await _dialogService.ShowDialog(loadingDialog))
                 {
                     var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
                     confirmDialog.Prepare(true, Constants.FailDialog, "Failed to create the profile!");
@@ -360,7 +361,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
                         creatingPfDialog.ProfileIndexToClone); // Destroy exiting storage
                 
                 // If it worked, success dialog; otherwise, fail dialog
-                if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+                if (!await _dialogService.ShowDialog(loadingDialog))
                 {
                     var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
                     confirmDialog.Prepare(true, Constants.FailDialog, "Failed to clone the profile!");
@@ -382,7 +383,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
                         creatingPfDialog.ProfileImportPath); // Profile path
                 
                 // If it worked, success dialog; otherwise, fail dialog
-                if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+                if (!await _dialogService.ShowDialog(loadingDialog))
                 {
                     var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
                     confirmDialog.Prepare(true, Constants.FailDialog, "Failed to clone the profile!");
@@ -425,7 +426,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Saving currently active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
 
-        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (!await _dialogService.ShowDialog(loadingDialog))
         {
             // If failed, show a dialog
             var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
@@ -443,7 +444,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare(null, null, (Delegate)_profileProvider.SetActiveProfile, id);
         
-        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (!await _dialogService.ShowDialog(loadingDialog))
         {
             var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(true, Constants.FailDialog, $"""
@@ -466,7 +467,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Updating profile data...", null, (Delegate)_profileProvider.UpdateProfilesData, preferredIndex);
         
-        if (!await _dialogService.ShowLoadingDialog(loadingDialog))
+        if (!await _dialogService.ShowDialog(loadingDialog))
         {
             if (closeProgramIfFail)
             {
