@@ -294,8 +294,8 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"Failed to delete the mod ({modName})!", Constants.DebugError);
-                Debug.WriteLine(e.ToString(), Constants.DebugError);
+                Log.Logger.Error($"Failed to delete the mod ({modName})!");
+                Log.Logger.Error(e.ToString());
                 break;
             }
 

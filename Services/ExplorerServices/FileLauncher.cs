@@ -74,7 +74,7 @@ public class FileLauncher
         //     }
         //     catch (Exception ex)
         //     {
-        //         Debug.WriteLine($"Failed to open file explorer: {ex.Message}", Constants.DebugError);
+        //         Log.Logger.Error($"Failed to open file explorer: {ex.Message}");
         //         return false;
         //     }
         // }

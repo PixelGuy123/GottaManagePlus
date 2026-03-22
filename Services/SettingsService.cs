@@ -1,11 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.JsonContext;
 using Microsoft.Extensions.Options;
+using Serilog;
 using AppSettingsContext = GottaManagePlus.Models.SourceGenerators.AppSettingsContext;
 
 namespace GottaManagePlus.Services;
@@ -40,18 +39,20 @@ public sealed class SettingsService
         try
         {
             OnSaveSettings?.Invoke(); // Invoke first, then save
-            
+
             writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
             await writer.WriteAsync(json);
-            await writer.DisposeAsync();
             return true;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            Debug.WriteLine(ex.ToString(), Constants.DebugError);
+            Log.Logger.Error("{exception}", ex);
+            return false;
+        }
+        finally
+        {
             if (writer != null)
                 await writer.DisposeAsync();
-            return false;
         }
     }
 }

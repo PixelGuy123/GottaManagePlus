@@ -34,6 +34,7 @@
     <Grid
         Background="{DynamicResource MainWindowBg}"
         Name="BodyGrid"
+        IsHitTestVisible="False"
         ColumnDefinitions="Auto, *"
         RowDefinitions="Auto, Auto, *">
         <!-- START of Side Menu -->

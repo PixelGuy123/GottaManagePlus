@@ -43,8 +43,8 @@ public partial class App
         collection.AddSingleton<DialogService>();
         collection.AddSingleton<SettingsService>();
         collection.AddSingleton<PlusFolderDb>();
-        collection.AddSingleton<ProfileProvider>();
         collection.AddSingleton<ProfileStorage>();
+        collection.AddTransient<ProfileManager>();
         
         // Factory Function
         collection.AddSingleton<Func<Type, PageViewModel>>(
@@ -61,7 +61,6 @@ public partial class App
         collection.AddTransient<DirectoryPicker>();
         collection.AddTransient<FileLauncher>();
         collection.AddTransient<DirectoryLauncher>();
-        collection.AddTransient<ProfileManager>();
         collection.AddTransient<PlusFolderBrowser>();
     }
 

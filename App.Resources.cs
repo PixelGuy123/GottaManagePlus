@@ -42,9 +42,6 @@ public static class Constants
         Patterns = [$"*{ExportedProfileExtension}"]
     };
     
-    // Categories for debugging
-    public const string DebugWarning = "Warning", DebugInfo = "Info", DebugError = "Error";
-    
     // Dialog titles
     public const string FailDialog = "Something went wrong...", 
         SuccessDialog = "Success!", 

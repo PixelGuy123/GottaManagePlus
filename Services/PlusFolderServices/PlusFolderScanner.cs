@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GottaManagePlus.Models;
 using GottaManagePlus.Utils;
+using Serilog;
 
 namespace GottaManagePlus.Services.PlusFolderServices;
 
@@ -27,7 +28,7 @@ public static partial class PlusFolderScanner
     {
         if (string.IsNullOrWhiteSpace(executablePath))
         {
-            Debug.WriteLine("executablePath is empty.", Constants.DebugWarning);
+            Log.Logger.Warning("executablePath is empty.");
             return false;
         }
 
@@ -36,14 +37,14 @@ public static partial class PlusFolderScanner
         
         if (!File.Exists(executablePath))
         {
-            Debug.WriteLine($"Failed to find the executable file ({executablePath}).", Constants.DebugWarning);
+            Log.Logger.Warning("Failed to find the executable file ({ExecutablePath}).", executablePath);
             return false;
         }
 
         var rootPath = Path.GetDirectoryName(executablePath);
         if (string.IsNullOrEmpty(rootPath))
         {
-            Debug.WriteLine($"Failed to get the directory name from path ({executablePath}).", Constants.DebugWarning);
+            Log.Logger.Warning("Failed to get the directory name from path ({ExecutablePath}).", executablePath);
             return false;
         }
         
@@ -69,7 +70,7 @@ public static partial class PlusFolderScanner
             var (expectedExecName, useUnixCheck) = executableNameAndUnixFlag;
             if (Path.GetFileName(executablePath) != expectedExecName || (useUnixCheck && !FileUtils.CheckIfUnixFileIsExecutable(executablePath)))
             {
-                Debug.WriteLine($"Executable path is not {expectedExecName} or not an executable ({executablePath}).", Constants.DebugWarning);
+                Log.Logger.Warning("Executable path is not {ExpectedExecName} or not an executable ({ExecutablePath}).", expectedExecName, executablePath);
                 return false;
             }
 
@@ -77,14 +78,14 @@ public static partial class PlusFolderScanner
             var baldiDataFolder = Path.Combine([rootPath, .. baldiDataFolderPath]);
             if (!Directory.Exists(baldiDataFolder))
             {
-                Debug.WriteLine($"Executable path does not contain {Path.Combine(baldiDataFolderPath)} folder ({Path.GetFullPath(baldiDataFolder)}).", Constants.DebugWarning);
+                Log.Logger.Warning("Executable path does not contain {Combine} folder ({GetFullPath}).", Path.Combine(baldiDataFolderPath), Path.GetFullPath(baldiDataFolder));
                 return false;
             }
             
             // Check if the game version is valid
             if (!TryScanGlobalGameManagerFileAndGetGameVersion(baldiDataFolder, out var gameVersion))
             {
-                Debug.WriteLine("Executable path does not contain globalgamemanagers binary file.", Constants.DebugWarning);
+                Log.Logger.Warning("Executable path does not contain globalgamemanagers binary file.");
                 return false;
             }
             
@@ -134,8 +135,8 @@ public static partial class PlusFolderScanner
             content = NullCharacterRegex().Replace(content, "");
             
             // Debug
-            Debug.WriteLine($"--- Offset: {offset} | Read: {bytesRead} bytes ---", Constants.DebugInfo);
-            Debug.WriteLine(content, Constants.DebugInfo);
+            Log.Logger.Information("--- Offset: {Offset} | Read: {BytesRead} bytes ---", offset, bytesRead);
+            Log.Logger.Information("{content}", content);
             
             // Validate game through string
             if (!content.Contains(gameStringToValidate))
@@ -146,18 +147,17 @@ public static partial class PlusFolderScanner
             var endVersionStrIndex = content.IndexOf(endVersionString, startVersionStrIndex, StringComparison.Ordinal);
             // Calculate substring
             var versionSubStr = content.Substring(startVersionStrIndex, endVersionStrIndex - startVersionStrIndex);
-            Debug.WriteLine($"Retrieved version substring ({versionSubStr}).", Constants.DebugInfo);
+            Log.Logger.Error("Retrieved version substring ({VersionSubStr}).", versionSubStr);
 
             // Try to parse version
             gameVersion = new WrappedGameVersion(versionSubStr);
-            Debug.WriteLine($"Managed to parse into valid version? ({gameVersion}).");
+            Log.Logger.Error("Managed to parse into valid version? ({WrappedGameVersion}).", gameVersion);
             
             return true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Failed to scan the globalgamemanagers binary file.", Constants.DebugError);
-            Debug.WriteLine(ex.ToString(), Constants.DebugError);
+            Log.Logger.Error("Failed to scan the globalgamemanagers binary file.\n{exception}", ex);
             return false;
         }
     }

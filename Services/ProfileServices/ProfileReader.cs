@@ -4,12 +4,21 @@ using System.IO;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Utils;
+using Serilog;
 
 namespace GottaManagePlus.Services.ProfileServices;
 
 public static class ProfileReader
 {
-    public static ProfileItem? ReadProfile(string profileRootDirectory, int id)
+    /// <summary>
+    /// Reads a directory of a profile and converts its metadata (if available) into a <see cref="ProfileMetadata"/>.
+    /// The path shall never be prompted by a user.
+    /// </summary>
+    /// <param name="profileRootDirectory">The directory root to be scanned.</param>
+    /// <returns>An instance of <see cref="ProfileMetadata"/> with its path defined.</returns>
+    /// <exception cref="ArgumentException">If the path is not a directory, this exception is raised.</exception>
+    /// <exception cref="NullReferenceException">If the metadata is null, this error is raised.</exception>
+    public static ProfileMetadata? ReadProfile(string profileRootDirectory)
     {
         // If the path is a file, throw an error
         if (!File.GetAttributes(profileRootDirectory).HasFlag(FileAttributes.Directory))
@@ -31,29 +40,16 @@ public static class ProfileReader
 
             // If the file is missing, throw an error
             if (!metadataFile.Exists)
-                throw new IOException("Metadata file is missing");
+                return null;
 
             // Try to read metadata
-            ProfileMetadata? metadata;
-            using (var binaryReader = new BinaryReader(metadataFile.OpenRead()))
-            {
-                // Should have at least one string
-                metadata = ProfileMetadataUtils.ReadMetadata(binaryReader.ReadString());
-            }
-
-            if (metadata == null)
-                throw new NullReferenceException("Metadata is null, it is either an invalid file or broken data.");
-
-            // Return back a new instance of the ProfileItem
-            return new ProfileItem(id, metadata)
-            {
-                FullOsPath = profileRootDirectory
-            };
+            using var binaryReader = new BinaryReader(metadataFile.OpenRead());
+            // Create and return metadata
+            return ProfileMetadataUtils.ReadMetadata(binaryReader.ReadString());
         }
         catch (Exception e)
         {
-            Debug.WriteLine("Failed to read the profile content.", Constants.DebugError);
-            Debug.WriteLine(e.ToString(), Constants.DebugError);
+            Log.Logger.Error("Failed to read the profile content.\n{exception}", e);
             return null;
         }
     }

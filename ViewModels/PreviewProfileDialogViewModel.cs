@@ -63,8 +63,8 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
             dialog.Prepare(true, Constants.FailDialog, $"The path to the profile is somehow invalid!\n{profileFixSuggestion}");
             SubDialogView = dialog;
             
-            Debug.WriteLine("Failed to open profile path due to invalid path.", Constants.DebugError);
-            Debug.WriteLine(Profile.FullOsPath, Constants.DebugError);
+            Log.Logger.Error("Failed to open profile path due to invalid path.");
+            Log.Logger.Error(Profile.FullOsPath);
             Close();
             return;
         }
@@ -75,7 +75,7 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
             dialog.Prepare(true, Constants.FailDialog, $"Failed to open the path to the profile due to an unknown error!\n{profileFixSuggestion}");
             SubDialogView = dialog;
             
-            Debug.WriteLine("Failed to open profile path due to unknown error.", Constants.DebugError);
+            Log.Logger.Error("Failed to open profile path due to unknown error.");
             Close();
         }
     }

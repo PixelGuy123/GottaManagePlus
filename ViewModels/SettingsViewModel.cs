@@ -10,6 +10,7 @@ using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -93,7 +94,7 @@ public partial class SettingsViewModel : PageViewModel
         var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
         dialog.Prepare(true, Constants.FailDialog, "Failed to locate the executable file or the directory, where this executable may be located, is invalid.");
         await _dialogService.ShowDialog(dialog);
-        Debug.WriteLine("Failed to set the folder!", Constants.DebugWarning);
+        Log.Logger.Warning("Failed to set the folder!");
     }
 
     [RelayCommand]

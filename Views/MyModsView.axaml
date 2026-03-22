@@ -47,6 +47,7 @@
     <!-- START of Mod List-->
     <Border
         Name="BodyBorder"
+        IsHitTestVisible="False"
         Classes="Menu_Border AllCornerRadius"
         BoxShadow="0 3 10 2 #7D000000">
         <Border
@@ -129,7 +130,7 @@
                             TextDecorations="Underline"
                             FontSize="22"
                             FontFamily="{StaticResource ComicRelief}"
-                            Text="{CompiledBinding CurrentPlusVersion, Mode=OneWay}"
+                            Text="{CompiledBinding CurrentPlusVersion, Mode=OneTime}"
                             Classes="SideMenu-Label"/>
                     </StackPanel>
                 </Grid>

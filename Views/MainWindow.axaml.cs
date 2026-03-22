@@ -48,7 +48,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.ToString(), Constants.DebugError);
+            Log.Logger.Error(ex.ToString());
             _canClose = true;
             Close();
         }

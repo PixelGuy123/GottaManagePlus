@@ -8,6 +8,7 @@ using System.Linq;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.PlusFolderServices;
 using GottaManagePlus.Utils;
+using Serilog;
 using SharpCompress.Common;
 using SharpCompress.Compressors.Deflate;
 using SharpCompress.Writers;
@@ -72,31 +73,31 @@ public abstract class DefaultProfileWriter
             foreach (var modData in profile.ModDataFiles ?? [])
             {
                 // Count existing asset files
-                totalOps += modData.Assets.Select(asset => browser.SearchPath(asset.ResourcePath)).Count(File.Exists);
+                totalOps += modData.Assets.Select(asset => browser.SearchAbsolutePath(asset.LocalPath)).Count(File.Exists);
 
-                var pluginFolder = modData.GetPluginDirectory();
+                var pluginFolder = Path.GetDirectoryName(modData.Metadata.Path);
                 // Count plugin directory (if it exists and is valid)
                 if (string.IsNullOrEmpty(pluginFolder)) continue;
                 
-                var pluginPath = browser.SearchPath(pluginFolder);
+                var pluginPath = browser.SearchAbsolutePath(pluginFolder);
                 if (Directory.Exists(pluginPath))
                     totalOps++;
             }
             
             // Count configs directory
-            var configsDir = profile.TryGetConfigsDirectory();
+            var configsDir = browser.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder);
             if (!string.IsNullOrEmpty(configsDir))
             {
-                configsDir = browser.SearchPath(configsDir);
+                configsDir = browser.SearchAbsolutePath(configsDir);
                 if (Directory.Exists(configsDir))
                     totalOps++;
             }
             
             // Count patchers directory
-            var patchersDir = profile.TryGetPatchersDirectory();
+            var patchersDir = browser.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder);
             if (!string.IsNullOrEmpty(patchersDir))
             {
-                patchersDir = browser.SearchPath(patchersDir);
+                patchersDir = browser.SearchAbsolutePath(patchersDir);
                 if (Directory.Exists(patchersDir))
                     totalOps++;
             }
@@ -112,30 +113,30 @@ public abstract class DefaultProfileWriter
                 foreach (var modItem in profile.ModDataFiles ?? [])
                 {
                     // Write assets
-                    foreach (var asset in modItem.Assets)
+                    foreach (var resourcePath in modItem.Assets // If the asset exists in its local path, write it to the zip file following the same path.
+                                 .Select(asset => 
+                                     browser.SearchAbsolutePath(asset.LocalPath))
+                                 .Where(Directory.Exists))
                     {
-                        var resourcePath = browser.SearchPath(asset.ResourcePath);
-                        if (!File.Exists(resourcePath)) continue;
-                        
-                        writer.Write(resourcePath, new FileInfo(resourcePath));
+                        writer.WriteDirectory(resourcePath);
                         completed++;
                         progress?.Report(new ProgressReport(completed, totalOps, "Writing asset", Path.GetFileName(resourcePath)));
                     }
 
                     // Write plugin directory (as a single operation)
-                    TryToWriteDirectoryIfValid(modItem.GetPluginDirectory(), writer);
+                    TryToWriteDirectoryIfValid(Path.GetDirectoryName(modItem.Metadata.Path), writer);
                 }
 
                 // Write configs and patchers directories
-                TryToWriteDirectoryIfValid(profile.TryGetConfigsDirectory(), writer);
-                TryToWriteDirectoryIfValid(profile.TryGetPatchersDirectory(), writer);
+                TryToWriteDirectoryIfValid(configsDir, writer);
+                TryToWriteDirectoryIfValid(patchersDir, writer);
     
                 // Local helper that writes a directory and reports progress
                 void TryToWriteDirectoryIfValid(string? directoryPath, IWriter compressWriter)
                 {
                     if (string.IsNullOrEmpty(directoryPath)) return;
                     
-                    directoryPath = browser.SearchPath(directoryPath);
+                    directoryPath = browser.SearchAbsolutePath(directoryPath);
                     if (!Directory.Exists(directoryPath)) return;
                     
                     compressWriter.WriteAll(directoryPath, "*", SearchOption.AllDirectories);
@@ -149,8 +150,7 @@ public abstract class DefaultProfileWriter
         }
         catch (Exception e)
         {
-            Debug.WriteLine("Failed to create the profile content.", Constants.DebugError);
-            Debug.WriteLine(e.ToString(), Constants.DebugError);
+            Log.Logger.Error("Failed to create the profile content.\n{exception}", e);
         }
         finally
         {
@@ -167,6 +167,6 @@ public abstract class DefaultProfileWriter
     }
     
     // ----- Protected Methods -----
-    protected abstract async Task FinalizeDirectory(DirectoryInfo rootDirectory, string path, ProfileMetadata profile,
+    protected abstract Task FinalizeDirectory(DirectoryInfo rootDirectory, string path, ProfileMetadata profile,
         PlusFolderBrowser browser, IProgress<ProgressReport>? progress);
 }

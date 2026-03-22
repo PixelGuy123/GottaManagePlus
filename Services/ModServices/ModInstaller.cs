@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.PlusFolderServices;
@@ -31,9 +30,67 @@ public class ModInstaller
 #endif
             .WriteTo.File(Path.Combine(Constants.ApplicationLocation, "Logs", "ModInstallation_" + DateTime.Now.ToLongTimeString() + ".log"))
             .CreateLogger();
+        
+        // Log initiation
+        modLogger.Information("Initiating installation of {modName}...", 
+            Path.GetFileNameWithoutExtension(archivePath));
+        
+        // Create a temporary dir
+        string? temporaryDirectory = null;
+        var results = new ModInstallationResult();
+        
+        try
+        {
+            // 2. First, we need to physically extract the archive to somewhere, so that
+            // file manipulation can be performed.
+            temporaryDirectory = await ModArchiveExtractor.ExtractToTempAsync(archivePath, modLogger, progress);
 
-        // 2. First, we need to physically extract the archive to somewhere, so that
-        // file manipulation can be performed.
+            cancellationToken.ThrowIfCancellationRequested(); // Between each step, a cancellation token check is done
+            
+            // It wasn't a success, so return earlier
+            if (string.IsNullOrEmpty(temporaryDirectory))
+            {
+                modLogger.Warning("Directory is empty! Failed to generate a directory for the archive.");
+                return results;
+            }
 
+            // 3. Then, we ought to generate a manifest representation of the mod to understand its structure
+            var manifest =
+                await ManifestLoader.LoadMetadataAsync(temporaryDirectory, modLogger, progress, cancellationToken);
+
+            if (manifest == null)
+            {
+                modLogger.Warning("Manifest is null!");
+                return results;
+            }
+            
+            cancellationToken.ThrowIfCancellationRequested(); // Between each step, a cancellation token check is done
+            
+            // 4. After the manifest is scanned, we can start by checking the plugins and assets:
+            // do they contain any suspicious files?
+            await SecurityScanner.ScanAsync(temporaryDirectory, results, progress, manifest, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            modLogger.Warning("Mod installation canceled!");
+        }
+        catch (Exception e)
+        {
+            modLogger.Error("Unknown error broke the installation!\n{exception}", e);
+        }
+        finally // On the end, always delete the temporary directory
+        {
+            try
+            {
+                if (Directory.Exists(temporaryDirectory))
+                    Directory.Delete(temporaryDirectory, true);
+            }
+            catch
+            {
+                // suppression
+            }
+        }
+        
+        return results;
     }
 }

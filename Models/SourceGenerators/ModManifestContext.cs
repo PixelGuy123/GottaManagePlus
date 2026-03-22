@@ -4,6 +4,6 @@ namespace GottaManagePlus.Models.SourceGenerators;
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ModManifest))]
-[JsonSerializable(typeof(ModAsset))]
+[JsonSerializable(typeof(ModMetadata))]
 [JsonSerializable(typeof(DestinedAsset))]
 internal partial class ModManifestContext : JsonSerializerContext;
