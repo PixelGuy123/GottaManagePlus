@@ -10,6 +10,7 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
+using GottaManagePlus.Services.ExplorerServices;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -51,7 +52,7 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
     private string? _selectedExistingProfile;
     
     // private members
-    private IFilesService _filesService = null!;
+    private FilePicker _filesService = null!;
     
     // Constructors
     public CreateProfileDialogViewModel()
@@ -84,9 +85,9 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
     public async Task BrowseFile()
     {
         // Try to get the file
-        var file = await _filesService.OpenFileAsync(
+        var file = await _filesService.OpenSingleFileAsync(
             "Import Profile",
-                fileChoices: Constants.ExportedProfileFilter
+                filterChoices: Constants.ExportedProfileFilter
         );
         
         // Set as import path
@@ -134,7 +135,7 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
     /// <summary>
     /// Set up the dialog with the following parameters:
     /// <list type="number">
-    ///     <item><description><see cref="IFilesService"/> filesService</description></item>
+    ///     <item><description><see cref="FilePicker"/> filesService</description></item>
     ///     <item><description><see cref="IEnumerable{string}"/> Existing Profiles</description></item>
     /// </list>
     /// </summary>
@@ -144,7 +145,7 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         Confirmed = false;
         
         // _filesService
-        _filesService = GetValueOrException<IFilesService>(args, 0);
+        _filesService = GetValueOrException<FilePicker>(args, 0);
         // _existingProfiles
         ExistingProfiles = new ObservableCollection<string>(GetValueOrException<IEnumerable<string>>(args, 1));
         

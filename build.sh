@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Configuration
-PROJECT_ROOT="/home/pixeldesktop/Documentos/Github/GottaManagePlus"
+PROJECT_ROOT="."
 PROJECT_NAME="GottaManagePlus"
 
 # Project Settings
 SELF_CONTAINED=true
 PUBLISH_SINGLE_FILE=true
-PUBLISH_TRIMMED=false
 PUBLISH_AOT=false
+PUBLISH_TRIMMED=$PUBLISH_AOT
 BUILT_IN_COM_INTEROP_SUPPORT=!$PUBLISH_AOT
 
 # Extract version from <AssemblyVersion> or <Version> tags

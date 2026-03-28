@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -41,6 +40,7 @@ public partial class App : Application
         SetupConfiguration(collection);
         SetupSingletonServices(collection);
         SetupTransientServices(collection);
+        SetupScopedServices(collection);
         SetupViewModels(collection);
 
         // Build service provider

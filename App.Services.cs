@@ -4,6 +4,7 @@ using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
+using GottaManagePlus.Services.APIServices;
 using GottaManagePlus.Services.ExplorerServices;
 using GottaManagePlus.Services.ModServices;
 using GottaManagePlus.Services.PlusFolderServices;
@@ -44,7 +45,6 @@ public partial class App
         collection.AddSingleton<SettingsService>();
         collection.AddSingleton<PlusFolderDb>();
         collection.AddSingleton<ProfileStorage>();
-        collection.AddTransient<ProfileManager>();
         
         // Factory Function
         collection.AddSingleton<Func<Type, PageViewModel>>(
@@ -62,6 +62,20 @@ public partial class App
         collection.AddTransient<FileLauncher>();
         collection.AddTransient<DirectoryLauncher>();
         collection.AddTransient<PlusFolderBrowser>();
+        collection.AddTransient<ProfileManager>();
+        collection.AddTransient<GamebananaApiService>();
+    }
+
+    private static void SetupScopedServices(ServiceCollection collection)
+    {
+        // Setup Gamebanana Client
+        collection.AddHttpClient("GameBanana", client =>
+        {
+            client.BaseAddress = new Uri("https://gamebanana.com/apiv11");
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(
+                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        });
     }
 
     private static void SetupServicesForWindowAttributes(ServiceProvider services, Window window)

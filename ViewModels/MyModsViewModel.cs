@@ -14,35 +14,45 @@ using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
+using GottaManagePlus.Services.ExplorerServices;
+using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Services.ProfileServices;
 using GottaManagePlus.Utils;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class MyModsViewModel : PageViewModel, IDisposable
 {
-    private readonly List<ModItem> _allMods = [];
     private readonly DialogService _dialogService = null!;
-    private readonly IGameFolderViewer _gameFolderViewer = null!;
-    private readonly IProfileProvider _profileProvider = null!;
-    private readonly IFilesService _filesService = null!;
+    private readonly PlusFolderDb _plusFolderDb = null!;
+    private readonly ProfileManager _profileManager = null!;
+    private readonly ProfileStorage _profileStorage = null!;
+    private readonly DirectoryLauncher _directoryLauncher = null!;
+    private readonly PlusFolderBrowser _plusFolderBrowser = null!;
 
+    // Getters
+    protected readonly Dictionary<int, ModManifest> AllMods = [];
+    private void FillUpAllMods(IEnumerable<ModManifest>? manifests) { AllMods.Clear(); var index = 0; foreach (var manifest in manifests ?? []) AllMods.Add(index++, manifest); }
+    
     // Observable Properties
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasAnyModsToDisplay))]
-    private ObservableCollection<ModItem> _observableUnchangedMods = [];
+    private ObservableCollection<ModManifest> _observableUnchangedMods = []; // The one that communicates directly with the service
 
-    [ObservableProperty] private ObservableCollection<ModItem> _observableMods = [];
-    [ObservableProperty] private ModItem? _currentModItem;
+    // AutoCompleteBox Form
+    [ObservableProperty] private ObservableCollection<ModManifest> _observableMods = []; // Observable Mods that is actually touched
+    [ObservableProperty] private ModManifest? _currentModManifest; // Current Manifest Selected
     [ObservableProperty] private string? _text; // To clarify, it's Text from the AutoCompleteBox
 
+    // ReadOnly Properties for UI
     public int NumberOfModsPerRow { get; } = 6;
     public bool HasAnyModsToDisplay => ObservableUnchangedMods.Count != 0;
-
     public string CurrentPlusVersion =>
-        _gameFolderViewer?.GetGameVersion().ToString() ?? "0.13.1";
+        _plusFolderDb.GameVersion.ToString();
 
 
     // From the generator. https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/observableproperty
-    partial void OnCurrentModItemChanged(ModItem? value) => UpdateModsList(value);
+    partial void OnCurrentModManifestChanged(ModManifest? value) => UpdateModsList(value);
 
     // To update the display
     private void OnObservableUnchangedModsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
@@ -52,7 +62,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public void ResetSearch() => Text = null;
 
     [RelayCommand]
-    public async Task DeleteModItem(int id) => await DeleteModItemUiAsync(id);
+    public async Task DeleteModManifest(int id) => await DeleteModManifestUiAsync(id);
     
     [RelayCommand]
     public async Task AddModRequest() => await AddModUiAsync();
@@ -64,8 +74,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         ConfirmDialogViewModel confirmDialog;
 
         // Check if mod exists
-        var index = _allMods.FindIndex(item => item.Id == id);
-        if (index == -1) // If the item doesn't exist, skip
+        if (!AllMods.TryGetValue(id, out var mod)) // If the item doesn't exist, skip
         {
             confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(
@@ -80,10 +89,11 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             return;
         }
 
-        // Get mod instance
-        var mod = _allMods[index];
-        // Get directory path
-        if (!File.Exists(mod.FullOsPath))
+        // Get the directory path
+        var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_plusFolderBrowser);
+        
+        // Check if it exists
+        if (!Directory.Exists(modDirectoryPath))
         {
             confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(
@@ -96,7 +106,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         }
 
         // Open the mod here
-        if (!_filesService.OpenFileInfo(new FileInfo(mod.FullOsPath)))
+        if (!await _directoryLauncher.OpenDirectoryInfo(new DirectoryInfo(modDirectoryPath)))
         {
             confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(
@@ -111,103 +121,85 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     // For designer
     public MyModsViewModel() : base(PageNames.Home,
-        new ProfilesViewModel(null!, new ProfileProvider(null!), null!, null!, null!))
+        new ProfilesViewModel(null!, new(null!), null!, null!, null!))
     {
         if (!Design.IsDesignMode) return;
 
         // Initialize Data
-        _allMods =
+        List<ModManifest> manifests =
         [
-            new ModItem(0, "Mod 1"),
-            new ModItem(1, "Mod 2"),
-            new ModItem(2, "Mod 3"),
-            new ModItem(3, "Baldi's Basics Times"),
-            new ModItem(4, "Baldi's Basics Advanced Edition"),
-            new ModItem(5,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(6,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(7,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(8,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(9,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(10,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(11,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(12,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(13,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(14,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(15,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(16,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(17,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(18,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(19,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(20,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(21,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(22,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(23,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(24,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(25,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(26,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
-            new ModItem(27,
-                "Basics of Plus - The one best mod with the longest name ever made. You can see, it's one of the biggest names I've ever written to a sutpid freaking mod. Lorem ipsum for tyoyiu tuu."),
+            // Short standard entries (approx. 20 items)
+            new() { Name = "Mod 1" },
+            new() { Name = "Baldi's Basics Times" },
+            new() { Name = "Baldi's Advanced Edition" },
+            new() { Name = "Optimization Pack" },
+            new() { Name = "Texture Replacer v2" },
+            new() { Name = "Sound Effects Overhaul" },
+            new() { Name = "Quick Fix" },
+            new() { Name = "Community Hub" },
+            new() { Name = "Night Mode" },
+            new() { Name = "Speed Run Helper" },
+            new() { Name = "Inventory Manager" },
+            new() { Name = "Map Expansion" },
+            new() { Name = "Character Skins" },
+            new() { Name = "Difficulty Adjuster" },
+            new() { Name = "UI Enhancer" },
+            new() { Name = "Save Editor" },
+            new() { Name = "Quest Tracker" },
+            new() { Name = "Weather System" },
+            new() { Name = "Audio Remaster" },
+            new() { Name = "Bug Fixes Bundle" },
+
+            // Long name entries (approx. 150 characters) for UI testing
+            new() { Name = "The Ultimate Comprehensive Overhaul Package for Enhanced Gameplay Experience and Visual Fidelity Improvements Across All Levels Including Boss Battles" },
+            new() { Name = "Advanced Physics Engine Modification Suite with Realistic Collision Detection and Dynamic Lighting Support for Maximum Immersion and Performance Optimization" }
         ];
 
         // Initialize collections
-        ObservableUnchangedMods = new ObservableCollection<ModItem>(_allMods);
-        ObservableMods = new ObservableCollection<ModItem>(_allMods);
+        ObservableUnchangedMods = new ObservableCollection<ModManifest>(manifests);
+        ObservableMods = new ObservableCollection<ModManifest>(manifests);
     }
 
     // Constructor
     public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel,
-        ProfileProvider profileProvider, FilesService filesService, PlusFolderViewer viewer,
-        SettingsService settingsService) : base(PageNames.Home, profilesViewModel)
+        ProfileManager profileManager, ProfileStorage profileStorage, DirectoryLauncher directoryLauncher, PlusFolderDb plusFolderDb,
+        SettingsService settingsService, PlusFolderBrowser plusFolderBrowser) : base(PageNames.Home, profilesViewModel)
     {
         // Service
         _dialogService = dialogService;
-        _profileProvider = profileProvider;
-        _gameFolderViewer = viewer;
-        _filesService = filesService;
+        _profileManager = profileManager;
+        _plusFolderDb = plusFolderDb;
+        _directoryLauncher = directoryLauncher;
+        _plusFolderBrowser = plusFolderBrowser;
+        _profileStorage = profileStorage;
+        
+        // Settings
         NumberOfModsPerRow = settingsService.CurrentSettings.NumberOfRowsPerMod;
         
+        // Create mods list
+        FillUpAllMods(_profileManager.ActiveProfile?.ModDataFiles);
+        
         // Listeners
-        profilesViewModel.AfterProfileUpdate += ProfilesProvider_OnProfilesUpdate;
+        _profileManager.OnActiveProfileUpdate += ProfilesProvider_OnProfilesUpdate;
         ObservableUnchangedMods.CollectionChanged += OnObservableUnchangedModsCollectionChanged;
     }
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        ((ProfilesViewModel)SideMenuBase!).AfterProfileUpdate -= ProfilesProvider_OnProfilesUpdate;
+        _profileManager.OnActiveProfileUpdate -= ProfilesProvider_OnProfilesUpdate;
     }
 
     // Private methods
-    private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
+    private void ProfilesProvider_OnProfilesUpdate(ProfileMetadata? profileMetadata)
     {
         Dispatcher.UIThread.Post(() =>
         {
-            _allMods.Clear();
-            _allMods.AddRange(provider.GetInstanceActiveProfile().ModMetaDataList);
+            // Fill up the mods from the metadata.
+            FillUpAllMods(profileMetadata?.ModDataFiles);
 
-            var newCollection = new ObservableCollection<ModItem>(_allMods);
+            // Form a new collection from them.
+            var newCollection = new ObservableCollection<ModManifest>(AllMods.Values);
             newCollection.CollectionChanged += OnObservableUnchangedModsCollectionChanged;
             ObservableUnchangedMods = newCollection;
 
@@ -215,19 +207,19 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         });
     }
 
-    private void UpdateModsList(ModItem? highlightedItem)
+    private void UpdateModsList(ModManifest? highlightedItem)
     {
         // If item is not null, insert it at the top
         if (highlightedItem != null)
         {
-            ObservableMods = new ObservableCollection<ModItem>(
-                ObservableMods.OrderByDescending(mod => highlightedItem.ModName.ManyStartWith(mod.ModName)
+            ObservableMods = new ObservableCollection<ModManifest>(
+                ObservableMods.OrderByDescending(mod => highlightedItem.Name.ManyStartWith(mod.Name)
                 ));
             return;
         }
 
         // If highlighted item is null or not found, just reset the whole list
-        ObservableMods = new ObservableCollection<ModItem>(_allMods.OrderBy(mod => mod.ModName));
+        ObservableMods = new ObservableCollection<ModManifest>(AllMods.Values.OrderBy(mod => mod.Name));
     }
 
     private void ResetListVisibleConfigurations() // Basically reset the observable list
@@ -241,11 +233,10 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         
     }
 
-    private async Task DeleteModItemUiAsync(int id) // Delete asynchronously the items
+    private async Task DeleteModManifestUiAsync(int id) // Delete asynchronously the items
     {
         ConfirmDialogViewModel confirmDialog;
-        var index = _allMods.FindIndex(item => item.Id == id);
-        if (index == -1) // If the item doesn't exist, skip
+        if (!AllMods.TryGetValue(id, out var modToDelete)) // If the item doesn't exist, skip
         {
             confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(
@@ -264,7 +255,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
         confirmDialog.Prepare(
             null,
-            $"Delete {_allMods[index].ModName}?",
+            $"Delete {modToDelete.Name}?",
             "Are you sure you want to delete this mod?",
             "Yes",
             "No"
@@ -276,73 +267,50 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             return;
 
         // Get metadata for deleting in profile provider
-        var modName = _allMods[index].ModName;
+        var modName = modToDelete.Name;
 
-        // Get active profile item and remove all the instances of the mod
-        var profileItem = _profileProvider.GetInstanceActiveProfile();
-        var tempModList = new ObservableCollection<ModItem>(profileItem.ModMetaDataList); // For reverting changes
-        for (var i = 0; i < profileItem.ModMetaDataList.Count; i++)
+        // Get active profile metadata and remove all the instances of the mod
+        var profileMetadata = _profileManager.ActiveProfile;
+        var modDataFiles = profileMetadata?.ModDataFiles ?? [];
+
+        for (var i = 0; i < modDataFiles.Count; i++)
         {
-            var mod = profileItem.ModMetaDataList[i];
-            if (mod.ModName != modName || string.IsNullOrEmpty(mod.FullOsPath)) continue;
+            var mod = modDataFiles[i];
+            var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_plusFolderBrowser);
+            if (mod.Name != modName || string.IsNullOrEmpty(modDirectoryPath)) continue;
 
             // Try to manually delete
             try
             {
                 // TODO: Handle proper mod deletion through a service instead of manual implementation
-                File.Delete(mod.FullOsPath);
+                Directory.Delete(modDirectoryPath);
             }
             catch (Exception e)
             {
-                Log.Logger.Error($"Failed to delete the mod ({modName})!");
-                Log.Logger.Error(e.ToString());
+                Log.Logger.Error("Failed to delete the mod ({ModName})!\n{exception}", modName, e);
                 break;
             }
 
             // Remove item
-            profileItem.ModMetaDataList.RemoveAt(i--);
+            profileMetadata?.ModDataFiles.RemoveAt(i--);
         }
 
         // Request save changes to the profile
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving changes...", null, (Delegate)_profileProvider.SaveActiveProfile);
-        // Try to delete mod
+        loadingDialog.Prepare("Saving changes...", _profileManager.ActiveProfile, null, (Delegate)_profileStorage.SaveEnvironmentDataToProfile);
+        
+        // Try to save profile
         if (!await _dialogService.ShowDialog(loadingDialog))
         {
-            // If the mod fails to be deleted, revert back to the old list
-            profileItem.ModMetaDataList = tempModList;
-
             confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(
                 Constants.FailDialog,
                 $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}"
             );
+            
             // Show dialog
             await _dialogService.ShowDialog(confirmDialog);
             return;
-        }
-
-        // Update profile data (save)
-        await WaitToUpdateData();
-    }
-
-    private async Task WaitToUpdateData(string preferredIndex = "") // Copy-paste from ProfileViewModel.cs
-    {
-        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Updating profile data...", null,
-            (Delegate)_profileProvider.UpdateProfilesData, preferredIndex);
-        if (!await _dialogService.ShowDialog(loadingDialog))
-        {
-            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            confirmDialog.Prepare(true, Constants.FailDialog,
-                $"""
-                 Failed to update the profiles list!
-                 If the issue persists, you can try:
-                 {Constants.SolutionFilePermissions}
-                 """
-            );
-            // Not-so-aggressive dialog
-            await _dialogService.ShowDialog(confirmDialog);
         }
     }
 }

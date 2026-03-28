@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Serialization;
@@ -8,14 +9,14 @@ namespace GottaManagePlus.Models;
 public class ModManifest
 {
     // General Information
-    [JsonRequired] public required string Name { get; set; } = "Mod";
-    [JsonRequired] public required string Author { get; set; } = "Developer";
-    [JsonRequired] public required string Version { get; set; } = "0.0.0"; 
-    public required string Description { get; set; }
+    [JsonRequired] public string Name { get; set; } = "Mod";
+    [JsonRequired] public string Author { get; set; } = "Developer";
+    [JsonRequired] public string Version { get; set; } = "0.0.0"; 
+    [JsonRequired] public string? Description { get; set; }
     
     // Assets
     [JsonRequired] public List<DestinedAsset> Assets { get; set; } = []; // Assets must always be a directory, they cannot be a file.
-    [JsonRequired] public List<string> Plugins { get; set; } = []; // string here means the LocalPath
+    [JsonRequired] public List<string> Plugins { get; set; } = []; // string here means the LocalPath, they must always be a file and linked to a .dll.
 
     [JsonIgnore] public ModMetadata Metadata { get; set; } = new();
     [JsonIgnore] public List<string> SupportedVersions { get; set; } = [];
@@ -25,24 +26,23 @@ public class ModMetadata
 {
     // ---- Internal -----
     public string? Path = null;
-    public string? Thumbnail { get; set; }
+    public string? Thumbnail = null;
     public string? InstallationUrl { get; set; } // Supports Gamebanana and GitHub for now
-    public List<string>? DependenciesUrls { get; set; }
-    public List<string>? SupportedPlusVersions { get; set; }
+    public List<string> DependenciesUrls { get; set; } = [];
+    public List<string> SupportedPlusVersions { get; set; } = [];
     
     // ### Important Fields ###
-    public bool InstalledInGame { get; set; } // Tells whether the mod is in the right plugins folder or not.
     public bool Activated { get; set; } // Whether the mod is active or not.
 }
 
-public class DestinedAsset
+public struct DestinedAsset
 {
     [JsonRequired]
     public required string LocalPath { get; set; }
-    [JsonRequired]
-    public required string Destination { get; set; }
+    public string? Destination { get; set; }
     /// <summary>
     /// Combines the asset's final location with the actual file to go there.
     /// </summary>
-    public string MovedAsset => Path.Combine(Destination, Path.GetFileName(LocalPath));
+    public string MovedAsset => !string.IsNullOrEmpty(Destination) ? 
+        Path.Combine(Destination, Path.GetFileName(LocalPath)) : throw new NullReferenceException("Invalid destination set.");
 }

@@ -11,6 +11,12 @@ public class DirectoryLauncher
     private ILauncher? _launcher;
     public void RegisterLauncher(ILauncher launcher) => _launcher = launcher;
     
+    /// <summary>
+    /// Opens a directory in the explorer.
+    /// </summary>
+    /// <param name="directoryInfo">The directory info to be launched.</param>
+    /// <returns><see langword="true"/> if the launch was successful; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="InvalidOperationException">If the launcher hasn't been registered yet.</exception>
     public async Task<bool> OpenDirectoryInfo(DirectoryInfo directoryInfo)
     {
         // Workaround for issue: https://github.com/AvaloniaUI/Avalonia/issues/20230

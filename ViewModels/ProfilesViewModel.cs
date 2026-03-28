@@ -2,17 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
-using GottaManagePlus.Models;
 using GottaManagePlus.Services;
-using GottaManagePlus.Utils;
-using ProfileItem = GottaManagePlus.Models.UI.ProfileItem;
 
 namespace GottaManagePlus.ViewModels;
 

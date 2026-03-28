@@ -16,6 +16,11 @@ public sealed class ProfileManager(ProfileStorage storage)
     public ProfileMetadata? ActiveProfile { get; private set; }
 
     /// <summary>
+    /// An event that is triggered once the active profile changes.
+    /// </summary>
+    public event Action<ProfileMetadata?>? OnActiveProfileUpdate;
+
+    /// <summary>
     /// Set a new profile from the database to be active in the environment.
     /// </summary>
     /// <param name="newProfile">The new profile to be active.</param>
@@ -29,6 +34,13 @@ public sealed class ProfileManager(ProfileStorage storage)
         
         // Set the new profile as main and request storage to unpack it.
         ActiveProfile = newProfile;
-        return await _storage.ExtractProfileToEnvironment(ActiveProfile, progress);
+
+        // Trigger the profile extraction.
+        var success = await _storage.ExtractProfileToEnvironment(ActiveProfile, progress);
+        
+        // Invoke the event.
+        OnActiveProfileUpdate?.Invoke(newProfile);
+            
+        return success;
     }
 }

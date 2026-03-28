@@ -6,7 +6,9 @@ using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
 using System;
-using Avalonia.Dialogs;
+using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Services.ProfileServices;
+using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -14,9 +16,10 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 {
     private readonly PageFactory? _pageFactory;
     private readonly DialogService _dialogService = null!;
-    private readonly IGameFolderViewer _gameFolderViewer = null!;
+    private readonly PlusFolderDb _plusFolderDb = null!;
     private readonly SettingsService _settingsService = null!;
-    private readonly IProfileProvider _profileProvider = null!;
+    private readonly ProfileStorage _profileStorage = null!;
+    private readonly ProfileManager _profileManager = null!;
     
     [ObservableProperty] 
     private bool _executablePathSet;
@@ -54,15 +57,17 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     public MainWindowViewModel(
         PageFactory pageFactory, 
         DialogService dialogService, 
-        PlusFolderViewer gameFolderViewer, 
+        PlusFolderDb plusFolderDb, 
         SettingsService settingsService, 
-        ProfileProvider profileProvider)
+        ProfileStorage profileStorage,
+        ProfileManager profileManager)
     {
         _pageFactory = pageFactory;
         _dialogService = dialogService;
-        _gameFolderViewer = gameFolderViewer;
+        _plusFolderDb = plusFolderDb;
         _settingsService = settingsService;
-        _profileProvider = profileProvider;
+        _profileStorage = profileStorage;
+        _profileManager = profileManager;
         
         // Cache on start
         _dialogService.GetDialog<AppInfoDialogViewModel>();
@@ -70,7 +75,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         _settingsService.OnSaveSettings += UpdateExecutablePathValidation;
 
         // If the executable is all set, then the manager should visualize the mods
-        if (_gameFolderViewer.ValidateFolder(_settingsService.CurrentSettings.BaldiPlusExecutablePath, setPathIfTrue: true))
+        if (_plusFolderDb.ValidateGameFolder(_settingsService.CurrentSettings.BaldiPlusExecutablePath))
             CurrentPage = _pageFactory.GetPageViewModel<MyModsViewModel>();
         else // Otherwise, force the user to set that manually
         {
@@ -89,9 +94,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     {
         // Loading dialog for saving active profile
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving current active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
+        loadingDialog.Prepare("Saving current active profile...", 
+            _profileManager.ActiveProfile, null, 
+            (Delegate)_profileStorage.SaveEnvironmentDataToProfile);
 
-        if (_profileProvider.GetLoadedProfiles().Count == 0 || // Or, if there are no profiles to save, skip this dialog
+        if (_profileStorage.ProfileMemoryDb.IsEmpty || // Or, if there are no profiles to save, skip this dialog
             await _dialogService.ShowDialog(loadingDialog))
         {
             // Then, one for saving settings
@@ -133,6 +140,6 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     
     private void UpdateExecutablePathValidation() => 
         ExecutablePathSet = 
-            _gameFolderViewer.ValidateFolder(_settingsService.CurrentSettings.BaldiPlusExecutablePath, 
-                                            setPathIfTrue: false);
+            _plusFolderDb.ValidateGameFolder(_settingsService.CurrentSettings.BaldiPlusExecutablePath, 
+                                            updateDatabaseIfPathIsValid: false);
 }

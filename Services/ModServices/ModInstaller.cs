@@ -45,7 +45,7 @@ public class ModInstaller
             // file manipulation can be performed.
             temporaryDirectory = await ModArchiveExtractor.ExtractToTempAsync(archivePath, modLogger, progress);
 
-            cancellationToken.ThrowIfCancellationRequested(); // Between each step, a cancellation token check is done
+            cancellationToken.ThrowIfCancellationRequested(); // Between each step, a cancellation token check is done.
             
             // It wasn't a success, so return earlier
             if (string.IsNullOrEmpty(temporaryDirectory))
@@ -54,7 +54,7 @@ public class ModInstaller
                 return results;
             }
 
-            // 3. Then, we ought to generate a manifest representation of the mod to understand its structure
+            // 3. Then, we ought to generate a manifest representation of the mod to understand its structure.
             var manifest =
                 await ManifestLoader.LoadMetadataAsync(temporaryDirectory, modLogger, progress, cancellationToken);
 
@@ -68,7 +68,15 @@ public class ModInstaller
             
             // 4. After the manifest is scanned, we can start by checking the plugins and assets:
             // do they contain any suspicious files?
-            await SecurityScanner.ScanAsync(temporaryDirectory, results, progress, manifest, cancellationToken);
+            // TODO: Add an option to forcefully cancel the installation in case security scan gets something weird.
+            await SecurityScanner.ScanAsync(temporaryDirectory, results, modLogger, progress, manifest, cancellationToken);
+            
+            // 5. After scanning, after getting manifest, we have everything ready:
+            // now move the files (told by the manifest) to the right places.
+            ResourceInstaller.InstallResources(temporaryDirectory, modLogger, browser, manifest);
+            
+            // 6. Yay!
+            modLogger.Information("Installation done with success!");
         }
         catch (OperationCanceledException)
         {

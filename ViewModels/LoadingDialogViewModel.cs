@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Models;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -112,10 +113,11 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
     private void OnProgressChanged(object? sender, ProgressReport e)
     {
-        ProgressPercentageText = $"{e.Item1}/{e.Item2} ";
-        ProgressMax = e.Item2;
-        ProgressValue = e.Item1;
-        Status = e.Item3;
+        ProgressPercentageText = $"{e.TasksCompleted}/{e.TasksTotal} ";
+        ProgressMax = e.TasksTotal;
+        ProgressValue = e.TasksCompleted;
+        Status = e.CurrentStatus;
+        HideProgressBar = !e.HasTaskProgression;
     }
 
     [RelayCommand]

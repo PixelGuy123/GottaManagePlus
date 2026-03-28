@@ -1,30 +1,29 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using GottaManagePlus.Models;
-using GottaManagePlus.Utils;
+using GottaManagePlus.Services.PlusFolderServices;
 using Serilog;
 
-namespace GottaManagePlus.Services.PlusFolderServices;
+namespace GottaManagePlus.Utils;
 
 /// <summary>
-/// A service responsible for validating the integrity of the game's folder, likewise updating the database.
+/// A utils class that has many complex operations that can be done with the <see cref="PlusFolderDb"/>.
 /// </summary>
-public static partial class PlusFolderScanner
+public static partial class PlusFolderDbUtils
 {
     /// <summary>
     /// Checks whether the path given to the folder is legitimately a Baldi's Basics Plus folder.
     /// </summary>
     /// <param name="db">The database to check data from the game.</param>
     /// <param name="executablePath">The path to the executable of the game.</param>
+    /// <param name="updateDatabaseIfPathIsValid"><see langword="true"/> if the executable path should be updated.</param>
     /// <returns><see langword="true"/> if the folder is indeed correct; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// Every time this method is used, the database is updated to use the folder scanned through it.
     /// </remarks>
-    public static bool ValidateAndSetAsGameFolder(this PlusFolderDb db, string executablePath)
+    public static bool ValidateGameFolder(this PlusFolderDb db, string executablePath, bool updateDatabaseIfPathIsValid = true)
     {
         if (string.IsNullOrWhiteSpace(executablePath))
         {
@@ -88,12 +87,16 @@ public static partial class PlusFolderScanner
                 Log.Logger.Warning("Executable path does not contain globalgamemanagers binary file.");
                 return false;
             }
+
+            // If this is false, then no update.
+            if (!updateDatabaseIfPathIsValid) return true;
             
             // Update data
             db.BaldiDataFolder = baldiDataFolder;
             if (gameVersion != null)
                 db.GameVersion = gameVersion;
             db.RootPath = rootPath;
+
             return true;
         }
     }

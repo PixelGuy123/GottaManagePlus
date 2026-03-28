@@ -11,11 +11,18 @@ public class FileLauncher
     private ILauncher? _launcher;
     public void RegisterLauncher(ILauncher launcher) => _launcher = launcher;
 
+    /// <summary>
+    /// Attempts to launch a <see cref="FileInfo"/> into the explorer.
+    /// </summary>
+    /// <param name="fileInfo">The <see cref="FileInfo"/> instance to be launched.</param>
+    /// <returns><see langword="true"/> if the launch was successful; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="InvalidOperationException">If the launcher hasn't been registered yet.</exception>
     public async Task<bool> OpenFileInfo(FileInfo fileInfo)
     {
         if (_launcher == null) throw new InvalidOperationException("Launcher has not been registered yet.");
         return await _launcher.LaunchFileInfoAsync(fileInfo);
         
+        // 2026-28-03: Commented temporarily since there's an extension method I wanna test
         //
         // if (OperatingSystem.IsWindows())
         // {

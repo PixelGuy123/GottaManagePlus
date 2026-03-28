@@ -32,6 +32,7 @@ public static class ManifestLoader
     {
         // Locate _gmp/metadata.json
         var manifestPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, "manifest.json");
+        var metadataPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, ".metadata");
         if (!File.Exists(manifestPath))
         {
             logger.Warning("Missing _gmp{DirectorySeparatorChar}manifest.json", Path.DirectorySeparatorChar);
@@ -48,6 +49,16 @@ public static class ManifestLoader
             {
                 logger.Warning("Failed to deserialize metadata (null result).");
                 return null;
+            }
+            
+            // Look for .metadata file if it is available
+            if (File.Exists(metadataPath))
+            {
+                var newMetadata =
+                    JsonSerializer.Deserialize<ModMetadata>(
+                        await File.ReadAllTextAsync(metadataPath, cancellationToken), JsonOptions);
+                if (newMetadata != null)
+                    manifest.Metadata = newMetadata;
             }
 
             // Look for supported versions file
