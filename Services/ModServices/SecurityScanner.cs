@@ -45,7 +45,14 @@ public sealed class SecurityScanner(ILogger logger)
             var resourcePath = resource.LocalPath;
             progress?.Report(new ProgressReport(numOfTasks, allAssets.Length, "Scanning files:",
                 $"Checking \'{resource}\'"));
+
+            // Make the file info and check if it exists.
             var file = new FileInfo(resourcePath);
+            if (!file.Exists)
+            {
+                numOfTasks++;
+                continue;
+            }
 
             // Check if the plugin is suspicious
             if (isAPlugin)
