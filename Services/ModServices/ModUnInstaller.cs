@@ -1,6 +1,13 @@
+using Serilog;
+
 namespace GottaManagePlus.Services.ModServices;
 
-public static class ModUnInstaller
+public class ModUnInstaller
 {
-    
+    private readonly ILogger _logger;
+
+    public ModUnInstaller(ILogger logger)
+    {
+        _logger = logger;
+    }
 }

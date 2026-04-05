@@ -1,19 +1,62 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using GottaManagePlus.Models;
-using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
+using Serilog;
+using SharpCompress.Common;
+using SharpCompress.Compressors.Deflate;
+using SharpCompress.Writers;
 
 namespace GottaManagePlus.Services.ProfileServices.Writers;
 
-public class ProfileExporter : ProfileZipWriter
+/// <summary>
+/// A <c>.gmpProfile</c> generator for the profiles.
+/// </summary>
+public sealed class ProfileExporter(ILogger logger)
 {
-    protected override string FileExtension { get; } = Constants.ExportedProfileExtension;
-
-    protected override Task FinalizeDirectory(DirectoryInfo rootDirectory, string path, ProfileMetadata profile, PlusFolderBrowser browser,
-        IProgress<ProgressReport>? progress)
+    public const string FileExtension = Constants.ExportedProfileExtension;
+    public const ArchiveType ArchiveType = SharpCompress.Common.ArchiveType.GZip;
+    
+    // ----- Private API -----
+    private readonly ILogger _logger = logger;
+    
+    // ----- Public API -----
+    /// <summary>
+    /// Exports a profile in the <c>.gmpProfile</c> format.
+    /// </summary>
+    /// <param name="exportPath">The path to export the profile to.</param>
+    /// <param name="profile">The <see cref="ProfileMetadata"/> to be exported.</param>
+    /// <param name="controller">The controller to safely search the desired export path.</param>
+    /// <exception cref="IOException">Throws if the directory to the profile does not exist.</exception>
+    public void ExportProfileTo(string exportPath, ProfileMetadata profile, GameEnvironmentController controller)
     {
-        // TODO: Ensure the whole rootDirectory's content is zipped around another layer of compression 
-        throw new NotImplementedException();
+        try
+        {
+            // Get the path of the profile.
+            var physicalPath = profile.GetPhysicalPath(controller);
+
+            // Get the profile's directory.
+            var profileDir = new DirectoryInfo(physicalPath);
+            if (!profileDir.Exists) throw new IOException("Profile directory does not exist.");
+            
+            // If the profile's directory exists, then zip it up in a custom extension.
+            using var fileStream = File.OpenWrite(
+                             Path.Combine(exportPath, $"{profile.Name}{FileExtension}"));
+            
+            // Make the writer, then write the content to it.
+            using var writer = WriterFactory.OpenWriter(fileStream, ArchiveType,
+                new WriterOptions(CompressionType.LZMA, (int)CompressionLevel.BestSpeed));
+            
+            _logger.Information("Exporting profile to \'{dir}\'...", profileDir.FullName);
+            // Write the directory to the zip file.
+            writer.WriteAll(profileDir.FullName, "*", SearchOption.AllDirectories);
+            _logger.Information("Successfully exported profile to \'{dir}\'", profileDir.FullName);
+        }
+        catch (Exception e)
+        {
+            _logger.Error("Failed to export profile \'{profName}\' to \'{path}\'.\n{exception}", profile.Name, exportPath,
+                e);
+        }
     }
 }

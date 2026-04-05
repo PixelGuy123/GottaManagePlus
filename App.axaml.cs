@@ -25,17 +25,6 @@ public partial class App : Application
         // Collection creation
         var collection = new ServiceCollection();
         
-        // Setup Global Logging System
-        var logLocation = Path.Combine(Constants.ApplicationLocation, "Logs", DateTime.Now.ToLongTimeString() + ".log");
-
-        // Create the logger
-        Log.Logger = new LoggerConfiguration()
-#if  DEBUG
-            .WriteTo.Console()
-#endif
-            .WriteTo.File(logLocation)
-            .CreateLogger();
-        
         // Services to set up
         SetupConfiguration(collection);
         SetupSingletonServices(collection);

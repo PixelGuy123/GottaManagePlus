@@ -6,15 +6,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
-using Serilog.Core;
+using Serilog;
 
 namespace GottaManagePlus.Services.ModServices;
 
 /// <summary>
 /// A class in charge of generating a <see cref="ModManifest"/> instance from a given path.
 /// </summary>
-public static class ManifestLoader
+public sealed class ManifestLoader(ILogger logger)
 {
+    // ---- Private API -----
+    private readonly ILogger _logger = logger;
+    
+    // ---- Public API ----
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         TypeInfoResolver = ModManifestContext.Default
@@ -24,18 +28,17 @@ public static class ManifestLoader
     /// Loads a metadata file based on the path: <c>archiveRoot/_gmp/manifest.json</c>.
     /// </summary>
     /// <param name="modRootPath">The file to be handled.</param>
-    /// <param name="logger">The logger to register the procedure.</param>
     /// <param name="progress">The progress to be reported back.</param>
     /// <param name="cancellationToken">The token, in case the process is canceled.</param>
     /// <returns>Returns a <see cref="ModManifest"/> with the manifest generated.</returns>
-    public static async Task<ModManifest?> LoadMetadataAsync(string modRootPath, Logger logger, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
+    public async Task<ModManifest?> LoadMetadataAsync(string modRootPath, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
         // Locate _gmp/metadata.json
         var manifestPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, "manifest.json");
         var metadataPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, ".metadata");
         if (!File.Exists(manifestPath))
         {
-            logger.Warning("Missing _gmp{DirectorySeparatorChar}manifest.json", Path.DirectorySeparatorChar);
+            _logger.Warning("Missing _gmp{DirectorySeparatorChar}manifest.json", Path.DirectorySeparatorChar);
             return null;
         }
 
@@ -47,7 +50,7 @@ public static class ManifestLoader
             var manifest = JsonSerializer.Deserialize<ModManifest>(json, JsonOptions);
             if (manifest == null)
             {
-                logger.Warning("Failed to deserialize metadata (null result).");
+                _logger.Warning("Failed to deserialize metadata (null result).");
                 return null;
             }
             
@@ -81,7 +84,7 @@ public static class ManifestLoader
         }
         catch (Exception ex)
         {
-            logger.Error("Error loading manifest.\n{Exception}", ex);
+            _logger.Error("Error loading manifest.\n{Exception}", ex);
             return null;
         }
     }

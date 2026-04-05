@@ -1,30 +1,35 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GottaManagePlus.Models;
-using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
 using Serilog;
 using SharpCompress.Archives;
 
 namespace GottaManagePlus.Services.ProfileServices.Extractors;
 
 /// <summary>
-/// A static class specialized in extracting the profile.
+/// A class specialized in extracting the profile.
 /// </summary>
-public static class ProfileZipExtractor
+public sealed class ProfileZipExtractor(ILogger logger)
 {
+    private readonly ILogger _logger = logger;
+    
     /// <summary>
     /// Extracts a profile to its designated path. Usually used to extract profile's content back to the game's folder.
     /// </summary>
     /// <param name="metadata">The metadata to be used in the process.</param>
     /// <param name="profilePath"></param>
     /// <param name="extractToPath"></param>
-    /// <param name="browser"></param>
-    /// <param name="progress"></param>
+    /// <param name="controller">The environment controller for path resolution.</param>
+    /// <param name="progress">The progress to be reported</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public static async Task<bool> ExtractProfile(ProfileMetadata metadata, string profilePath, string extractToPath, PlusFolderBrowser browser, IProgress<ProgressReport>? progress)
+    public async Task<bool> ExtractProfile(ProfileMetadata metadata, string profilePath, string extractToPath, GameEnvironmentController controller, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
         const string fileExtension = ".zip";
         // Profile Structure:
@@ -47,7 +52,7 @@ public static class ProfileZipExtractor
             throw new ArgumentException("Given profile path is not a directory.");
 
         // Create the file info for this purpose
-        var zipFile = new FileInfo(browser.SearchAbsolutePath(
+        var zipFile = new FileInfo(controller.SearchAbsolutePath(
             profilePath, $"{metadata.Name}{fileExtension}"));
         
         // The zip file must exist first, obviously.
@@ -56,6 +61,7 @@ public static class ProfileZipExtractor
         
         // Make temporary directory
         DirectoryInfo? temporaryDirectory = null;
+        var backupDir = Path.Combine(controller.CurrentEnvironment!.RootPath, Constants.BackupDir);
 
         try
         {
@@ -76,21 +82,25 @@ public static class ProfileZipExtractor
             // Read the entries and extract them to the temporary directory (expected directories only)
             foreach (var archiveEntry in reader.Entries)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 progress?.Report(
                     new ProgressReport(entriesSeen, entryCount, 
                         "Extracting", $"\'{Path.GetFileName(archiveEntry.Key)}\'..."));
-                await archiveEntry.WriteToDirectoryAsync(temporaryDirectory.FullName);
+                await archiveEntry.WriteToDirectoryAsync(temporaryDirectory.FullName, cancellationToken: cancellationToken);
                 entriesSeen++;
             }
             
             // ---- EXTRACTION TIME ----
-            // Check for known directories to delete them
-            TryToDeleteDirectory(browser.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder), false);
-            TryToDeleteDirectory(browser.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder), false);
-            TryToDeleteDirectory(browser.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder), false);
-            // Check for asset directories to delete them as well
+            // Backup and delete known directories
+            BackupAndDelete(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder), backupDir);
+            BackupAndDelete(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder), backupDir);
+            BackupAndDelete(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder), backupDir);
+            // Backup and delete asset directories
             foreach (var asset in metadata.ModDataFiles.SelectMany(mod => mod.Assets))
-                TryToDeleteDirectory(browser.SearchAbsolutePath(asset.MovedAsset), true);
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                BackupAndDelete(controller.SearchAbsolutePath(asset.MovedAsset), backupDir);
+            }
 
             // Now, select the stuff inside the temporary directory and move it to the game's folder.
             // Get the directories inside only.
@@ -98,6 +108,7 @@ public static class ProfileZipExtractor
             // Then, move all the profile folders to the path selected.
             for (var i = 0; i < directories.Length; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var entry = directories[i];
                 // Report progress
                 progress?.Report(new ProgressReport(i, directories.Length, 
@@ -107,27 +118,12 @@ public static class ProfileZipExtractor
             }
 
             return true;
-
-            static void TryToDeleteDirectory(string dirPath, bool deleteDirItself)
-            {
-                if (deleteDirItself)
-                {
-                    // Delete the directory itself
-                    if (Directory.Exists(dirPath))
-                        Directory.Delete(dirPath, true);
-                    return;
-                }
-                
-                // CLear up the content of the directory
-                foreach (var file in Directory.EnumerateFiles(dirPath))
-                    File.Delete(file);
-                foreach (var dir in Directory.EnumerateDirectories(dirPath))
-                    Directory.Delete(dir, true);
-            }
         }
         catch (Exception e)
         {
-            Log.Logger.Error("Failed to extract the profile content.\n{exception}", e);
+            _logger.Error("Failed to extract the profile content.\n{exception}", e);
+            // Restore from backup
+            RestoreFromBackup(backupDir, controller.CurrentEnvironment.RootPath);
             return false;
         }
         finally
@@ -136,10 +132,36 @@ public static class ProfileZipExtractor
             {
                 if (temporaryDirectory is { Exists: true })
                     temporaryDirectory.Delete(recursive: true);
+                // Clean up backup after successful extraction or after restore
+                if (Directory.Exists(backupDir))
+                    Directory.Delete(backupDir, true);
             }
             catch 
             { 
                 // suppress
+            }
+        }
+        // Local Functions
+        void BackupAndDelete(string dirPath, string backupRoot)
+        {
+            if (!Directory.Exists(dirPath)) return;
+            
+            var backupPath = Path.Combine(backupRoot, Path.GetFileName(dirPath));
+            if (Directory.Exists(backupPath))
+                Directory.Delete(backupPath, true);
+            Directory.Move(dirPath, backupPath);
+        }
+
+        void RestoreFromBackup(string backupRoot, string rootPath)
+        {
+            if (!Directory.Exists(backupRoot)) return;
+            
+            foreach (var dir in Directory.EnumerateDirectories(backupRoot))
+            {
+                var originalPath = Path.Combine(rootPath, Path.GetFileName(dir));
+                if (Directory.Exists(originalPath))
+                    Directory.Delete(originalPath, true);
+                Directory.Move(dir, originalPath);
             }
         }
     }

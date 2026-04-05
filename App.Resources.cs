@@ -8,7 +8,8 @@ namespace GottaManagePlus;
 public enum PageNames
 {
     Home,
-    Settings
+    Settings,
+    Profiles
 }
 
 public static class Constants
@@ -29,6 +30,8 @@ public static class Constants
 
     // The path to this GMP instance
     public static readonly string ApplicationLocation = Assembly.GetExecutingAssembly().Location;
+    // The backup directory based on call
+    public static string BackupDir => "_gmp_backup_" + DateTime.Now.Ticks;
     
     // Extensions and names that the app uses
     public const string 

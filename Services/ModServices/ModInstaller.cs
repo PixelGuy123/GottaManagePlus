@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
-using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using Serilog;
 
 namespace GottaManagePlus.Services.ModServices;
@@ -15,24 +15,28 @@ namespace GottaManagePlus.Services.ModServices;
 /// Coordinates the complete end-to-end process of installing a mod from a compressed archive file
 /// into the target game folder.
 /// </summary>
-public class ModInstaller
+public sealed class ModInstaller(
+    ILogger logger,
+    ModArchiveExtractor modArchiveExtractor,
+    ManifestLoader manifestLoader,
+    SecurityScanner securityScanner,
+    ResourceInstaller resourceInstaller)
 {
-    public static async Task<ModInstallationResult> InstallModAsync(
+    // ---- Private API -----
+    private readonly ILogger _logger = logger;
+    private readonly ModArchiveExtractor _modArchiveExtractor = modArchiveExtractor;
+    private readonly ManifestLoader _manifestLoader = manifestLoader;
+    private readonly SecurityScanner _securityScanner = securityScanner;
+    private readonly ResourceInstaller _resourceInstaller = resourceInstaller;
+    
+    // ---- Public API ----
+    public async Task<ModInstallationResult> InstallModAsync(
         string archivePath,
-        PlusFolderBrowser browser,
         IProgress<ProgressReport>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        // 1. Create a logger for this phase.
-        await using var modLogger = new LoggerConfiguration()
-#if DEBUG
-            .WriteTo.Console()
-#endif
-            .WriteTo.File(Path.Combine(Constants.ApplicationLocation, "Logs", "ModInstallation_" + DateTime.Now.ToLongTimeString() + ".log"))
-            .CreateLogger();
-        
         // Log initiation
-        modLogger.Information("Initiating installation of {modName}...", 
+        _logger.Information("Initiating installation of {modName}...", 
             Path.GetFileNameWithoutExtension(archivePath));
         
         // Create a temporary dir
@@ -43,24 +47,24 @@ public class ModInstaller
         {
             // 2. First, we need to physically extract the archive to somewhere, so that
             // file manipulation can be performed.
-            temporaryDirectory = await ModArchiveExtractor.ExtractToTempAsync(archivePath, modLogger, progress);
+            temporaryDirectory = await _modArchiveExtractor.ExtractToTempAsync(archivePath, progress, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested(); // Between each step, a cancellation token check is done.
             
             // It wasn't a success, so return earlier
             if (string.IsNullOrEmpty(temporaryDirectory))
             {
-                modLogger.Warning("Directory is empty! Failed to generate a directory for the archive.");
+                _logger.Warning("Directory is empty! Failed to generate a directory for the archive.");
                 return results;
             }
 
             // 3. Then, we ought to generate a manifest representation of the mod to understand its structure.
             var manifest =
-                await ManifestLoader.LoadMetadataAsync(temporaryDirectory, modLogger, progress, cancellationToken);
+                await _manifestLoader.LoadMetadataAsync(temporaryDirectory, progress, cancellationToken);
 
             if (manifest == null)
             {
-                modLogger.Warning("Manifest is null!");
+                _logger.Warning("Manifest is null!");
                 return results;
             }
             
@@ -69,22 +73,22 @@ public class ModInstaller
             // 4. After the manifest is scanned, we can start by checking the plugins and assets:
             // do they contain any suspicious files?
             // TODO: Add an option to forcefully cancel the installation in case security scan gets something weird.
-            await SecurityScanner.ScanAsync(temporaryDirectory, results, modLogger, progress, manifest, cancellationToken);
+            await _securityScanner.ScanAsync(temporaryDirectory, results, progress, manifest, cancellationToken);
             
             // 5. After scanning, after getting manifest, we have everything ready:
             // now move the files (told by the manifest) to the right places.
-            ResourceInstaller.InstallResources(temporaryDirectory, modLogger, browser, manifest);
+            _resourceInstaller.InstallResources(temporaryDirectory, manifest);
             
             // 6. Yay!
-            modLogger.Information("Installation done with success!");
+            _logger.Information("Installation done with success!");
         }
         catch (OperationCanceledException)
         {
-            modLogger.Warning("Mod installation canceled!");
+            _logger.Warning("Mod installation canceled!");
         }
         catch (Exception e)
         {
-            modLogger.Error("Unknown error broke the installation!\n{exception}", e);
+            _logger.Error("Unknown error broke the installation!\n{exception}", e);
         }
         finally // On the end, always delete the temporary directory
         {

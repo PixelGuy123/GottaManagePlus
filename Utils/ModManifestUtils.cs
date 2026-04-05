@@ -5,7 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
-using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
 
 namespace GottaManagePlus.Utils;
 
@@ -61,10 +61,10 @@ public static class ModManifestUtils
     /// Get the path from a <see cref="ModManifest"/> instance using its own attributes.
     /// </summary>
     /// <param name="manifest">The manifest to be exposed.</param>
-    /// <param name="browser">The browser for controlled search.</param>
+    /// <param name="controller">The controller for controlled search.</param>
     /// <returns>A <see cref="string"/> with the proper path to the right folder.</returns>
-    public static string GetPluginDirectoryFromManifest(this ModManifest manifest, PlusFolderBrowser browser) =>
-        browser.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder, manifest.Name);
+    public static string GetPluginDirectoryFromManifest(this ModManifest manifest, GameEnvironmentController controller) =>
+        controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder, manifest.Name);
 
     /// <summary>
     /// Gather all the assets and plugins registered in the manifest in a single array.

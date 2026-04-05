@@ -2,39 +2,52 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Interfaces.ProfileManagement;
+using GottaManagePlus.Models;
 using GottaManagePlus.Services;
+using GottaManagePlus.Services.ExplorerServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Services.ProfileServices;
+using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.ViewModels;
 
-public partial class ProfilesViewModel : ViewModelBase, IDisposable
+public partial class ProfilesViewModel : PageViewModel, IDisposable
 {
+    // ---- Private API ----
     private readonly DialogService _dialogService = null!;
-    private readonly IProfileProvider _profileProvider = null!;
-    private readonly IGameFolderViewer _gameFolderViewer = null!;
+    private readonly ProfileManager _profileManager = null!;
     private readonly SettingsService _settingsService = null!;
-    private readonly IFilesService _filesService = null!;
-    private readonly List<ProfileItem> _allProfiles = [];
-    private ProfileItem? _lastSelectedItem;
-
-    public event Action<IProfileProvider>? AfterProfileUpdate;
+    private readonly ProfileRepository _profileRepository = null!;
+    private readonly IProfileExportController _profileExportController = null!;
+    private readonly IProfileDestructor _destructor = null!;
+    private readonly IProfileCreator _profileCreator = null!;
+    private readonly IProfileCloner _profileCloner = null!;
+    private readonly GameEnvironmentController _environmentController = null!;
+    private readonly DirectoryLauncher _directoryLauncher = null!;
+    
+    // Getters
+    private readonly Dictionary<int, ProfileMetadata> _allProfiles = [];
+    private void FillUpAllProfiles(IEnumerable<ProfileMetadata>? profiles) { _allProfiles.Clear(); var index = 0; foreach (var profile in profiles ?? []) _allProfiles.Add(index++, profile); }
     
     // Observable Properties
     [ObservableProperty] 
-    private ObservableCollection<ProfileItem> _observableUnchangedProfiles = [];
+    private ObservableCollection<ProfileMetadata> _observableUnchangedProfiles = [];
     [ObservableProperty] 
-    private ObservableCollection<ProfileItem> _observableProfiles = [];
+    private ObservableCollection<ProfileMetadata> _observableProfiles = [];
     [ObservableProperty]
-    private ProfileItem? _currentProfileItem;
+    private ProfileMetadata? _currentProfileMetadata;
     [ObservableProperty]
     private string? _text;
     
     // From the generator. https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/observableproperty
-    partial void OnCurrentProfileItemChanged(ProfileItem? value) => UpdateProfilesList(value); 
+    partial void OnCurrentProfileMetadataChanged(ProfileMetadata? value) => UpdateProfilesList(value); 
     
     [RelayCommand]
     public void ResetSearch() => Text = null;
@@ -52,40 +65,168 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
     public async Task SwitchToProfile(int id) => await SwitchProfileUiAsync(id);
 
     // Previewer Constructor
-    public ProfilesViewModel()
+    public ProfilesViewModel() : base(PageNames.Profiles)
     {
         if (!Design.IsDesignMode) return;
         
         // Initialize Data
-        _allProfiles =
-        [
-            new ProfileItem(0, "Profile 1"),
-            new ProfileItem(1, "Profile 2"),
-            new ProfileItem(2, "Profile 3"),
-            new ProfileItem(3, "The Ultimate ModPack"),
-            new ProfileItem(4, "Biggest Modpack ever"),
-            new ProfileItem(5, "Funny mod pack with the longest trollest biggest hugest name that you've ever seen.")
-        ];
+        FillUpAllProfiles([
+        new ProfileMetadata 
+        { 
+            Name = "Baldi's Basics Ultimate Mod Pack", 
+            EstimatedBytesLength = 4523000, 
+            Description = "A comprehensive collection of all major gameplay enhancements for Baldi's Basics.", 
+            CreationDate = DateTime.Now.AddYears(-1).AddMonths(2), 
+            LastUpdateDate = DateTime.Now.AddDays(-5) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "No More Chasing Mode", 
+            EstimatedBytesLength = 120500, 
+            Description = "Removes Baldi from chasing you entirely. Use at your own risk!", 
+            CreationDate = DateTime.Now.AddMonths(6), 
+            LastUpdateDate = DateTime.Now.AddDays(-1) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Speedy Runners Only", 
+            EstimatedBytesLength = 89000, 
+            Description = "Increases player movement speed by 200% and reduces stamina drain.", 
+            CreationDate = DateTime.Now.AddMonths(3), 
+            LastUpdateDate = DateTime.Now.AddDays(-12) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Classic 1997 Skin Pack", 
+            EstimatedBytesLength = 2340000, 
+            Description = "Restores original textures and sounds from the very first demo release.", 
+            CreationDate = DateTime.Now.AddYears(1), 
+            LastUpdateDate = DateTime.Now.AddMonths(-1) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Math Problem Chaos", 
+            EstimatedBytesLength = 156000, 
+            Description = "Changes all math problems to be unsolvable without a calculator item.", 
+            CreationDate = DateTime.Now.AddMonths(8), 
+            LastUpdateDate = DateTime.Now.AddDays(-3) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Gotta Go Fast (True)", 
+            EstimatedBytesLength = 98000, 
+            Description = "An experimental profile that removes all obstacles and doors in the school.", 
+            CreationDate = DateTime.Now.AddDays(15), 
+            LastUpdateDate = DateTime.Now 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Principal's Office Escape", 
+            EstimatedBytesLength = 340000, 
+            Description = "Shortens the time required to escape the principal's office significantly.", 
+            CreationDate = DateTime.Now.AddMonths(2), 
+            LastUpdateDate = DateTime.Now.AddDays(-7) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Hidden Items Revealer", 
+            EstimatedBytesLength = 67000, 
+            Description = "Highlights hidden notebooks and items on the map automatically.", 
+            CreationDate = DateTime.Now.AddMonths(1), 
+            LastUpdateDate = DateTime.Now.AddDays(-20) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Randomized Hallway Layout", 
+            EstimatedBytesLength = 450000, 
+            Description = "Shuffles hallway connections every time you enter a new room for maximum confusion.", 
+            CreationDate = DateTime.Now.AddYears(1).AddMonths(6), 
+            LastUpdateDate = DateTime.Now.AddDays(-45) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Audio Overhaul", 
+            EstimatedBytesLength = 1890000, 
+            Description = "Replaces all sound effects with high-quality remastered audio tracks.", 
+            CreationDate = DateTime.Now.AddMonths(4), 
+            LastUpdateDate = DateTime.Now.AddDays(-2) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Infinite Notebook Spawns", 
+            EstimatedBytesLength = 22000, 
+            Description = "Notebooks spawn infinitely in random locations to help you reach 100% completion easily.", 
+            CreationDate = DateTime.Now.AddDays(5), 
+            LastUpdateDate = DateTime.Now 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Glitchy Reality", 
+            EstimatedBytesLength = 560000, 
+            Description = "Introduces visual glitches and texture flickering to mimic a corrupted game file.", 
+            CreationDate = DateTime.Now.AddMonths(5), 
+            LastUpdateDate = DateTime.Now.AddDays(-10) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Quiet School", 
+            EstimatedBytesLength = 110000, 
+            Description = "Silences all background music and ambient noise for a spooky atmosphere.", 
+            CreationDate = DateTime.Now.AddMonths(12), 
+            LastUpdateDate = DateTime.Now.AddDays(-8) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Hardcore Survival", 
+            EstimatedBytesLength = 78000, 
+            Description = "One hit kills you if you don't collect enough sanity items. No second chances.", 
+            CreationDate = DateTime.Now.AddMonths(7), 
+            LastUpdateDate = DateTime.Now.AddDays(-1) 
+        },
+        new ProfileMetadata 
+        { 
+            Name = "Community Favorites Vol. 1", 
+            EstimatedBytesLength = 3200000, 
+            Description = "A curated list of the top-rated community mods combined into one seamless experience.", 
+            CreationDate = DateTime.Now.AddYears(1).AddMonths(3), 
+            LastUpdateDate = DateTime.Now.AddDays(-15) 
+        }
+    ]);
         
         // Initialize collections
-        ObservableProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
-        ObservableUnchangedProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
-
-        _profileProvider = new ProfileProvider(null!);
+        ObservableProfiles = new ObservableCollection<ProfileMetadata>(_allProfiles.Values);
+        ObservableUnchangedProfiles = new ObservableCollection<ProfileMetadata>(_allProfiles.Values);
     }
     
     // DI Constructor
-    public ProfilesViewModel(DialogService dialogService, ProfileProvider profileProvider, FilesService filesService, SettingsService settingsService, PlusFolderViewer plusFolderViewer)
+    public ProfilesViewModel(
+        DialogService dialogService, 
+        ProfileManager profileManager, 
+        DirectoryLauncher directoryLauncher,
+        SettingsService settingsService,
+        ProfileRepository profileRepository,
+        IProfileExportController profileExportController,
+        IProfileDestructor destructor,
+        IProfileCreator profileCreator,
+        IProfileCloner profileCloner,
+        GameEnvironmentController environmentController) : base(PageNames.Profiles)
     {
         if (Design.IsDesignMode) return;
         
         // Services
         _dialogService = dialogService;
-        _filesService = filesService;
+        _directoryLauncher = directoryLauncher;
         _settingsService = settingsService;
-        _gameFolderViewer = plusFolderViewer;
-        _profileProvider = profileProvider;
-        _profileProvider.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
+        _profileRepository = profileRepository;
+        _profileExportController = profileExportController;
+        _destructor = destructor;
+        _profileCreator = profileCreator;
+        _profileCloner = profileCloner;
+        _environmentController = environmentController;
+        _profileManager = profileManager;
+        
+        // Event Listening
+        _profileRepository.OnProfilesUpdate += ProfilesProvider_OnProfilesUpdate;
         
         // Update profile data on random thread
         Dispatcher.UIThread.InvokeAsync(() => WaitToUpdateData(_settingsService.CurrentSettings.CurrentProfileSet), DispatcherPriority.Loaded);
@@ -94,59 +235,38 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _profileProvider.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
+        _profileRepository.OnProfilesUpdate -= ProfilesProvider_OnProfilesUpdate;
     }
     
-    private void ProfilesProvider_OnProfilesUpdate(IProfileProvider provider)
+    private void ProfilesProvider_OnProfilesUpdate(ProfileRepository provider)
     {
         // Initialize Data
         Dispatcher.UIThread.Post(() => 
         {
-            _allProfiles.Clear();
-            _allProfiles.AddRange(_profileProvider.GetLoadedProfiles());
-
-            ObservableUnchangedProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
+            // Fill up the profiles with new IDs
+            FillUpAllProfiles(provider.GetAll());
+            ObservableUnchangedProfiles = new ObservableCollection<ProfileMetadata>(_allProfiles.Values);
             
             ResetListVisibleConfigurations();
             
             // Update profile settings
-            _settingsService.CurrentSettings.CurrentProfileSet = _profileProvider.GetInstanceActiveProfile().ProfileName;
-            
-            // Update other view models subscribed to this event
-            AfterProfileUpdate?.Invoke(provider);
+            _settingsService.CurrentSettings.CurrentProfileSet = _profileManager.ActiveProfile?.Name ?? ProfileMetadata.DefaultName;
         });
     }
     
     // Private methods
-    private void UpdateProfilesList(ProfileItem? highlightedItem)
+    private void UpdateProfilesList(ProfileMetadata? highlightedItem)
     {
         // If item is not null, insert it at the top
         if (highlightedItem != null)
         {
-            // Fix last selected item if needed
-            int index;
-            if (_lastSelectedItem != null)
-            {
-                index = _allProfiles.IndexOf(_lastSelectedItem);
-                if (index != -1)
-                {
-                    ObservableProfiles.RemoveAt(0); // Presumably where the selected item is located at
-                    ObservableProfiles.Insert(index, _lastSelectedItem);
-                }
-            }
-
-            _lastSelectedItem = highlightedItem;
-            index = ObservableProfiles.IndexOf(highlightedItem);
-            if (index != -1)
-            {
-                ObservableProfiles.RemoveAt(index);
-                ObservableProfiles.Insert(0, highlightedItem);
-                return;
-            }
+            ObservableProfiles = new ObservableCollection<ProfileMetadata>(
+                ObservableProfiles.OrderByDescending(profile => highlightedItem.Name.ManyStartWith(profile.Name)
+                ));
+            return;
         }
         // If highlighted item is null or not found, just reset the whole list
-        _lastSelectedItem = null;
-        ObservableProfiles = new ObservableCollection<ProfileItem>(_allProfiles);
+        ObservableProfiles = new ObservableCollection<ProfileMetadata>(_allProfiles.Values);
     }
 
     private void ResetListVisibleConfigurations() // Basically reset the observable list
@@ -157,8 +277,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
 
     private async Task OpenProfileMetaDataAndHandleActions(int id)
     {
-        var index = _allProfiles.FindIndex(item => item.Id == id);
-        if (index == -1) // If the item doesn't exist, skip
+        if (!_allProfiles.TryGetValue(id, out var profile)) // If the item doesn't exist, skip
         {
             var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             confirmDialog.Prepare(true, Constants.FailDialog, $"Failed to open the profile.\nFor some reason, their id ({id}) wasn't found!");
@@ -166,44 +285,32 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        if (_allProfiles[index].IsProfileMissingMetadata)
-        {
-            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            confirmDialog.Prepare(true, Constants.WarningDialog, """
-                          The profile you're attempting to open is missing its metadata! 
-                          If you want to know what's inside it, you will need to load this profile.
-                          Don't worry, your currently active profile will be saved.
-                          """);
-            await _dialogService.ShowDialog(confirmDialog);
-            return;
-        }
-
         // Create profile viewer
         var profileViewer = _dialogService.GetDialog<PreviewProfileDialogViewModel>();
-        
         
         // Loop until the dialog is truly closed
         while (true)
         {
             // Prepare viewer before showing again
             profileViewer.Prepare(
-                _allProfiles[index], 
+                profile, 
                 _allProfiles.Count > 1, 
-                _filesService,
-                _dialogService);
+                _directoryLauncher,
+                _dialogService,
+                _environmentController);
             await _dialogService.ShowDialog(profileViewer);
             
             if (profileViewer.ShouldDeleteProfile)
             {
                 // If deleting the item works, then we don't need to loop back
-                if (await DeleteProfileItemUiAsync(id)) break;
+                if (await DeleteProfileMetadataUiAsync(id)) break;
 
                 continue; // Loop back, since that wasn't a normal close
             }
 
             if (profileViewer.ShouldExportProfile)
             {
-                await ExportProfileItem(id);
+                await ExportProfileMetadata(id);
                 continue;
             }
 
@@ -218,12 +325,12 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async Task ExportProfileItem(int index)
+    private async Task ExportProfileMetadata(int index)
     {
         var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
         confirmViewModel.Prepare(
             null,
-            $"Export {_allProfiles[index].ProfileName}?",
+            $"Export {_allProfiles[index].Name}?",
             "Are you sure you want to export this profile?",
             "Yes",
             "No"
@@ -237,7 +344,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return;
         
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Profile Export", "Exporting profile...", (Delegate)_profileProvider.ExportProfile, index);
+        loadingDialog.Prepare("Profile Export", "Exporting profile...", (Delegate)_profileExportController.ExportProfile, _allProfiles[index]);
         
         if (!await _dialogService.ShowDialog(loadingDialog))
         {
@@ -248,18 +355,15 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return;
         }
         // Success action (open the export)
-        await _filesService.OpenDirectoryInfo(new DirectoryInfo(_gameFolderViewer.SearchPath(
-            _gameFolderViewer.GetPathFrom(IGameFolderViewer.CommonDirectory.ManagerRoot),
-            Constants.ProfileExportFolder
-            )));
+        await _directoryLauncher.OpenDirectoryInfo(new DirectoryInfo(_environmentController.GetOrCreateProfilesExportFolderPath()));
     }
     
-    private async Task<bool> DeleteProfileItemUiAsync(int index) // Delete asynchronously the items
+    private async Task<bool> DeleteProfileMetadataUiAsync(int index) // Delete asynchronously the items
     {
         var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
         confirmViewModel.Prepare(
             null,
-            $"Delete {_allProfiles[index].ProfileName}?",
+            $"Delete {_allProfiles[index].Name}?",
             "Are you sure you want to delete this profile?",
             "Yes",
             "No"
@@ -273,7 +377,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             return false;
         
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Deleting profile...", null, (Delegate)_profileProvider.DeleteProfile, index);
+        loadingDialog.Prepare("Deleting profile...", null, (Delegate)_destructor.DeleteProfile, _allProfiles[index]);
         
         if (await _dialogService.ShowDialog(loadingDialog))
         {
@@ -295,9 +399,9 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         // Create the profile creation dialog and display
         var creatingPfDialog = _dialogService.GetDialog<CreateProfileDialogViewModel>();
         creatingPfDialog.Prepare(
-            _filesService, // File service
-            _profileProvider.GetLoadedProfiles() // Get the loaded profiles
-            .Select(p => p.ProfileName)); // Select the names for these profiles
+            _directoryLauncher, // File service
+            _profileRepository.GetAll() // Get the loaded profiles
+            .Select(p => p.Name)); // Select the names for these profiles
         await _dialogService.ShowDialog(creatingPfDialog);
 
         // If no creation was requested, cancel
@@ -307,7 +411,7 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
         // By default, save the current profile, since we're switching to another profile
         // Save previous profile
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving currently active profile...", null, (Delegate)_profileProvider.SaveActiveProfile);
+        loadingDialog.Prepare("Saving currently active profile...", null, (Delegate)_profileManager.SaveActiveProfile);
         
         if (!await _dialogService.ShowDialog(loadingDialog))
         {
@@ -329,8 +433,8 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             case 0:
                 // Creates profile with name
                 loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-                loadingDialog.Prepare("Creating new profile...", null, (Delegate)_profileProvider.AddProfile,
-                    creatingPfDialog.ProfileName, // Profile name
+                loadingDialog.Prepare("Creating new profile...", null, (Delegate)_profileCreator.CreateProfile,
+                    new ProfileMetadata { Name = creatingPfDialog.ProfileName ?? "Another Profile" }, // Profile name
                     true); // Destroy exiting storage
                 
                 // If it worked, success dialog; otherwise, fail dialog
@@ -351,9 +455,9 @@ public partial class ProfilesViewModel : ViewModelBase, IDisposable
             case 1:
                 // Creates profile with name
                 loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-                loadingDialog.Prepare("Cloning profile...", "Selecting profile and cloning it...", (Delegate)_profileProvider.CloneProfile,
-                        creatingPfDialog.CloneProfileName, // Profile name
-                        creatingPfDialog.ProfileIndexToClone); // Destroy exiting storage
+                loadingDialog.Prepare("Cloning profile...", "Selecting profile and cloning it...",
+                    (Delegate)_profileCloner.CloneProfile,
+                    creatingPfDialog.CloneProfileName); // Profile name
                 
                 // If it worked, success dialog; otherwise, fail dialog
                 if (!await _dialogService.ShowDialog(loadingDialog))

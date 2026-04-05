@@ -1,39 +1,42 @@
 using System;
 using System.Collections.Generic;
 using GottaManagePlus.Models;
-using GottaManagePlus.Utils;
 using Serilog;
 
 namespace GottaManagePlus.Services.ProfileServices;
 
-public sealed class ProfileMemoryDb
+/// <summary>
+/// A singleton service responsible for holding in-memory every profile available.
+/// </summary>
+public sealed class ProfileRepository(ILogger logger)
 {
     // ----- Private API ------
     private readonly List<ProfileMetadata> _profiles = new(8);
+    private readonly ILogger _logger = logger;
     
     // ------ Public API ------
     /// <summary>
     /// Raised when any action (clear, add, remove) is invoked.
     /// </summary>
-    public event Action<ProfileMemoryDb>? OnProfilesUpdate;
+    public event Action<ProfileRepository>? OnProfilesUpdate;
     
     /// <summary>
-    /// Returns a readonly collection of profiles inside the database.
+    /// Returns a readonly collection of profiles inside the repository.
     /// </summary>
     /// <returns>Returns an instance of <see cref="IReadOnlyList{ProfileItem}"/>.</returns>
-    public IReadOnlyList<ProfileMetadata> GetProfiles() => _profiles;
+    public IReadOnlyList<ProfileMetadata> GetAll() => _profiles;
 
     /// <summary>
-    /// Whether the database is empty or not.
+    /// Whether the repository is empty or not.
     /// </summary>
     public bool IsEmpty => _profiles.Count == 0;
 
     /// <summary>
     /// Clears out the list of profiles in-memory.
     /// </summary>
-    public void ClearProfiles()
+    public void Clear()
     {
-        Log.Logger.Information("Cleared out profiles global list.");
+        _logger.Information("Cleared out profiles global list.");
         // Clear profiles list
         _profiles.Clear();
         
@@ -42,18 +45,18 @@ public sealed class ProfileMemoryDb
     }
 
     /// <summary>
-    /// Adds a profile to the database.
+    /// Adds a profile to the repository.
     /// </summary>
     /// <param name="profile">The profile to be included.</param>
     /// <returns><see langword="true"/> if the inclusion was successful; otherwise, <see langword="false"/>.</returns>
-    public bool AddProfile(ProfileMetadata profile)
+    public bool Add(ProfileMetadata profile)
     {
         // Check if there's already a profile with same name
-        if (ProfileExists(profile))
+        if (Exists(profile))
             return false;
         
         // Register it
-        Log.Logger.Information("Added profile \'{Profile}\' to the database.", profile.Name);
+        _logger.Information("Added profile \'{Profile}\' to the repository.", profile.Name);
         _profiles.Add(profile);
         
         // Invoke update
@@ -62,20 +65,27 @@ public sealed class ProfileMemoryDb
     }
     
     /// <summary>
-    /// Removes the profile from the database.
+    /// Removes the profile from the repository.
     /// </summary>
-    /// <param name="profileIndex">The index to select and remove.</param>
-    /// <exception cref="IndexOutOfRangeException">In case the index value is invalid to the database.</exception>
-    public void DeleteProfile(int profileIndex)
+    /// <param name="profile">The profile to be removed.</param>
+    public void Delete(ProfileMetadata profile)
     {
-        if (!_profiles.IsIndexInBounds(profileIndex))
-            throw new IndexOutOfRangeException($"profileIndex ({profileIndex}) is out of range.");
-
+        // Try to locate the profile.
+        var index = _profiles.IndexOf(profile);
+        if (index == -1)
+        {
+            _logger.Warning("Attempted to remove unexistent profile from repository (\'{profile}\')",profile.Name);
+            return;
+        }
+        
+        // Remove the profile
+        var profileName = _profiles[index].Name;
+        _profiles.RemoveAt(index);
+        
+        _logger.Information("Removed profile \'{Profile}\' from repository.", profileName);
+        
         // Invoke update
         OnProfilesUpdate?.Invoke(this);
-        
-        Log.Logger.Information("Removed profile \'{Profile}\' from database.", _profiles[profileIndex].Name);
-        _profiles.RemoveAt(profileIndex);
     }
 
     /// <summary>
@@ -83,7 +93,7 @@ public sealed class ProfileMemoryDb
     /// </summary>
     /// <param name="metadata"></param>
     /// <returns></returns>
-    public bool ProfileExists(ProfileMetadata metadata) =>
+    public bool Exists(ProfileMetadata metadata) =>
         _profiles.Exists(p =>
             p.Name.Equals(metadata.Name, StringComparison.OrdinalIgnoreCase));
 }

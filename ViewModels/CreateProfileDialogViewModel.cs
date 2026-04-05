@@ -92,6 +92,8 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         
         // Set as import path
         ProfileImportPath = file?.TryGetLocalPath();
+        
+        // TODO: Display a 
     }
 
     [RelayCommand]

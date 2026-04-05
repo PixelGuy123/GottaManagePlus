@@ -12,10 +12,11 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
+using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 using GottaManagePlus.Services.ExplorerServices;
-using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
 using GottaManagePlus.Utils;
 using Serilog;
@@ -25,11 +26,9 @@ namespace GottaManagePlus.ViewModels;
 public partial class MyModsViewModel : PageViewModel, IDisposable
 {
     private readonly DialogService _dialogService = null!;
-    private readonly PlusFolderDb _plusFolderDb = null!;
     private readonly ProfileManager _profileManager = null!;
-    private readonly ProfileStorage _profileStorage = null!;
     private readonly DirectoryLauncher _directoryLauncher = null!;
-    private readonly PlusFolderBrowser _plusFolderBrowser = null!;
+    private readonly GameEnvironmentController _gameEnvironmentController = null!;
 
     // Getters
     protected readonly Dictionary<int, ModManifest> AllMods = [];
@@ -48,7 +47,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public int NumberOfModsPerRow { get; } = 6;
     public bool HasAnyModsToDisplay => ObservableUnchangedMods.Count != 0;
     public string CurrentPlusVersion =>
-        _plusFolderDb.GameVersion.ToString();
+        _gameEnvironmentController.CurrentEnvironment!.GameVersion.ToString();
 
 
     // From the generator. https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/observableproperty
@@ -90,7 +89,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         }
 
         // Get the directory path
-        var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_plusFolderBrowser);
+        var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_gameEnvironmentController);
         
         // Check if it exists
         if (!Directory.Exists(modDirectoryPath))
@@ -120,8 +119,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
 
     // For designer
-    public MyModsViewModel() : base(PageNames.Home,
-        new ProfilesViewModel(null!, new(null!), null!, null!, null!))
+    public MyModsViewModel() : base(PageNames.Home)
     {
         if (!Design.IsDesignMode) return;
 
@@ -161,17 +159,14 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     }
 
     // Constructor
-    public MyModsViewModel(DialogService dialogService, ProfilesViewModel profilesViewModel,
-        ProfileManager profileManager, ProfileStorage profileStorage, DirectoryLauncher directoryLauncher, PlusFolderDb plusFolderDb,
-        SettingsService settingsService, PlusFolderBrowser plusFolderBrowser) : base(PageNames.Home, profilesViewModel)
+    public MyModsViewModel(DialogService dialogService,
+        ProfileManager profileManager, GameEnvironmentController controller, DirectoryLauncher directoryLauncher, SettingsService settingsService) : base(PageNames.Home)
     {
         // Service
         _dialogService = dialogService;
         _profileManager = profileManager;
-        _plusFolderDb = plusFolderDb;
+        _gameEnvironmentController = controller;
         _directoryLauncher = directoryLauncher;
-        _plusFolderBrowser = plusFolderBrowser;
-        _profileStorage = profileStorage;
         
         // Settings
         NumberOfModsPerRow = settingsService.CurrentSettings.NumberOfRowsPerMod;
@@ -276,7 +271,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         for (var i = 0; i < modDataFiles.Count; i++)
         {
             var mod = modDataFiles[i];
-            var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_plusFolderBrowser);
+            var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_gameEnvironmentController);
             if (mod.Name != modName || string.IsNullOrEmpty(modDirectoryPath)) continue;
 
             // Try to manually delete
@@ -297,7 +292,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
         // Request save changes to the profile
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving changes...", _profileManager.ActiveProfile, null, (Delegate)_profileStorage.SaveEnvironmentDataToProfile);
+        loadingDialog.Prepare("Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);
         
         // Try to save profile
         if (!await _dialogService.ShowDialog(loadingDialog))

@@ -10,10 +10,13 @@ namespace GottaManagePlus.Models;
 public class ProfileMetadata
 {
     // Constant value for version support
-    [TomlIgnore]
-    public const int CurrentVersion = 1;
+    [TomlIgnore] public const int CurrentVersion = 1;
+    [TomlIgnore] public const string DefaultName = "Default";
     
     // Default instance
+    /// <summary>
+    /// Returns a default instance of <see cref="ProfileMetadata"/> with filled data.
+    /// </summary>
     public static ProfileMetadata Default => new()
     {
         EstimatedBytesLength = 100,
@@ -21,9 +24,26 @@ public class ProfileMetadata
         CreationDate = DateTime.Now,
         LastUpdateDate = DateTime.Now
     };
+    // Default Empty Copy
+    /// <summary>
+    /// Creates a deep-copy version of given <see cref="ProfileMetadata"/>, but without any meaningful storage data.
+    /// </summary>
+    /// <param name="profile">The profile to be deep-copied.</param>
+    /// <returns>A deep-copy version of given <see cref="ProfileMetadata"/> with no meaningful storage data.</returns>
+    public static ProfileMetadata CreateAbstractProfile(ProfileMetadata profile)
+    {
+        var filledDefault = Default;
+        filledDefault.Name = profile.Name;
+        filledDefault.Description = profile.Description;
+        filledDefault.EstimatedBytesLength = profile.EstimatedBytesLength;
+        filledDefault.Version = profile.Version;
+        filledDefault.CreationDate = profile.CreationDate;
+        filledDefault.LastUpdateDate = profile.LastUpdateDate;
+        return filledDefault;
+    }
     
     // [Basic Info]
-    [TomlRequired] public string Name { get; set; } = "Profile";
+    [TomlRequired] public string Name { get; set; } = DefaultName;
     [TomlRequired] public int Version { get; set; } = CurrentVersion;
     public long EstimatedBytesLength { get; set; }
     public string? Description { get; set; }

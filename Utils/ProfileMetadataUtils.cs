@@ -1,14 +1,16 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
 using GottaManagePlus.Models.UI;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using Tomlyn;
 
 namespace GottaManagePlus.Utils;
 
 /// <summary>
-/// A reader specialized in retrieving data from a profile's metadata file.
+/// A class with utilities for interacting with <see cref="ProfileMetadata"/>.
 /// </summary>
 public static class ProfileMetadataUtils
 {
@@ -27,4 +29,12 @@ public static class ProfileMetadataUtils
     /// <returns>A <see cref="string"/> containing all the content of the metadata.</returns>
     public static string Serialize(this ProfileMetadata metadata) =>
         TomlSerializer.Serialize(metadata, ProfileMetadataContext.Default);
+    /// <summary>
+    /// Returns the physical path of the <see cref="ProfileMetadata"/>.
+    /// </summary>
+    /// <param name="metadata">The metadata to be searched for.</param>
+    /// <param name="controller">The controller to indicate the correct location.</param>
+    /// <returns>A <see cref="string"/> of the correct location of the <see cref="ProfileMetadata"/>.</returns>
+    public static string GetPhysicalPath(this ProfileMetadata metadata, GameEnvironmentController controller) => 
+        controller.SearchAbsolutePath(controller.GetOrCreateProfilesFolderPath(), metadata.Name);
 }

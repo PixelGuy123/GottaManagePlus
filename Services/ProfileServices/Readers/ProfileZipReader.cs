@@ -1,15 +1,17 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.UI;
 using GottaManagePlus.Utils;
 using Serilog;
 
-namespace GottaManagePlus.Services.ProfileServices;
+namespace GottaManagePlus.Services.ProfileServices.Readers;
 
-public static class ProfileReader
+public sealed class ProfileZipReader(ILogger logger)
 {
+    // ---- Private API -----
+    private readonly ILogger _logger = logger;
+    
+    // ---- Public API ----
     /// <summary>
     /// Reads a directory of a profile and converts its metadata (if available) into a <see cref="ProfileMetadata"/>.
     /// The path shall never be prompted by a user.
@@ -18,7 +20,7 @@ public static class ProfileReader
     /// <returns>An instance of <see cref="ProfileMetadata"/> with its path defined.</returns>
     /// <exception cref="ArgumentException">If the path is not a directory, this exception is raised.</exception>
     /// <exception cref="NullReferenceException">If the metadata is null, this error is raised.</exception>
-    public static ProfileMetadata? ReadProfile(string profileRootDirectory)
+    public ProfileMetadata? ReadProfile(string profileRootDirectory)
     {
         // If the path is a file, throw an error
         if (!File.GetAttributes(profileRootDirectory).HasFlag(FileAttributes.Directory))
@@ -49,7 +51,7 @@ public static class ProfileReader
         }
         catch (Exception e)
         {
-            Log.Logger.Error("Failed to read the profile content.\n{exception}", e);
+            _logger.Error("Failed to read the profile content.\n{exception}", e);
             return null;
         }
     }

@@ -1,27 +1,27 @@
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
-using ProfileItem = GottaManagePlus.Models.UI.ProfileItem;
+using GottaManagePlus.Services.ExplorerServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class PreviewProfileDialogViewModel : DialogViewModel
 {
     // Private members
-    private IFilesService _filesService = null!;
+    private DirectoryLauncher _directoryLauncher = null!;
+    private GameEnvironmentController _gameEnvironmentController = null!;
     private DialogService _dialogService = null!;
     
     // Observables
     [ObservableProperty]
-    private ProfileItem _profile = null!;
+    private ProfileMetadata _profile = null!;
     [ObservableProperty]
     private string _closeText = "Close", _deleteText = "Delete", _exportText = "Export as package";
 
@@ -35,11 +35,10 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
 
     public PreviewProfileDialogViewModel()
     {
-        if (Design.IsDesignMode)
-        {
-            Profile = new ProfileItem(0, "Some cool long profile name that has never been used before and shall never be used with this length, Holy moly, this is huge!");
-            AllowProfileDeletion = true;
-        }
+        if (!Design.IsDesignMode) return;
+        
+        Profile = new ProfileMetadata{ Name = "Some cool long profile name that has never been used before and shall never be used with this length, Holy moly, this is huge!" };
+        AllowProfileDeletion = true;
     }
     
     // Commands
@@ -54,22 +53,22 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
     public void CloseWithoutChanges() => Close();
 
     [RelayCommand]
-    public void OpenProfilePath()
+    public async Task OpenProfilePath()
     {
         const string profileFixSuggestion = "Try reloading the profiles list.";
-        if (!File.Exists(Profile.FullOsPath))
+        var profilePath = Profile.GetPhysicalPath(_gameEnvironmentController);
+        if (!Directory.Exists(profilePath))
         {
             var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             dialog.Prepare(true, Constants.FailDialog, $"The path to the profile is somehow invalid!\n{profileFixSuggestion}");
             SubDialogView = dialog;
             
-            Log.Logger.Error("Failed to open profile path due to invalid path.");
-            Log.Logger.Error(Profile.FullOsPath);
+            Log.Logger.Error("Failed to open profile path due to invalid path. \'{path}\'", profilePath);
             Close();
             return;
         }
         
-        if (!_filesService.OpenFileInfo(new FileInfo(Profile.FullOsPath)))
+        if (!await _directoryLauncher.OpenDirectoryInfo(new DirectoryInfo(profilePath)))
         {
             var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             dialog.Prepare(true, Constants.FailDialog, $"Failed to open the path to the profile due to an unknown error!\n{profileFixSuggestion}");
@@ -90,10 +89,11 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
     /// <summary>
     /// Set up the dialog with the following parameters:
     /// <list type="number">
-    ///     <item><description><see cref="ProfileItem"/> profile</description></item>
+    ///     <item><description><see cref="ProfileMetadata"/> profile</description></item>
     ///     <item><description><see cref="bool"/> allowProfileDeletion</description></item>
-    ///     <item><description><see cref="IFilesService"/> filesService</description></item>
+    ///     <item><description><see cref="FileLauncher"/> filesService</description></item>
     ///     <item><description><see cref="DialogService"/> dialogService</description></item>
+    ///     <item><description><see cref="GameEnvironmentController"/> gameEnvironmentController</description></item>
     /// </list>
     /// </summary>
     /// <param name="args">The positional arguments as defined in the summary.</param>
@@ -104,9 +104,10 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
         ShouldDeleteProfile = false;
         IsDialogOpen = false;
         
-        Profile = GetValueOrException<ProfileItem>(args, 0);
+        Profile = GetValueOrException<ProfileMetadata>(args, 0);
         AllowProfileDeletion = GetValueOrException<bool>(args, 1);
-        _filesService = GetValueOrException<IFilesService>(args, 2);
+        _directoryLauncher = GetValueOrException<DirectoryLauncher>(args, 2);
         _dialogService = GetValueOrException<DialogService>(args, 3);
+        _gameEnvironmentController = GetValueOrException<GameEnvironmentController>(args, 4);
     }
 }

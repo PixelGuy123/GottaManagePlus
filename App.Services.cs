@@ -1,17 +1,24 @@
 using System;
+using System.IO;
 using Avalonia.Controls;
 using GottaManagePlus.Factories;
-using GottaManagePlus.Interfaces;
+using GottaManagePlus.Interfaces.GameEnvironment;
+using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 using GottaManagePlus.Services.APIServices;
 using GottaManagePlus.Services.ExplorerServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ModServices;
-using GottaManagePlus.Services.PlusFolderServices;
 using GottaManagePlus.Services.ProfileServices;
+using GottaManagePlus.Services.ProfileServices.Extractors;
+using GottaManagePlus.Services.ProfileServices.Management;
+using GottaManagePlus.Services.ProfileServices.Readers;
+using GottaManagePlus.Services.ProfileServices.Writers;
 using GottaManagePlus.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace GottaManagePlus;
 
@@ -43,8 +50,29 @@ public partial class App
         collection.AddSingleton<PageFactory>();
         collection.AddSingleton<DialogService>();
         collection.AddSingleton<SettingsService>();
-        collection.AddSingleton<PlusFolderDb>();
-        collection.AddSingleton<ProfileStorage>();
+        
+        // Profile Services
+        collection.AddSingleton<ProfileManager>();
+        collection.AddSingleton<ProfileRepository>();
+        
+        // Mod Services
+        collection.AddSingleton<ResourceInstaller>();
+        collection.AddSingleton<SecurityScanner>();
+        collection.AddSingleton<ModArchiveExtractor>();
+        collection.AddSingleton<ManifestLoader>();
+        
+        // Game Environment Setup
+        collection.AddSingleton<IGameEnvironmentFactory, PlusEnvironmentFactory>();
+        collection.AddSingleton<GameEnvironmentController>();
+        
+        // Logging Setup
+        Log.Logger = new LoggerConfiguration()
+#if DEBUG
+            .WriteTo.Console()
+#endif
+            .WriteTo.File(Path.Combine(Constants.ApplicationLocation, "Logs", DateTime.Now.ToLongTimeString() + ".log"))
+            .CreateLogger();
+        collection.AddSingleton(Log.Logger);
         
         // Factory Function
         collection.AddSingleton<Func<Type, PageViewModel>>(
@@ -61,9 +89,30 @@ public partial class App
         collection.AddTransient<DirectoryPicker>();
         collection.AddTransient<FileLauncher>();
         collection.AddTransient<DirectoryLauncher>();
-        collection.AddTransient<PlusFolderBrowser>();
-        collection.AddTransient<ProfileManager>();
         collection.AddTransient<GamebananaApiService>();
+        
+        // Profile Management
+        // * Essential Manager Services
+        collection.AddTransient<IEnvironmentToLocalParser, EnvironmentToProfileSaver>();
+        collection.AddTransient<ILocalToEnvironmentParser, ProfileToEnvironmentExtractor>();
+        collection.AddTransient<IProfileStorageScanner, LocalProfileStorageScanner>();
+        collection.AddTransient<IProfileCreator, LocalProfileCreator>();
+        collection.AddTransient<IProfileExportController, ProfileExportController>();
+        collection.AddTransient<IProfileDestructor, LocalProfileDestructor>();
+        
+        // * Sub-Services utilized by the other interfaces
+        // ** Default Profile Services
+        collection.AddTransient<ProfileZipWriter>();
+        collection.AddTransient<ProfileZipReader>();
+        collection.AddTransient<ProfileZipExtractor>();
+        // ** Export Profile Services
+        collection.AddTransient<ProfileExporter>();
+        collection.AddTransient<ProfileExportReader>();
+        collection.AddTransient<ProfileExportExtractor>();
+        
+        // Mod Services
+        collection.AddTransient<ModInstaller>();
+        collection.AddTransient<ModUnInstaller>();
     }
 
     private static void SetupScopedServices(ServiceCollection collection)

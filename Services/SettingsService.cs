@@ -11,12 +11,15 @@ namespace GottaManagePlus.Services;
 
 public sealed class SettingsService
 {
-    public SettingsService(IOptions<AppSettings> initialOptions) 
-        // Doesn't use an interface and I doubt this project would ever need a secondary configurations service
+    
+    // Doesn't use an interface and I doubt this project would ever need a secondary configurations service
+    public SettingsService(IOptions<AppSettings> initialOptions, ILogger logger)
     {
-        CurrentSettings = initialOptions.Value;
+        _settings = JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(initialOptions.Value, DefaultSerializerOptions), DefaultSerializerOptions)!;
         // Clamps the number in case the user changes manually in settings
-        CurrentSettings.NumberOfRowsPerMod = Math.Clamp(CurrentSettings.NumberOfRowsPerMod, 4, 6);
+        _settings.NumberOfRowsPerMod = Math.Clamp(_settings.NumberOfRowsPerMod, 4, 6);
+
+        _logger = logger;
     }
     
     private static readonly JsonSerializerOptions DefaultSerializerOptions = new() 
@@ -26,27 +29,34 @@ public sealed class SettingsService
     };
     
     private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
+    private readonly ILogger _logger;
+    private readonly AppSettings _settings;
     
-    public AppSettings CurrentSettings { get; }
+    public AppSettings CurrentSettings => JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(_settings, DefaultSerializerOptions), DefaultSerializerOptions)!;
+    
     public event Action? OnSaveSettings;
+
+    public void UpdateSettings(Action<AppSettings> updateAction)
+    {
+        updateAction(_settings);
+        OnSaveSettings?.Invoke();
+    }
 
     public async Task<bool> Save()
     {
-        // The wrapper will add that "AppSettings" section into the JSON
-        var wrapper = new AppSettingsWrapper { AppSettings = CurrentSettings };
-        var json = JsonSerializer.Serialize(wrapper, DefaultSerializerOptions);
+        _logger.Information("Saving settings...");
+        var json = JsonSerializer.Serialize(_settings, DefaultSerializerOptions);
         StreamWriter? writer = null;
         try
         {
-            OnSaveSettings?.Invoke(); // Invoke first, then save
-
             writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
             await writer.WriteAsync(json);
+            _logger.Information("Settings successfully saved!");
             return true;
         }
         catch (Exception ex)
         {
-            Log.Logger.Error("{exception}", ex);
+            _logger.Error("{exception}", ex);
             return false;
         }
         finally

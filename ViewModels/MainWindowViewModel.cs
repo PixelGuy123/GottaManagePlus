@@ -6,7 +6,9 @@ using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
 using System;
-using GottaManagePlus.Services.PlusFolderServices;
+using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
 using GottaManagePlus.Utils;
 
@@ -16,10 +18,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 {
     private readonly PageFactory? _pageFactory;
     private readonly DialogService _dialogService = null!;
-    private readonly PlusFolderDb _plusFolderDb = null!;
     private readonly SettingsService _settingsService = null!;
-    private readonly ProfileStorage _profileStorage = null!;
     private readonly ProfileManager _profileManager = null!;
+    private readonly ProfileRepository _profileRepository = null!;
     
     [ObservableProperty] 
     private bool _executablePathSet;
@@ -57,26 +58,31 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     public MainWindowViewModel(
         PageFactory pageFactory, 
         DialogService dialogService, 
-        PlusFolderDb plusFolderDb, 
-        SettingsService settingsService, 
-        ProfileStorage profileStorage,
+        GameEnvironmentController gameEnvironmentController, 
+        SettingsService settingsService,
+        ProfileRepository profileRepository,
         ProfileManager profileManager)
     {
         _pageFactory = pageFactory;
         _dialogService = dialogService;
-        _plusFolderDb = plusFolderDb;
         _settingsService = settingsService;
-        _profileStorage = profileStorage;
         _profileManager = profileManager;
+        _profileRepository = profileRepository;
         
         // Cache on start
         _dialogService.GetDialog<AppInfoDialogViewModel>();
 
-        _settingsService.OnSaveSettings += UpdateExecutablePathValidation;
+        // Add the save settings callback to ensure the path is always updated
+        _settingsService.OnSaveSettings += () => 
+            ExecutablePathSet = gameEnvironmentController.IsEnvironmentValid;
 
         // If the executable is all set, then the manager should visualize the mods
-        if (_plusFolderDb.ValidateGameFolder(_settingsService.CurrentSettings.BaldiPlusExecutablePath))
+        gameEnvironmentController.SetNewEnvironment(_settingsService.CurrentSettings.BaldiPlusExecutablePath);
+        if (gameEnvironmentController.CurrentEnvironment != null)
+        {
             CurrentPage = _pageFactory.GetPageViewModel<MyModsViewModel>();
+            ExecutablePathSet = true;
+        }
         else // Otherwise, force the user to set that manually
         {
             var settings = _pageFactory.GetPageViewModel<SettingsViewModel>();
@@ -85,8 +91,6 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             // Display that one needed dialog
             settings.DisplayGameFolderRequirementFolder();
         }
-
-        UpdateExecutablePathValidation();
     }
     
     // public methods
@@ -96,9 +100,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
         loadingDialog.Prepare("Saving current active profile...", 
             _profileManager.ActiveProfile, null, 
-            (Delegate)_profileStorage.SaveEnvironmentDataToProfile);
+            (Delegate)_profileManager.SaveActiveProfile);
 
-        if (_profileStorage.ProfileMemoryDb.IsEmpty || // Or, if there are no profiles to save, skip this dialog
+        if (_profileRepository.IsEmpty || // Or, if there are no profiles to save, skip this dialog
             await _dialogService.ShowDialog(loadingDialog))
         {
             // Then, one for saving settings
@@ -137,9 +141,4 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         dialog.Prepare();
         await _dialogService.ShowDialog(dialog);
     }
-    
-    private void UpdateExecutablePathValidation() => 
-        ExecutablePathSet = 
-            _plusFolderDb.ValidateGameFolder(_settingsService.CurrentSettings.BaldiPlusExecutablePath, 
-                                            updateDatabaseIfPathIsValid: false);
 }
