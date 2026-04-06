@@ -15,23 +15,23 @@ public static class ModManifestUtils
     private static readonly Dictionary<string, Bitmap> BitmapThumbnailCache = [];
 
     /// <summary>
-    /// Attempts to load the thumbnail URI of a <see cref="ModManifest"/> and caches it into a global <see cref="Dictionary{string,Bitmap}"/>. 
+    /// Attempts to load the thumbnail URI of a <see cref="ModMetadata"/> and caches it into a global <see cref="Dictionary{string,Bitmap}"/>. 
     /// </summary>
-    /// <param name="item">The <see cref="ModManifest"/> to be used.</param>
+    /// <param name="metadata">The <see cref="ModMetadata"/> to be used.</param>
     /// <returns>Returns an instance of <see cref="Bitmap"/> if successful, or return <see langword="null"/> if anything goes wrong.</returns>
-    public static Bitmap? GetThumbnailImageAsBitmap(this ModManifest item)
+    public static Bitmap? GetThumbnailImageAsBitmap(this ModMetadata metadata)
     {
-        if (string.IsNullOrEmpty(item.Metadata.Thumbnail)) return null;
+        if (string.IsNullOrEmpty(metadata.Thumbnail)) return null;
 
         // Try to get a cached Bitmap
-        if (BitmapThumbnailCache.TryGetValue(item.Metadata.Thumbnail, out var image))
+        if (BitmapThumbnailCache.TryGetValue(metadata.Thumbnail, out var image))
             return image;
 
         // Otherwise, just load it and cache it
         try
         {
-            image = new Bitmap(AssetLoader.Open(new Uri(item.Metadata.Thumbnail)));
-            BitmapThumbnailCache.Add(item.Metadata.Thumbnail, image);
+            image = new Bitmap(AssetLoader.Open(new Uri(metadata.Thumbnail)));
+            BitmapThumbnailCache.Add(metadata.Thumbnail, image);
             return image;
         }
         catch

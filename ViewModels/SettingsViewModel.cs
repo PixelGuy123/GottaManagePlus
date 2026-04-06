@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Diagnostics;
+
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
-using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
+using GottaManagePlus.Services.ExplorerServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
@@ -21,14 +21,15 @@ public partial class SettingsViewModel : PageViewModel
         // For designer
     }
 
-    public SettingsViewModel(FilesService filesService, SettingsService settingsService,
-        PlusFolderViewer gameFolderViewer, DialogService dialogService) : base(PageNames.Settings)
+    public SettingsViewModel(FilePicker filePicker, FileLauncher fileLauncher, SettingsService settingsService,
+        GameEnvironmentController gameEnvironmentController, DialogService dialogService) : base(PageNames.Settings)
     {
-        _filesService = filesService;
+        _filePicker = filePicker;
+        _fileLauncher = fileLauncher;
         _settingsService = settingsService;
+        _gameEnvironmentController = gameEnvironmentController;
         _dialogService = dialogService;
         CurrentSaveState = Models.UI.SaveState.InitializeState(settingsService);
-        _gameFolderViewer = gameFolderViewer;
 
         // Update this index
         UpdateNumberOfRowsPerIndex();
@@ -51,10 +52,11 @@ public partial class SettingsViewModel : PageViewModel
     }
     
     // Private members
-    private readonly FilesService _filesService = null!;
+    private readonly FilePicker _filePicker = null!;
+    private readonly FileLauncher _fileLauncher = null!;
     private readonly SettingsService _settingsService = null!;
+    private readonly GameEnvironmentController _gameEnvironmentController = null!;
     private readonly DialogService _dialogService = null!;
-    private readonly IGameFolderViewer _gameFolderViewer = null!;
     
     // Readonly collections
     public int[] PossibleRowsPerModStates { get; } = [4, 5, 6];
@@ -73,7 +75,7 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     public async Task SetFilePathForPlusFolder()
     {
-        var file = await _filesService.OpenFileAsync(title: "Select BB+ executable file:",
+        var file = await _filePicker.OpenSingleFileAsync(title: "Select BB+ executable file:",
             preselectedPath: Constants.BaldiPlusFolderSteamPath);
 
         // If the file is null, leave
@@ -83,9 +85,7 @@ public partial class SettingsViewModel : PageViewModel
         var fileLocalPath = file.TryGetLocalPath();
 
         // The path must obviously not be null
-        if (!string.IsNullOrEmpty(fileLocalPath) &&
-            _gameFolderViewer.ValidateFolder(fileLocalPath,
-                setPathIfTrue: false)) // Do not set path until confirmed by Save action
+        if (!string.IsNullOrEmpty(fileLocalPath) && _gameEnvironmentController.IsEnvironmentValid) // Do not set path until confirmed by Save action
         {
             CurrentSaveState.GameExecutablePath = fileLocalPath;
             return;
@@ -101,7 +101,7 @@ public partial class SettingsViewModel : PageViewModel
     public async Task OpenExecutablePath()
     {
         if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath) && 
-            !_filesService.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
+            !await _fileLauncher.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
         {
             var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
             dialog.Prepare(true, Constants.FailDialog, $"Failed to open the path to the executable due to an unknown error!");
@@ -123,7 +123,7 @@ public partial class SettingsViewModel : PageViewModel
         settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
 
         // Saving executable path to the folder validator
-        _gameFolderViewer.ValidateFolder(settings.BaldiPlusExecutablePath);
+        _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
 
         // Saving dialog
         var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();

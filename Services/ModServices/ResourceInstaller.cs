@@ -67,7 +67,7 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
             _logger.Information("Creating .metadata file...");
             
             // Serialize metadata, then create it in the files.
-            File.WriteAllText(newMetadata.Path, 
+            File.WriteAllText(newMetadata.Path!, 
                 JsonSerializer.Serialize(newMetadata, Options));
             newMetadata.Thumbnail = newMetadata.DetermineImageThroughCheck();
             

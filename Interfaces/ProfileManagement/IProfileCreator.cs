@@ -5,5 +5,5 @@ namespace GottaManagePlus.Interfaces.ProfileManagement;
 
 public interface IProfileCreator
 {
-    Task<ProfileMetadata> CreateProfile(ProfileMetadata basicMetadataReference);
+    Task<ProfileMetadata?> CreateProfile(ProfileMetadata basicMetadataReference);
 }

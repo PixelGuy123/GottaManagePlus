@@ -99,6 +99,7 @@ public partial class App
         collection.AddTransient<IProfileCreator, LocalProfileCreator>();
         collection.AddTransient<IProfileExportController, ProfileExportController>();
         collection.AddTransient<IProfileDestructor, LocalProfileDestructor>();
+        collection.AddTransient<IProfileCloner, LocalProfileCloner>();
         
         // * Sub-Services utilized by the other interfaces
         // ** Default Profile Services

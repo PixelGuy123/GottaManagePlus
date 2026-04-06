@@ -21,7 +21,6 @@ public static class ProfileMetadataUtils
     /// <returns>An instance of <see cref="ProfileMetadata"/>.</returns>
     public static ProfileMetadata? ReadMetadata(string tomlContent) =>
         TomlSerializer.Deserialize<ProfileMetadata>(tomlContent, ProfileMetadataContext.Default);
-
     /// <summary>
     /// Serializes the <see cref="ProfileMetadata"/> into a TOML table.
     /// </summary>

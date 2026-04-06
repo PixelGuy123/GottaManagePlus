@@ -68,7 +68,7 @@ public sealed class ProfileZipWriter(ILogger logger)
     /// <exception cref="ArgumentException">If the path given is not a directory, this error is raised.</exception>
     public async Task<ProfileMetadata> WriteEmptyProfileToAsync(string path, ProfileMetadata profile, GameEnvironmentController controller)
     {
-        var clearedMetadata = ProfileMetadata.CreateAbstractProfile(profile);
+        var clearedMetadata = new ProfileMetadata(profile, true);
         await WriteProfileInternalAsync(path, clearedMetadata, controller, "Empty Profile Zip Writing started!", 
             WriteEmptyProfileContent);
         return clearedMetadata;

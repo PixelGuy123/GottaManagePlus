@@ -5,9 +5,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
-    xmlns:models="using:GottaManagePlus.Models.UI"
+    xmlns:models="using:GottaManagePlus.Models"
     xmlns:converters="using:GottaManagePlus.Styles.Converters"
-    xmlns:ui="clr-namespace:GottaManagePlus.Models.UI"
     x:Class="GottaManagePlus.Views.MyModsView"
     x:DataType="vm:MyModsViewModel">
     <Design.DataContext>
@@ -110,10 +109,10 @@
                             Classes="ModViewerHeader"
                             Width="250"
                             Watermark="Search"
-                            ItemsSource="{Binding ObservableUnchangedMods, Mode=OneWay}"
-                            SelectedItem="{Binding CurrentModItem}"
-                            Text="{Binding Text}"
-                            ValueMemberBinding="{Binding ModName, DataType=ui:ModItem, Mode=OneWay}"
+                            ItemsSource="{CompiledBinding ObservableUnchangedMods, Mode=OneWay}"
+                            SelectedItem="{CompiledBinding CurrentModManifest}"
+                            Text="{CompiledBinding Text}"
+                            ValueMemberBinding="{Binding Name, DataType=models:ModManifest, Mode=OneWay}"
                             FilterMode="Contains" />
                         <Button
                             Classes="ModViewerHeader YCTPButton"
@@ -164,7 +163,7 @@
                                                    MinRowSpacing="10" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
-                                <DataTemplate DataType="{x:Type ui:ModItem}">
+                                <DataTemplate DataType="{x:Type models:ModManifest}">
                                     <Border
                                             Padding="14 4"
                                             CornerRadius="35"
@@ -183,13 +182,13 @@
                                                 <TextBlock
                                                     MaxHeight="75"
                                                     Classes="ModLabel"
-                                                    Text="{CompiledBinding ModName, Mode=OneWay}"
-                                                    FontSize="{CompiledBinding ModName, Converter={x:Static converters:FontConverters.Max20TextToSizeConverter}, Mode=OneWay}"/>
+                                                    Text="{CompiledBinding Name, Mode=OneWay}"
+                                                    FontSize="{CompiledBinding Name, Converter={x:Static converters:FontConverters.Max20TextToSizeConverter}, Mode=OneWay}"/>
                                                 <!-- Version and Support display -->
                                                 <TextBlock
                                                     Foreground="{CompiledBinding SupportsCurrentVersion, Mode=OneWay, Converter={x:Static converters:ForegroundConverters.BoolToColor}}"
                                                     FontSize="12"
-                                                    Text="{CompiledBinding MetaData.Version, FallbackValue=0.0.0, Mode=OneWay}"
+                                                    Text="{CompiledBinding Metadata, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToStringifiedVersion}}"
                                                     Classes="ModLabel"/>
                                                 <!-- Supports -->
                                                 <TextBlock
@@ -225,7 +224,7 @@
                                                 <Border.Background>
                                                     <ImageBrush
                                                         Stretch="UniformToFill"
-                                                        Source="{CompiledBinding Thumbnail, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay}"/>
+                                                        Source="{CompiledBinding Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}"/>
                                                 </Border.Background>
                                             </Border>
                                             <!-- Button Display -->
@@ -238,7 +237,7 @@
                                                 <Button Classes="YCTPButton"
                                                         HorizontalAlignment="Left"
                                                         Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).OpenModPath, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
-                                                        CommandParameter="{CompiledBinding Id, Mode=OneWay}">
+                                                        CommandParameter="{CompiledBinding ., Mode=OneWay}">
                                                     <Image 
                                                         Width="32"
                                                         Height="32"
@@ -247,8 +246,8 @@
 
                                                 <Button Classes="YCTPButton"
                                                         HorizontalAlignment="Right"
-                                                        Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModItem, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
-                                                        CommandParameter="{CompiledBinding Id, Mode=OneWay}">
+                                                        Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModManifest, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
+                                                        CommandParameter="{CompiledBinding ., Mode=OneWay}">
                                                     <Image
                                                         Width="32"
                                                         Height="32"

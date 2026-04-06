@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Serialization;
+using GottaManagePlus.Utils.Collections;
 
 namespace GottaManagePlus.Models;
 
@@ -19,7 +20,7 @@ public class ModManifest
     [JsonRequired] public List<string> Plugins { get; set; } = []; // string here means the LocalPath, they must always be a file and linked to a .dll.
 
     [JsonIgnore] public ModMetadata Metadata { get; set; } = new();
-    [JsonIgnore] public List<string> SupportedVersions { get; set; } = [];
+    [JsonIgnore] public bool SupportsCurrentVersion { get; set; }
 }
 
 public class ModMetadata
@@ -29,7 +30,7 @@ public class ModMetadata
     public string? Thumbnail = null;
     public string? InstallationUrl { get; set; } // Supports Gamebanana and GitHub for now
     public List<string> DependenciesUrls { get; set; } = [];
-    public List<string> SupportedPlusVersions { get; set; } = [];
+    public AutoSortedList<WrappedGameVersion> SupportedPlusVersions { get; set; } = []; // Automatically sorted by high order
     
     // ### Important Fields ###
     public bool Activated { get; set; } // Whether the mod is active or not.

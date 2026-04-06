@@ -7,7 +7,7 @@ namespace GottaManagePlus.Models;
 /// <summary>
 /// An object that represents the basic data inside a compressed profile.
 /// </summary>
-public class ProfileMetadata
+public class ProfileMetadata()
 {
     // Constant value for version support
     [TomlIgnore] public const int CurrentVersion = 1;
@@ -24,22 +24,30 @@ public class ProfileMetadata
         CreationDate = DateTime.Now,
         LastUpdateDate = DateTime.Now
     };
-    // Default Empty Copy
+
     /// <summary>
-    /// Creates a deep-copy version of given <see cref="ProfileMetadata"/>, but without any meaningful storage data.
+    /// A constructor to deep-copy the <see cref="ProfileMetadata"/>.
     /// </summary>
-    /// <param name="profile">The profile to be deep-copied.</param>
-    /// <returns>A deep-copy version of given <see cref="ProfileMetadata"/> with no meaningful storage data.</returns>
-    public static ProfileMetadata CreateAbstractProfile(ProfileMetadata profile)
+    /// <param name="toCopy">The metadata to be copied as a new instance.</param>
+    /// <param name="excludeProfileContent">
+    /// <see langword="true"/> means the configs, patchers and mods will be empty
+    /// regardless of current value.
+    /// </param>
+    public ProfileMetadata(ProfileMetadata toCopy, bool excludeProfileContent) : this()
     {
-        var filledDefault = Default;
-        filledDefault.Name = profile.Name;
-        filledDefault.Description = profile.Description;
-        filledDefault.EstimatedBytesLength = profile.EstimatedBytesLength;
-        filledDefault.Version = profile.Version;
-        filledDefault.CreationDate = profile.CreationDate;
-        filledDefault.LastUpdateDate = profile.LastUpdateDate;
-        return filledDefault;
+        Name = toCopy.Name;
+        Version = toCopy.Version;
+        EstimatedBytesLength= toCopy.EstimatedBytesLength;
+        Description = toCopy.Description;
+        CreationDate = toCopy.CreationDate;
+        LastUpdateDate = toCopy.LastUpdateDate;
+
+        // If true, exclude the lists
+        if (excludeProfileContent) return;
+
+        ConfigurationFiles = new List<string>(toCopy.ConfigurationFiles);
+        PatcherFiles = new List<string>(toCopy.PatcherFiles);
+        ModDataFiles = new List<ModManifest>(toCopy.ModDataFiles);
     }
     
     // [Basic Info]

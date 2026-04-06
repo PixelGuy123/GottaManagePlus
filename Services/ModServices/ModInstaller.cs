@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Services.ProfileServices;
 using Serilog;
 
 namespace GottaManagePlus.Services.ModServices;
@@ -20,15 +21,17 @@ public sealed class ModInstaller(
     ModArchiveExtractor modArchiveExtractor,
     ManifestLoader manifestLoader,
     SecurityScanner securityScanner,
-    ResourceInstaller resourceInstaller)
+    ResourceInstaller resourceInstaller,
+    ProfileManager profileManager)
 {
-    // ---- Private API -----
+    // ---- Private API ----
     private readonly ILogger _logger = logger;
     private readonly ModArchiveExtractor _modArchiveExtractor = modArchiveExtractor;
     private readonly ManifestLoader _manifestLoader = manifestLoader;
     private readonly SecurityScanner _securityScanner = securityScanner;
     private readonly ResourceInstaller _resourceInstaller = resourceInstaller;
-    
+    private readonly ProfileManager _profileManager = profileManager;
+
     // ---- Public API ----
     public async Task<ModInstallationResult> InstallModAsync(
         string archivePath,
@@ -72,14 +75,17 @@ public sealed class ModInstaller(
             
             // 4. After the manifest is scanned, we can start by checking the plugins and assets:
             // do they contain any suspicious files?
-            // TODO: Add an option to forcefully cancel the installation in case security scan gets something weird.
+            // TODO: Add a global option to forcefully cancel the installation in case security scan gets something weird.
             await _securityScanner.ScanAsync(temporaryDirectory, results, progress, manifest, cancellationToken);
             
-            // 5. After scanning, after getting manifest, we have everything ready:
-            // now move the files (told by the manifest) to the right places.
+            // 5. After scanning, after getting manifest, we have everything ready;
+            // now, move the files (exposed by the manifest) to the right places.
             _resourceInstaller.InstallResources(temporaryDirectory, manifest);
             
-            // 6. Yay!
+            // 6. Register the mod to the available profile.
+            var currentProfile = _profileManager.ActiveProfile;
+            if (currentProfile != null && results.Metadata != null)
+                currentProfile.ModDataFiles.Add(results.Metadata);
             _logger.Information("Installation done with success!");
         }
         catch (OperationCanceledException)

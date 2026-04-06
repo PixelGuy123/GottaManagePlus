@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using Serilog;
 
 namespace GottaManagePlus.Services.ModServices;
@@ -13,11 +14,12 @@ namespace GottaManagePlus.Services.ModServices;
 /// <summary>
 /// A class in charge of generating a <see cref="ModManifest"/> instance from a given path.
 /// </summary>
-public sealed class ManifestLoader(ILogger logger)
+public sealed class ManifestLoader(ILogger logger, GameEnvironmentController controller)
 {
     // ---- Private API -----
     private readonly ILogger _logger = logger;
-    
+    private readonly GameEnvironmentController _controller = controller;
+
     // ---- Public API ----
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -77,7 +79,13 @@ public sealed class ManifestLoader(ILogger logger)
             if (!string.IsNullOrEmpty(versionsPart))
             {
                 // Use '_' to split each version found
-                manifest.SupportedVersions = versionsPart.Split('_', StringSplitOptions.RemoveEmptyEntries).ToList();
+                manifest.Metadata.SupportedPlusVersions = versionsPart.Split('_', StringSplitOptions.RemoveEmptyEntries)
+                    .ToList().ConvertAll(str => new WrappedGameVersion(str));
+                
+                // Update manifest status over Plus version
+                var gameVersion = controller.CurrentEnvironment?.GameVersion ?? new WrappedGameVersion("0.0.0");
+                manifest.SupportsCurrentVersion =
+                    manifest.Metadata.SupportedPlusVersions.Contains(gameVersion);
             }
 
             return manifest;

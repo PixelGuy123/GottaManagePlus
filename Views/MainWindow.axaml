@@ -36,7 +36,7 @@
         Name="BodyGrid"
         IsHitTestVisible="False"
         ColumnDefinitions="Auto, *"
-        RowDefinitions="Auto, Auto, *">
+        RowDefinitions="Auto, Auto">
         <!-- START of Side Menu -->
             <!-- START of Nav Bar -->
             <Image
@@ -103,25 +103,19 @@
                         </Button>
                     </StackPanel>
             </Border>
-            <!-- START of Below Nav Bar -->
-            <ContentControl
-                Grid.Column="0"
-                Grid.Row="2"
-                Content="{CompiledBinding CurrentPage.SideMenuBase, FallbackValue={x:Null}, Mode=OneWay}"/>
-            <!-- END of Below Nav Bar -->
             <!-- END of Nav Bar -->
         <!-- END of Side Menu -->
         
         <!-- Current Page Control -->
         <ContentControl 
-            Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"
+            Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
             Content="{CompiledBinding CurrentPage, Mode=OneWay}" />
         <!-- Dialog Element -->
         <Border
             Grid.Row="0"
             Grid.Column="0"
             Grid.ColumnSpan="2"
-            Grid.RowSpan="3"
+            Grid.RowSpan="2"
             Background="#7D000000"
             IsVisible="{CompiledBinding Opacity, Mode=OneWay, RelativeSource={RelativeSource Self}}"
             Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0, Mode=OneWay}">

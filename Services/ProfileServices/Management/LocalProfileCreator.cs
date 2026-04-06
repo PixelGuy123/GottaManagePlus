@@ -26,17 +26,15 @@ public sealed class LocalProfileCreator(
     /// The basic <see cref="ProfileMetadata"/> instance to represent
     /// non-storage data.
     /// </param>
-    public async Task<ProfileMetadata> CreateProfile(ProfileMetadata basicMetadataReference)
+    public async Task<ProfileMetadata?> CreateProfile(ProfileMetadata basicMetadataReference)
     {
         // Get the directory, if it exists.
         var profilesFolder = _controller.GetOrCreateProfilesFolderPath();
         
         // Create a new empty profile.
         var clearedMetadata = await _zipWriter.WriteEmptyProfileToAsync(profilesFolder, basicMetadataReference, _controller);
-        
-        // Add that profile to the database.
-        _repository.Add(clearedMetadata);
 
-        return clearedMetadata;
+        // Add that profile to the database.
+        return _repository.Add(clearedMetadata) ? clearedMetadata : null;
     }
 }
