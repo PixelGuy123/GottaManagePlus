@@ -26,8 +26,8 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     private readonly DialogService _dialogService = null!;
     private readonly ProfileManager _profileManager = null!;
     private readonly DirectoryLauncher _directoryLauncher = null!;
-    private readonly ModUnInstaller _modUninstaller;
-    private readonly ModInstaller _modInstaller;
+    private readonly ModUnInstaller _modUninstaller = null!;
+    private readonly ModInstaller _modInstaller = null!;
     private readonly GameEnvironmentController _gameEnvironmentController = null!;
 
     // ---- Observable Properties ----
@@ -148,7 +148,8 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         {
             try
             {
-                _modUninstaller.DeleteMod(modToDelete);
+                // Uninstalls and update it afterward.
+                _modUninstaller.DeleteMod(modToDelete, ProfilesProvider_OnProfilesUpdate);
             }
             catch (Exception e)
             {

@@ -33,6 +33,13 @@ public sealed class ModInstaller(
     private readonly ProfileManager _profileManager = profileManager;
 
     // ---- Public API ----
+    /// <summary>
+    /// Installs a mod into the respective environment's mod folder.
+    /// </summary>
+    /// <param name="archivePath">The path to be extracted.</param>
+    /// <param name="progress">The progress report.</param>
+    /// <param name="cancellationToken">The token to cancel this entire operation.</param>
+    /// <returns>Returns an instance of <see cref="ModInstallationResult"/> with the report of the installation.</returns>
     public async Task<ModInstallationResult> InstallModAsync(
         string archivePath,
         IProgress<ProgressReport>? progress = null,

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -15,7 +16,7 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
     private readonly GameEnvironmentController _controller = controller;
 
     // ---- Public API ----
-    public void DeleteMod(ModManifest manifest)
+    public void DeleteMod(ModManifest manifest, Action<ProfileMetadata>? afterRemovalCallback = null)
     {
         // Get the active profile.
         var profile = _profileManager.ActiveProfile;
@@ -30,5 +31,8 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
         
         // Delete the mod file.
         Directory.Delete(manifest.GetPluginDirectoryFromManifest(_controller));
+        
+        // Callback if possible.
+        afterRemovalCallback?.Invoke(profile);
     }
 }
