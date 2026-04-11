@@ -29,7 +29,7 @@ public static class Constants
             string.Empty;
 
     // The path to this GMP instance
-    public static readonly string ApplicationLocation = Assembly.GetExecutingAssembly().Location;
+    public static readonly string ApplicationLocation = AppContext.BaseDirectory;
     // The backup directory based on call
     public static string BackupDir => "_gmp_backup_" + DateTime.Now.Ticks;
     

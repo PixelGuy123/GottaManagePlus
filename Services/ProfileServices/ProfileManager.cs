@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
@@ -9,12 +10,16 @@ namespace GottaManagePlus.Services.ProfileServices;
 public sealed class ProfileManager(
     IEnvironmentToLocalParser environmentSaver,
     ILocalToEnvironmentParser profileExtractor,
+    IProfileStorageScanner profileScanner,
+    IProfileCreator creator,
     ProfileRepository repository,
     ILogger logger)
 {
     // ---- Private API -----
     private readonly IEnvironmentToLocalParser _environmentSaver = environmentSaver;
     private readonly ILocalToEnvironmentParser _profileExtractor = profileExtractor;
+    private readonly IProfileStorageScanner _profileScanner = profileScanner;
+    private readonly IProfileCreator _creator = creator;
     private readonly ProfileRepository _repository = repository;
     private readonly ILogger _logger = logger;
 
@@ -61,9 +66,51 @@ public sealed class ProfileManager(
     /// <param name="progress">The progress to be reported.</param>
     public async Task SaveActiveProfile(IProgress<ProgressReport>? progress)
     {
-        if (ActiveProfile == null || !_repository.Exists(ActiveProfile)) return;
+        if (ActiveProfile == null || !_repository.TryGet(ActiveProfile.Name, out _)) return;
         await _environmentSaver.SaveEnvironmentToProfileAsync(ActiveProfile, progress);
     }
 
+    /// <summary>
+    /// Updates the repository of profiles by checking the local storage.
+    /// </summary>
+    /// <param name="preferredProfile">The preferred profile to be chosen after the process if possible.</param>
+    /// <param name="progress">The progress to be reported.</param>
+    public async Task UpdateProfileRepository(string? preferredProfile, IProgress<ProgressReport>? progress)
+    {
+        // Progress report.
+        progress?.Report(new ProgressReport("Updating Profiles", "Scanning local storage..."));
+        
+        // Make a copy of the profiles in case of error.
+        var safeProfileListCopy = new List<ProfileMetadata>(_repository.GetAll());
 
+        try
+        {
+            // Reloads the repository.
+            _profileScanner.ScanAndLoadProfiles();
+
+            // If the profile is already set, search for it.
+            if (!string.IsNullOrEmpty(preferredProfile) &&
+                _repository.TryGet(preferredProfile, out var profileMetadata))
+            {
+                // Switch to that profile.
+                await SetActiveProfile(profileMetadata, progress);
+            }
+            // If the repository is empty, make a default profile.
+            else if (_repository.IsEmpty)
+            {
+                ActiveProfile = null;
+                var profile = await _creator.CreateProfile(ProfileMetadata.Default);
+                if (profile != null)
+                    await SetActiveProfile(profile, null);
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.Error("Error while updating profile list. {exception}", e);
+            
+            // Roll back on the repository's profiles.
+            _repository.Clear();
+            safeProfileListCopy.ForEach(p => _repository.Add(p));
+        }
+    }
 }

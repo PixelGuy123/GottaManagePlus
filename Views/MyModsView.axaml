@@ -108,11 +108,11 @@
                         <AutoCompleteBox
                             Classes="ModViewerHeader"
                             Width="250"
-                            Watermark="Search"
+                            PlaceholderText="Search"
                             ItemsSource="{CompiledBinding ObservableUnchangedMods, Mode=OneWay}"
                             SelectedItem="{CompiledBinding CurrentModManifest}"
                             Text="{CompiledBinding Text}"
-                            ValueMemberBinding="{Binding Name, DataType=models:ModManifest, Mode=OneWay}"
+                            ValueMemberBinding="{Binding Name, x:DataType=models:ModManifest, Mode=OneWay}"
                             FilterMode="Contains" />
                         <Button
                             Classes="ModViewerHeader YCTPButton"

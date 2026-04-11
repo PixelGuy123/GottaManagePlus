@@ -21,11 +21,6 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
     private readonly GameEnvironmentController _controller = controller;
 
     // ---- Public API ----
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        TypeInfoResolver = ModManifestContext.Default
-    };
-
     /// <summary>
     /// Loads a metadata file based on the path: <c>archiveRoot/_gmp/manifest.json</c>.
     /// </summary>
@@ -49,7 +44,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
         {
             progress?.Report(new ProgressReport("Reading manifest file..."));
             var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
-            var manifest = JsonSerializer.Deserialize<ModManifest>(json, JsonOptions);
+            var manifest = JsonSerializer.Deserialize(json, ModManifestContext.Default.ModManifest);
             if (manifest == null)
             {
                 _logger.Warning("Failed to deserialize metadata (null result).");
@@ -61,7 +56,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
             {
                 var newMetadata =
                     JsonSerializer.Deserialize<ModMetadata>(
-                        await File.ReadAllTextAsync(metadataPath, cancellationToken), JsonOptions);
+                        await File.ReadAllTextAsync(metadataPath, cancellationToken), ModManifestContext.Default.ModMetadata);
                 if (newMetadata != null)
                     manifest.Metadata = newMetadata;
             }
@@ -83,7 +78,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
                     .ToList().ConvertAll(str => new WrappedGameVersion(str));
                 
                 // Update manifest status over Plus version
-                var gameVersion = controller.CurrentEnvironment?.GameVersion ?? new WrappedGameVersion("0.0.0");
+                var gameVersion = _controller.CurrentEnvironment?.GameVersion ?? new WrappedGameVersion("0.0.0");
                 manifest.SupportsCurrentVersion =
                     manifest.Metadata.SupportedPlusVersions.Contains(gameVersion);
             }

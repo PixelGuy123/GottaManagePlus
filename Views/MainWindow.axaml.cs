@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using GottaManagePlus.ViewModels;
+using Serilog;
 
 namespace GottaManagePlus.Views;
 
@@ -48,7 +49,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex.ToString());
+            Log.Logger.Error("{exception}", ex);
             _canClose = true;
             Close();
         }

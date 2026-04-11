@@ -13,14 +13,12 @@ public sealed class LocalProfileDestructor(
     GameEnvironmentController controller,
     ProfileManager manager,
     ProfileRepository repository,
-    IProfileCreator creator,
     ILogger logger) : IProfileDestructor
 {
     // ----- Private API -----
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileManager _manager = manager;
     private readonly ProfileRepository _repository = repository;
-    private readonly IProfileCreator _creator = creator;
     private readonly ILogger _logger = logger;
 
     // ----- Public API -----
@@ -31,8 +29,8 @@ public sealed class LocalProfileDestructor(
     /// <param name="progress">The progress to be reported.</param>
     public async Task DeleteProfile(ProfileMetadata metadata, IProgress<ProgressReport>? progress)
     {
-        // The metadata must exist inside the repository.
-        if (!_repository.Exists(metadata)) return;
+        // The metadata must exist inside the repository and contain more than one metadata.
+        if (_repository.GetAll().Count <= 1 || !_repository.TryGet(metadata.Name, out _)) return;
         
         // Delete physically the profile from the profiles' folder.
         _logger.Information("Deleting \'{profile}\'...", metadata.Name);
@@ -43,14 +41,10 @@ public sealed class LocalProfileDestructor(
         _repository.Delete(metadata);
         _logger.Information("Profile deleted successfully.");
         
-        // Afterward, if the repository becomes empty, create a default profile.
-        if (_repository.IsEmpty)
+        // Afterward, if the metadata is the one active in the manager, switch to default.
+        if (metadata == _manager.ActiveProfile)
         {
-            var profile = await _creator.CreateProfile(ProfileMetadata.Default);
-            await _manager.SetActiveProfile(profile!, progress);
-        }
-        else // Otherwise, follow up with a quick swap.
             await _manager.SetActiveProfile(_repository.GetAll()[0], progress);
-        
+        }
     }
 }

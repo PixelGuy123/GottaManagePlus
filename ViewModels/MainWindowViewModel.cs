@@ -6,8 +6,6 @@ using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
 using System;
-using GottaManagePlus.Models;
-using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
 using GottaManagePlus.Utils;
@@ -97,35 +95,22 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     public async Task<bool> HandleSettingsSave()
     {
         // Loading dialog for saving active profile
-        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving current active profile...", 
-            _profileManager.ActiveProfile, null, 
-            (Delegate)_profileManager.SaveActiveProfile);
+        if (!(_profileRepository.IsEmpty || // Or, if there are no profiles to save, skip this dialog
+            await _dialogService.GenerateLoadingProcess(
+                "Failed to save the active profile!",
+                null,
+                "Saving current active profile...", null,
+                (Delegate)_profileManager.SaveActiveProfile)))
+            return await _dialogService.PromptUserQuestion(
+                "Failed to save settings!",
+                "Are you sure you still want to leave the application without saving changes?");
 
-        if (_profileRepository.IsEmpty || // Or, if there are no profiles to save, skip this dialog
-            await _dialogService.ShowDialog(loadingDialog))
-        {
-            // Then, one for saving settings
-            loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-            loadingDialog.Prepare("Saving settings...", null, (Delegate)_settingsService.Save);
-            
-            if (await _dialogService.ShowDialog(loadingDialog))
-                return true;
-        }
-        
-        // If one of them fail, go here
-        var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
-        confirmViewModel.Prepare(
+        // Then, one for saving settings
+        return await _dialogService.GenerateLoadingProcess(
+            "Failed to save the settings. You can try again.",
             null,
-            "Failed to save settings!",
-            "Are you sure you still want to leave the application without saving changes?",
-            "Yes",
-            "No"
+            "Saving settings...", null, (Delegate)_settingsService.Save
         );
-
-        // Show confirmation dialog
-        await _dialogService.ShowDialog(confirmViewModel);
-        return confirmViewModel.Confirmed;
     }
     
     // Private methods

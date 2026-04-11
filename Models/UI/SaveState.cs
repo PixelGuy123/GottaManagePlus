@@ -10,10 +10,6 @@ namespace GottaManagePlus.Models.UI;
 public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
                                                 // Manually implements INotify due to source generators issue (https://github.com/AvaloniaUI/Avalonia/discussions/18593)
 {
-    private static readonly JsonSerializerOptions DefaultOptions = new()
-    {
-        TypeInfoResolver = SaveStateContext.Default
-    };
     private SettingsService _settingsService = null!;
     private string _savedState = null!; // Json
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -35,7 +31,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
         state.NumberOfModsPerRow = currentSettings.NumberOfRowsPerMod;
         
         // Serialize last saved state
-        state._savedState = JsonSerializer.Serialize(state, DefaultOptions);
+        state._savedState = JsonSerializer.Serialize(state, SaveStateContext.Default.SaveState);
         return state;
     }
     
@@ -64,7 +60,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
             if (string.IsNullOrEmpty(_savedState)) // If current state is empty, just give back itself
                 return this;
             
-            var deserializedState = JsonSerializer.Deserialize<SaveState>(_savedState, DefaultOptions);
+            var deserializedState = JsonSerializer.Deserialize<SaveState>(_savedState, SaveStateContext.Default.SaveState);
             if (deserializedState == null) 
                 return this;
             deserializedState._settingsService = _settingsService;
@@ -73,11 +69,11 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
         }
     }
     [JsonIgnore]
-    public bool HasChanged => !Design.IsDesignMode && _savedState != JsonSerializer.Serialize(this, DefaultOptions); // Tell whether the state has changed
+    public bool HasChanged => !Design.IsDesignMode && _savedState != JsonSerializer.Serialize(this, SaveStateContext.Default.SaveState); // Tell whether the state has changed
 
     public void UpdateSavedState()
     {
-        _savedState = JsonSerializer.Serialize(this, DefaultOptions);
+        _savedState = JsonSerializer.Serialize(this, SaveStateContext.Default.SaveState);
         OnPropertyChanged(nameof(HasChanged));
     }
 }

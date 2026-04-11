@@ -45,9 +45,8 @@ public sealed class ProfileZipReader(ILogger logger)
                 return null;
 
             // Try to read metadata
-            using var binaryReader = new BinaryReader(metadataFile.OpenRead());
             // Create and return metadata
-            return ProfileMetadataUtils.ReadMetadata(binaryReader.ReadString());
+            return ProfileMetadataUtils.ReadMetadata(File.ReadAllText(metadataFile.FullName));
         }
         catch (Exception e)
         {
