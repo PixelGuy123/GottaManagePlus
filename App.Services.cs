@@ -128,7 +128,7 @@ public partial class App
         });
     }
 
-    private static void SetupServicesForWindowAttributes(ServiceProvider services, Window window)
+    private static void SetupServicesForWindowAttributes(ServiceProvider services, TopLevel window)
     {
         // Assign storage providers
         var filesService = services.GetRequiredService<FilePicker>();

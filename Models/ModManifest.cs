@@ -18,6 +18,7 @@ public class ModManifest
     // Assets
     [JsonRequired] public List<DestinedAsset> Assets { get; set; } = []; // Assets must always be a directory, they cannot be a file.
     [JsonRequired] public List<string> Plugins { get; set; } = []; // string here means the LocalPath, they must always be a file and linked to a .dll.
+    [JsonRequired] public List<string> Patchers { get; set; } = []; // patcher here means the BepInEx/Patchers.
 
     [JsonIgnore] public ModMetadata Metadata { get; set; } = new();
     [JsonIgnore] public bool SupportsCurrentVersion { get; set; }

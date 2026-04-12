@@ -10,6 +10,7 @@ using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 using GottaManagePlus.Services.ExplorerServices;
 using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
@@ -22,13 +23,14 @@ public partial class SettingsViewModel : PageViewModel
     }
 
     public SettingsViewModel(FilePicker filePicker, FileLauncher fileLauncher, SettingsService settingsService,
-        GameEnvironmentController gameEnvironmentController, DialogService dialogService) : base(PageNames.Settings)
+        GameEnvironmentController gameEnvironmentController, DialogService dialogService, ILogger logger) : base(PageNames.Settings)
     {
         _filePicker = filePicker;
         _fileLauncher = fileLauncher;
         _settingsService = settingsService;
         _gameEnvironmentController = gameEnvironmentController;
         _dialogService = dialogService;
+        _logger = logger;
         CurrentSaveState = Models.UI.SaveState.InitializeState(settingsService);
 
         // Update this index
@@ -57,7 +59,8 @@ public partial class SettingsViewModel : PageViewModel
     private readonly SettingsService _settingsService = null!;
     private readonly GameEnvironmentController _gameEnvironmentController = null!;
     private readonly DialogService _dialogService = null!;
-    
+    private readonly ILogger _logger = null!;
+
     // Readonly collections
     public int[] PossibleRowsPerModStates { get; } = [4, 5, 6];
     
@@ -91,10 +94,10 @@ public partial class SettingsViewModel : PageViewModel
             return;
         }
 
-        var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-        dialog.Prepare(true, Constants.FailDialog, "Failed to locate the executable file or the directory, where this executable may be located, is invalid.");
-        await _dialogService.ShowDialog(dialog);
-        Log.Logger.Warning("Failed to set the folder!");
+        await _dialogService.GenerateLoadingProcess(
+            "Failed to locate the executable file or the directory, where this executable may be located, is invalid.",
+            null);
+        _logger.Warning("Failed to set the folder!");
     }
 
     [RelayCommand]
@@ -103,9 +106,9 @@ public partial class SettingsViewModel : PageViewModel
         if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath) && 
             !await _fileLauncher.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
         {
-            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            dialog.Prepare(true, Constants.FailDialog, $"Failed to open the path to the executable due to an unknown error!");
-            await _dialogService.ShowDialog(dialog);
+            await _dialogService.GenerateLoadingProcess(
+                "Failed to open the path to the executable due to an unknown error!",
+                null);
         }
     }
 
@@ -126,19 +129,14 @@ public partial class SettingsViewModel : PageViewModel
         _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
 
         // Saving dialog
-        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving settings...", "Saving...", (Delegate)_settingsService.Save);
-        
-        var status = await _dialogService.ShowDialog(loadingDialog);
-        if (status) return;
-
-        var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-        confirmDialog.Prepare(true, Constants.FailDialog, $"""
-                       Failed to save the settings. You can try again.
-                       If it doesn't work, you can try:
-                       {Constants.SolutionFilePermissions}
-                       """);
-        await _dialogService.ShowDialog(confirmDialog);
+        await _dialogService.GenerateLoadingProcess(
+            $"""
+             Failed to save the settings. You can try again.
+             If it doesn't work, you can try:
+             {Constants.SolutionFilePermissions}
+             """,
+            null,
+            "Saving settings...", "Saving...", (Delegate)_settingsService.Save);
     }
 
     [RelayCommand]

@@ -11,6 +11,7 @@ public sealed class LocalProfileStorageScanner(
     GameEnvironmentController controller,
     ProfileZipReader zipReader,
     ProfileRepository repository,
+    IProfileCreator creator,
     ILogger logger)
     : IProfileStorageScanner
 {
@@ -18,6 +19,7 @@ public sealed class LocalProfileStorageScanner(
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileZipReader _zipReader = zipReader;
     private readonly ProfileRepository _profileRepository = repository;
+    private readonly IProfileCreator _creator = creator;
     private readonly ILogger _logger = logger;
 
     /// <summary>

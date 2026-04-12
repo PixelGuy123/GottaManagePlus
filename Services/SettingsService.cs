@@ -15,24 +15,18 @@ public sealed class SettingsService
     // Doesn't use an interface and I doubt this project would ever need a secondary configurations service
     public SettingsService(IOptions<AppSettings> initialOptions, ILogger logger)
     {
-        _settings = JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(initialOptions.Value, DefaultSerializerOptions), DefaultSerializerOptions)!;
+        _settings = JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(initialOptions.Value, AppSettingsContext.Default.AppSettings), AppSettingsContext.Default.AppSettings)!;
         // Clamps the number in case the user changes manually in settings
         _settings.NumberOfRowsPerMod = Math.Clamp(_settings.NumberOfRowsPerMod, 4, 6);
 
         _logger = logger;
     }
     
-    private static readonly JsonSerializerOptions DefaultSerializerOptions = new() 
-    { 
-        WriteIndented = true,
-        TypeInfoResolver = AppSettingsContext.Default // To optimize the serialization of AppSettings
-    };
-    
     private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
     private readonly ILogger _logger;
     private readonly AppSettings _settings;
     
-    public AppSettings CurrentSettings => JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(_settings, DefaultSerializerOptions), DefaultSerializerOptions)!;
+    public AppSettings CurrentSettings => JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(_settings, AppSettingsContext.Default.AppSettings), AppSettingsContext.Default.AppSettings)!;
     
     public event Action? OnSaveSettings;
 
@@ -45,7 +39,7 @@ public sealed class SettingsService
     public async Task<bool> Save()
     {
         _logger.Information("Saving settings...");
-        var json = JsonSerializer.Serialize(_settings, DefaultSerializerOptions);
+        var json = JsonSerializer.Serialize(_settings, AppSettingsContext.Default.AppSettings);
         StreamWriter? writer = null;
         try
         {

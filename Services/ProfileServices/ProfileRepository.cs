@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using GottaManagePlus.Models;
 using Serilog;
 
@@ -52,7 +53,7 @@ public sealed class ProfileRepository(ILogger logger)
     public bool Add(ProfileMetadata profile)
     {
         // Check if there's already a profile with same name
-        if (Exists(profile))
+        if (TryGet(profile.Name, out _))
             return false;
         
         // Register it
@@ -89,11 +90,15 @@ public sealed class ProfileRepository(ILogger logger)
     }
 
     /// <summary>
-    /// Tells whether a profile exists 
+    /// Searches for a profile based on name and returns it as an argument.
     /// </summary>
-    /// <param name="metadata"></param>
-    /// <returns></returns>
-    public bool Exists(ProfileMetadata metadata) =>
-        _profiles.Exists(p =>
-            p.Name.Equals(metadata.Name, StringComparison.OrdinalIgnoreCase));
+    /// <param name="profileName">The name of the profile to search for.</param>
+    /// <param name="profileMetadata">The <see cref="ProfileMetadata"/> instance retrieved.</param>
+    /// <returns><see langword="true"/> if the profile is found; otherwise, <see langword="false"/>.</returns>
+    public bool TryGet(string profileName, [NotNullWhen(true)] out ProfileMetadata? profileMetadata)
+    {
+        profileMetadata = _profiles.Find(p =>
+            p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));
+        return profileMetadata != null;
+    }
 }

@@ -40,7 +40,7 @@ public sealed class SecurityScanner(ILogger logger)
         var numOfTasks = 0;
 
         // Go through each asset and scan them
-        foreach (var (isAPlugin, resource) in allAssets)
+        foreach (var (assetType, resource) in allAssets)
         {
             var resourcePath = resource.LocalPath;
             progress?.Report(new ProgressReport(numOfTasks, allAssets.Length, "Scanning files:",
@@ -55,22 +55,29 @@ public sealed class SecurityScanner(ILogger logger)
             }
 
             // Check if the plugin is suspicious
-            if (isAPlugin)
+            switch (assetType)
             {
-                numOfTasks++;
-                if (await IsPluginSuspicious(file))
-                {
-                    WarnSecurityIssue(resourcePath);
-                }
-                continue;
+                // Is Plugin or Patcher suspicious?
+                case ModManifestUtils.AssetType.Patcher: 
+                case ModManifestUtils.AssetType.Plugin:
+                    numOfTasks++;
+                    if (await IsPluginSuspicious(file))
+                    {
+                        WarnSecurityIssue(resourcePath);
+                    }
+                    break;
+                
+                // Is asset suspicious?
+                case ModManifestUtils.AssetType.Asset:
+                    if (await IsAssetSuspicious(file))
+                    {
+                        WarnSecurityIssue(resourcePath);
+                    }
+                    numOfTasks++;
+                    break;
+                default:
+                    throw new InvalidOperationException("AssetType is invalid.");
             }
-
-            // Is asset suspicious?
-            if (await IsAssetSuspicious(file))
-            {
-                WarnSecurityIssue(resourcePath);
-            }
-            numOfTasks++;
         }
         
         _logger.Information("Finished scan!");

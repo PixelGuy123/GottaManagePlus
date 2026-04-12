@@ -14,8 +14,6 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
     private readonly ILogger _logger = logger;
     private readonly GameEnvironmentController _gameEnvironmentController = gameEnvironmentController;
     
-    private static readonly JsonSerializerOptions Options = new() { TypeInfoResolver = ModManifestContext.Default };
-    
     /// <summary>
     /// Installs the mod into the assigned folder and attempts to install a metadata file inside too.
     /// </summary>
@@ -32,9 +30,8 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
         {
             _logger.Information("Initializing metadata and installation...");
             // Setup Plugin requirements.
-            var pluginDir =
-                new DirectoryInfo(manifest.GetPluginDirectoryFromManifest(_gameEnvironmentController));
-            if (!pluginDir.Exists) pluginDir.Create(); // Try and create directory.
+            var pluginDir = DirectoryUtils.GetOrCreate(manifest.GetPluginDirectoryFromManifest(_gameEnvironmentController));
+            var patcherDir = DirectoryUtils.GetOrCreate(manifest.GetPatchersDirectoryFromManifest(_gameEnvironmentController));
             
             // Setup metadata.
             manifest.Metadata.Activated = true;
@@ -43,32 +40,42 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                 ".metadata");
 
             // First, get the full paths.
-            foreach (var (isPlugin, resource) in manifest.GetAllResources(modRootPath))
+            foreach (var (assetType, resource) in manifest.GetAllResources(modRootPath))
             {
-                // If it is a plugin, it's easier to move.
-                if (isPlugin)
+                switch (assetType)
                 {
+                    // Try to move directory asset to the right destination.
+                    case ModManifestUtils.AssetType.Asset:
+                        if (!Directory.Exists(resource.LocalPath) || !Directory.Exists(resource.Destination)) continue;
+                
+                        _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, resource.Destination);
+                        Directory.Move(resource.LocalPath, resource.Destination);
+                        break;
                     // Move the plugin to the new directory.
-                    if (File.Exists(resource.LocalPath))
-                    {
-                        _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, pluginDir.FullName);
-                        File.Move(resource.LocalPath, pluginDir.FullName);
-                    }
-                    continue;
+                    case ModManifestUtils.AssetType.Plugin:
+                        if (File.Exists(resource.LocalPath))
+                        {
+                            _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, pluginDir.FullName);
+                            File.Move(resource.LocalPath, pluginDir.FullName);
+                        }
+                        break;
+                    case ModManifestUtils.AssetType.Patcher:
+                        if (File.Exists(resource.LocalPath))
+                        {
+                            _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, patcherDir.FullName);
+                            File.Move(resource.LocalPath, patcherDir.FullName);
+                        }
+                        break;
+                    default:
+                        throw new InvalidOperationException("Invalid AssetType value.");
                 }
-                
-                // Try to move directory asset to the right destination.
-                if (!Directory.Exists(resource.LocalPath) || !Directory.Exists(resource.Destination)) continue;
-                
-                _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, resource.Destination);
-                Directory.Move(resource.LocalPath, resource.Destination);
             }
             
             _logger.Information("Creating .metadata file...");
             
             // Serialize metadata, then create it in the files.
             File.WriteAllText(newMetadata.Path!, 
-                JsonSerializer.Serialize(newMetadata, Options));
+                JsonSerializer.Serialize(newMetadata, ModManifestContext.Default.ModMetadata));
             newMetadata.Thumbnail = newMetadata.DetermineImageThroughCheck();
             
             _logger.Information("Installation completed!");

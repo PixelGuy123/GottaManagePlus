@@ -68,7 +68,7 @@
                                     <TextBox 
                                         FontFamily="{StaticResource WorkSans}" 
                                         Text="{CompiledBinding ProfileName}" 
-                                        Watermark="Enter profile name..."/>
+                                        PlaceholderText="Enter profile name..."/>
                                     <TextBlock 
                                         Text="{CompiledBinding ErrorText, Mode=OneWay}"
                                         Opacity="{Binding !CanCreateProfile, Mode=OneWay}"
@@ -139,7 +139,7 @@
                                         <TextBox 
                                             Text="{CompiledBinding CloneProfileName}"
                                             FontFamily="{StaticResource WorkSans}"
-                                            Watermark="Enter profile name..."
+                                            PlaceholderText="Enter profile name..."
                                             />
                                         <TextBlock 
                                             Text="{CompiledBinding ErrorText, Mode=OneWay}"

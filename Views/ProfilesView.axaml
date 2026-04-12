@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:models="using:GottaManagePlus.Models.UI"
+             xmlns:models="using:GottaManagePlus.Models"
+             xmlns:converters="using:GottaManagePlus.Styles.Converters"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
-             xmlns:ui="clr-namespace:GottaManagePlus.Models.UI"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="650"
              x:Class="GottaManagePlus.Views.ProfilesView"
              x:DataType="vm:ProfilesViewModel">
@@ -92,11 +92,11 @@
                             <AutoCompleteBox
                                 Classes="ModViewerHeader"
                                 Width="140"
-                                Watermark="Search"
+                                PlaceholderText="Search"
                                 ItemsSource="{CompiledBinding ObservableUnchangedProfiles, Mode=OneWay}"
-                                SelectedItem="{CompiledBinding CurrentProfileItem}"
+                                SelectedItem="{CompiledBinding CurrentProfileMetadata}"
                                 Text="{CompiledBinding Text}"
-                                ValueMemberBinding="{CompiledBinding ProfileName, DataType=ui:ProfileItem, Mode=OneWay}"
+                                ValueMemberBinding="{CompiledBinding Name, x:DataType=models:ProfileMetadata, Mode=OneWay}"
                                 FilterMode="Contains"
                             />
                             <Button 
@@ -114,10 +114,10 @@
                             Margin="0 0 10 0"
                             Spacing="5"
                             Orientation="Horizontal">
-                            <!-- Add Profile Field -->
+                            <!-- Update Profile Field -->
                             <Button 
                                 HorizontalAlignment="Right"
-                                Command="{CompiledBinding UpdateProfilesData}"
+                                Command="{CompiledBinding UpdateProfiles}"
                                 Classes="ModViewerHeader YCTPButton">
                                 <Image
                                     Source="/Assets/UI/Icon_Reload.png"
@@ -149,7 +149,7 @@
                     Name="ProfileListElement"
                     ItemsSource="{CompiledBinding ObservableProfiles, Mode=OneWay}">
                     <ItemsRepeater.ItemTemplate>
-                        <DataTemplate DataType="{x:Type ui:ProfileItem}">
+                        <DataTemplate DataType="{x:Type models:ProfileMetadata}">
                                 <Panel>
                                     <!--Background for the shade effect-->
                                     <Border
@@ -157,17 +157,25 @@
                                         ClipToBounds="True"
                                         BorderThickness="5"
                                         BoxShadow="inset 50 -25 125 0 Black"
-                                        IsVisible="{CompiledBinding !IsSelectedProfile, Mode=OneWay}"
+                                        IsVisible="{CompiledBinding ., Mode=OneWay}"
                                         Background="Gray"
-                                        BorderBrush="{DynamicResource YctpBg}"/>
+                                        BorderBrush="{StaticResource YctpBg}"/>
                                     <Border
-                                        IsVisible="{CompiledBinding IsSelectedProfile, Mode=OneWay}"
                                         CornerRadius="5"
                                         ClipToBounds="True"
                                         BorderThickness="5"
                                         BoxShadow="inset 50 -25 125 0 Black"
                                         Background="Gray"
-                                        BorderBrush="{DynamicResource YctpBg-Selected}"/>
+                                        BorderBrush="{StaticResource YctpBg-Selected}">
+                                        <Border.IsVisible>
+                                            <MultiBinding 
+                                                Converter="{x:Static converters:EqualityConverters.AllEqual}"
+                                                Mode="OneWay">
+                                                <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType=ScrollViewer}" Path="((vm:ProfilesViewModel)DataContext).CurrentProfileMetadata"/>
+                                                <Binding Path="."/>
+                                            </MultiBinding>
+                                        </Border.IsVisible>
+                                    </Border>
                                     
                                     <Grid ColumnDefinitions="*, Auto" 
                                           HorizontalAlignment="Stretch" 
@@ -177,7 +185,7 @@
                                         <Panel Grid.Column="0">
                                             <StackPanel Margin="15 10" Orientation="Vertical">
                                                 <TextBlock
-                                                    Text="{CompiledBinding ProfileName, Mode=OneWay}"
+                                                    Text="{CompiledBinding Name, Mode=OneWay}"
                                                     Classes="ProfileLabel"
                                                     TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
@@ -189,18 +197,30 @@
                                                     Spacing="5">
                                             <!-- Switch Default Button -->
                                             <Button
-                                                Opacity="{CompiledBinding !IsSelectedProfile, Mode=OneWay}"
-                                                IsHitTestVisible="{CompiledBinding !IsSelectedProfile, Mode=OneWay}"
                                                 Classes="YCTPButton SmallYCTPButton"
-                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
-                                                CommandParameter="{CompiledBinding Id, Mode=OneWay}">
+                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ScrollViewer}}"
+                                                CommandParameter="{CompiledBinding ., Mode=OneWay}">
+                                                <Button.IsHitTestVisible>
+                                                    <MultiBinding 
+                                                        Converter="{x:Static converters:EqualityConverters.AtLeastOneNotEqual}" Mode="OneWay">
+                                                        <Binding Path="((vm:ProfilesViewModel)DataContext).CurrentProfileMetadata" RelativeSource="{RelativeSource FindAncestor, AncestorType=ScrollViewer}"/>
+                                                        <Binding Path="."/>
+                                                    </MultiBinding>
+                                                </Button.IsHitTestVisible>
+                                                <Button.Opacity>
+                                                    <MultiBinding Converter="{x:Static converters:EqualityConverters.AtLeastOneNotEqualDouble}" Mode="OneWay">
+                                                        <Binding Path="((vm:ProfilesViewModel)DataContext).CurrentProfileMetadata" 
+                                                                 RelativeSource="{RelativeSource FindAncestor, AncestorType=ScrollViewer}"/>
+                                                        <Binding Path="."/>
+                                                    </MultiBinding>
+                                                </Button.Opacity>
                                                 <Image Source="/Assets/UI/Icon_UpdateMod.png"/>
                                             </Button>
                                             <!-- Info Button -->
                                             <Button
                                                 Classes="YCTPButton SmallYCTPButton"
-                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
-                                                CommandParameter="{CompiledBinding Id, Mode=OneWay}">
+                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ScrollViewer}}"
+                                                CommandParameter="{CompiledBinding ., Mode=OneWay}">
                                                 <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
                                             </Button>
                                         </StackPanel>

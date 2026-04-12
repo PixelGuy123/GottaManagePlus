@@ -106,12 +106,8 @@ public sealed class ProfileZipWriter(ILogger logger)
             }
             
             // --- Write metadata file ---
-            await using (var binaryWriter = new BinaryWriter(File.OpenWrite(
-                             Path.Combine(profileRootDirectory.FullName, Constants.ProfileMetadataFileName))))
-            {
-                _logger.Information("Writing metadata file...");
-                binaryWriter.Write(profile.Serialize());
-            }
+            _logger.Information("Writing metadata file...");
+            File.WriteAllText(Path.Combine(profileRootDirectory.FullName, Constants.ProfileMetadataFileName), profile.Serialize());
 
             // Move final directory to target location
             var desiredPath = controller.SearchAbsolutePath(path);

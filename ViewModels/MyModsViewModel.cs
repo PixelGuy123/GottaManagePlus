@@ -135,10 +135,10 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     private async Task DeleteModManifestUiAsync(ModManifest modToDelete)
     {
-        var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-        confirmDialog.Prepare(null, $"Delete {modToDelete.Name}?", "Are you sure you want to delete this mod?", "Yes", "No");
-        await _dialogService.ShowDialog(confirmDialog);
-        if (!confirmDialog.Confirmed) return;
+        if (!await _dialogService.PromptUserQuestion(
+                $"Delete {modToDelete.Name}?",
+                "Are you sure you want to delete this mod?"))
+            return;
 
         var profileMetadata = _profileManager.ActiveProfile;
         if (profileMetadata == null) return;
@@ -154,22 +154,17 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             catch (Exception e)
             {
                 Log.Error("Failed to delete the mod directory for {ModName}!\n{Exception}", modToDelete.Name, e);
-                var failDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-                failDialog.Prepare(true, Constants.FailDialog, $"Failed to delete mod files for {modToDelete.Name}. Check file permissions.");
-                await _dialogService.ShowDialog(failDialog);
+                await _dialogService.GenerateLoadingProcess(
+                    $"Failed to delete mod files for {modToDelete.Name}. Check file permissions.",
+                    null);
                 return;
             }
         }
 
-        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);
-
-        if (!await _dialogService.ShowDialog(loadingDialog))
-        {
-            var failDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            failDialog.Prepare(true, Constants.FailDialog, $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}");
-            await _dialogService.ShowDialog(failDialog);
-        }
+        await _dialogService.GenerateLoadingProcess(
+            $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}",
+            null,
+            "Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);
     }
 
     private async Task OpenModPathUiAsync(ModManifest mod)
@@ -177,17 +172,17 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_gameEnvironmentController);
         if (string.IsNullOrEmpty(modDirectoryPath) || !Directory.Exists(modDirectoryPath))
         {
-            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            confirmDialog.Prepare(true, Constants.FailDialog, "The path to the mod is somehow invalid!\nTry reloading the profiles list.");
-            await _dialogService.ShowDialog(confirmDialog);
+            await _dialogService.GenerateLoadingProcess(
+                "The path to the mod is somehow invalid!\nTry reloading the profiles list.",
+                null);
             return;
         }
 
         if (!await _directoryLauncher.OpenDirectoryInfo(new DirectoryInfo(modDirectoryPath)))
         {
-            var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            confirmDialog.Prepare(true, Constants.FailDialog, "Failed to open the path to the mod due to an unknown error!\nTry reloading the profiles list.");
-            await _dialogService.ShowDialog(confirmDialog);
+            await _dialogService.GenerateLoadingProcess(
+                "Failed to open the path to the mod due to an unknown error!\nTry reloading the profiles list.",
+                null);
         }
     }
 }

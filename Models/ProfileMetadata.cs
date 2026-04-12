@@ -17,6 +17,7 @@ public class ProfileMetadata()
     /// <summary>
     /// Returns a default instance of <see cref="ProfileMetadata"/> with filled data.
     /// </summary>
+    [TomlIgnore]
     public static ProfileMetadata Default => new()
     {
         EstimatedBytesLength = 100,

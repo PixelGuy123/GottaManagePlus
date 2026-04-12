@@ -40,12 +40,12 @@ public sealed class ProfileExportReader(ILogger logger)
                 var entry = reader.Entry;
                 if (entry.Key?.Equals(Constants.ProfileMetadataFileName, StringComparison.OrdinalIgnoreCase) != true) continue;
                 
-                // Found entry, now use a BinaryReader to unpack it.
+                // Found entry, now use a StreamReader to unpack it.
                 using var entryStream = reader.OpenEntryStream();
-                using var binaryReader = new BinaryReader(entryStream);
+                using var streamReader = new StreamReader(entryStream);
                     
                 // Try to make a metadata object out of it.
-                return ProfileMetadataUtils.ReadMetadata(binaryReader.ReadString());
+                return ProfileMetadataUtils.ReadMetadata(streamReader.ReadToEnd());
             }
 
             // No metadata found, return null.

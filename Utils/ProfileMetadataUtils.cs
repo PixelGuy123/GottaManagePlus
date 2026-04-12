@@ -20,14 +20,14 @@ public static class ProfileMetadataUtils
     /// <param name="tomlContent">The content used by the <see cref="TomlSerializer"/>.</param>
     /// <returns>An instance of <see cref="ProfileMetadata"/>.</returns>
     public static ProfileMetadata? ReadMetadata(string tomlContent) =>
-        TomlSerializer.Deserialize<ProfileMetadata>(tomlContent, ProfileMetadataContext.Default);
+        TomlSerializer.Deserialize(tomlContent, ProfileMetadataContext.Default.ProfileMetadata);
     /// <summary>
     /// Serializes the <see cref="ProfileMetadata"/> into a TOML table.
     /// </summary>
     /// <param name="metadata">The instance to be serialized.</param>
     /// <returns>A <see cref="string"/> containing all the content of the metadata.</returns>
     public static string Serialize(this ProfileMetadata metadata) =>
-        TomlSerializer.Serialize(metadata, ProfileMetadataContext.Default);
+        TomlSerializer.Serialize(metadata, ProfileMetadataContext.Default.ProfileMetadata);
     /// <summary>
     /// Returns the physical path of the <see cref="ProfileMetadata"/>.
     /// </summary>
