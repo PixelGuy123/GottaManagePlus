@@ -99,11 +99,8 @@
                         <Button
                             Command="{CompiledBinding AddModRequest}"
                             Margin="10 0"
-                            Classes="ModViewerHeader YCTPButton">
-                            <Image
-                                Source="/Assets/UI/Icon_AddModContainer.png"
-                                Width="32"
-                                Height="32" />
+                            Classes="ModViewerHeader YCTPButton Miniature">
+                            <Svg Path="/Assets/UI/add.svg"/>
                         </Button>
                         <AutoCompleteBox
                             Classes="ModViewerHeader"
@@ -115,12 +112,9 @@
                             ValueMemberBinding="{Binding Name, x:DataType=models:ModManifest, Mode=OneWay}"
                             FilterMode="Contains" />
                         <Button
-                            Classes="ModViewerHeader YCTPButton"
+                            Classes="ModViewerHeader YCTPButton Miniature"
                             Command="{CompiledBinding ResetSearch}">
-                            <Image
-                                Source="/Assets/UI/Icon_Cancel_Generic.png"
-                                Width="32"
-                                Height="32" />
+                            <Svg Path="/Assets/UI/delete-search.svg"/>
                         </Button>
                         <!-- Current version display -->
                         <TextBlock 
@@ -234,24 +228,18 @@
                                                         VerticalAlignment="Center"
                                                         Spacing="35">
 
-                                                <Button Classes="YCTPButton"
+                                                <Button Classes="YCTPButton Miniature"
                                                         HorizontalAlignment="Left"
                                                         Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).OpenModPath, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
                                                         CommandParameter="{CompiledBinding ., Mode=OneWay}">
-                                                    <Image 
-                                                        Width="32"
-                                                        Height="32"
-                                                        Source="/Assets/UI/Icon_SelectFolder.png"/>
+                                                    <Svg Path="/Assets/UI/Inspect.svg"/>
                                                 </Button>
 
-                                                <Button Classes="YCTPButton"
+                                                <Button Classes="YCTPButton Miniature"
                                                         HorizontalAlignment="Right"
                                                         Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModManifest, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
                                                         CommandParameter="{CompiledBinding ., Mode=OneWay}">
-                                                    <Image
-                                                        Width="32"
-                                                        Height="32"
-                                                        Source="/Assets/UI/Icon_DeleteMod.png"/>
+                                                    <Svg Path="/Assets/UI/Trash.svg"/>
                                                 </Button>
                                             </StackPanel>
                                         </Grid>

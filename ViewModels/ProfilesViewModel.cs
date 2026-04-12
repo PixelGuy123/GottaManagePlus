@@ -102,7 +102,7 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
         {
             ObservableUnchangedProfiles = new ObservableCollection<ProfileMetadata>(provider.GetAll());
             ResetListVisibleConfigurations();
-            _settingsService.CurrentSettings.CurrentProfileSet = _profileManager.ActiveProfile?.Name ?? ProfileMetadata.DefaultName;
+            
         });
     }
 

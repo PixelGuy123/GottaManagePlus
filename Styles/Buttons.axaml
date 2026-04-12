@@ -26,9 +26,14 @@
                     </Border>
                     
                     <Border>
-                        <Button Classes="YCTPButton">
-                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
-                        </Button>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Classes="YCTPButton Miniature">
+                                <Svg Path="/Assets/UI/delete-search.svg"/>
+                            </Button>
+                            <Button Classes="YCTPButton">
+                                <Svg Path="/Assets/UI/Inspect.svg"/>
+                            </Button>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Grid>
@@ -38,92 +43,62 @@
     <!-- Default Button -->
     <Style Selector="Button">
         <Setter Property="Padding" Value="0"/>
-        
-        <!--BUTTON STYLING-->
+        <!-- YCTP BUTTON -->
         <Style Selector="^.YCTPButton">
-            <Setter Property="Background">
-                <Setter.Value>
-                    <ImageBrush
-                        Source="/Assets/UI/Button_Normal_48x48.png"
-                        Stretch="Uniform"
-                    />
-                </Setter.Value>
-            </Setter>
-            <Style Selector="^ Image">
+            <Setter Property="Height" Value="64"/>
+            <Setter Property="Width" Value="64"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="#8c0d93"/>
+                <Setter Property="CornerRadius" Value="15"/>
                 <Setter Property="Margin" Value="5"/>
-                <Setter Property="MaxWidth" Value="48"/>
-                <Setter Property="MaxHeight" Value="48"/>
+                <Setter Property="Padding" Value="6"/>
+                <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 2 #3f043e"/>
             </Style>
-            <!--Disable click sizing from Pressed-->
-            <Style Selector="^:pressed">
+            
+            <!-- Icon Definitions -->
+            <Style Selector="^ Svg">
+                <Setter Property="Margin" Value="3 0 -0.5 2"/>
+                <Setter Property="Css" Value="
+                    .usesStroke { stroke: #FFFFFF; }
+                    .usesFill { fill: #FFFFFF; }
+                "/>
+            </Style>
+            
+            <!-- Event Definitions -->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 2 #bef0c0"/>
+                <Setter Property="Background" Value="#75e170"/>
+            </Style>
+            <!-- Svg Color Update -->
+            <Style Selector="^:pointerover Svg">
+                <Setter Property="Css" Value="
+                    .usesFill { fill: #949794; }
+                    .usesStroke { stroke: #949794; }
+                "/>
+            </Style>
+            <!-- Default Animation Disable -->
+            <Setter Property="Transitions" Value="{x:Null}" />
+            <Setter Property="RenderTransform" Value="none" />
+            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="RenderTransform" Value="none" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter"> 
                 <Setter Property="RenderTransform" Value="none" />
             </Style>
-            <!-- Image Update -->
-            <Style Selector="^:pointerover Image">
-                <Setter Property="BlendMode" Value="Hue"/>
-            </Style>
-            <Style Selector="^:pressed Image">
-                <Setter Property="BlendMode" Value="Hue"/>
-            </Style>
-            <!--Pointer over style consistency-->
-            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_Selected_48x48.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-            </Style>
             
-            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_Selected_48x48.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            
-            <!-- YCTP 32x32 -->
-            <Style Selector="^.SmallYCTPButton">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_32x32.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-                <Style Selector="^ Image">
-                    <Setter Property="Margin" Value="5"/>
-                    <Setter Property="MaxWidth" Value="16"/>
-                    <Setter Property="MaxHeight" Value="16"/>
+            <!-- Small Version -->
+            <!-- YCTP BUTTON OVERRIDE -->
+            <Style Selector="^.Miniature">
+                <Setter Property="Height" Value="48"/>
+                <Setter Property="Width" Value="48"/>
+                <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter"> 
+                    <Setter Property="CornerRadius" Value="12"/>
+                    <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 1 #3f043e"/>
                 </Style>
-                <!--Pointer over style consistency-->
                 <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <ImageBrush
-                                Source="/Assets/UI/Button_Normal_Selected_32x32.png"
-                                Stretch="Uniform"
-                            />
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-                <!--Pointer pressed style consistency-->
-                <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <ImageBrush
-                                Source="/Assets/UI/Button_Normal_Selected_32x32.png"
-                                Stretch="Uniform"
-                            />
-                        </Setter.Value>
-                    </Setter>
+                    <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 1 #bef0c0"/>
                 </Style>
             </Style>
         </Style>

@@ -6,6 +6,7 @@ using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
 using System;
+using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
 using GottaManagePlus.Utils;
@@ -69,7 +70,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         
         // Cache on start
         _dialogService.GetDialog<AppInfoDialogViewModel>();
-
+        
+        // **** Settings Setup ****
         // Add the save settings callback to ensure the path is always updated
         _settingsService.OnSaveSettings += () => 
             ExecutablePathSet = gameEnvironmentController.IsEnvironmentValid;
@@ -89,6 +91,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             // Display that one needed dialog
             settings.DisplayGameFolderRequirementFolder();
         }
+        
+        // Update the Profile Selection for the settings.
+        _profileManager.OnActiveProfileUpdate += 
+            newProfile => _settingsService.CurrentSettings.CurrentProfileSet = 
+                newProfile?.Name ?? ProfileMetadata.DefaultName;
     }
     
     // public methods

@@ -32,7 +32,8 @@ public sealed class ProfileManager(
     /// <summary>
     /// Invoked every time the <see cref="ProfileManager.ActiveProfile"/> is changed.
     /// </summary>
-    public event Action<ProfileMetadata?>? OnActiveProfileUpdate;
+    public event ProfileUpdateListener? OnActiveProfileUpdate;
+    public delegate void ProfileUpdateListener(ProfileMetadata? newActiveProfile);
 
     /// <summary>
     /// Sets a new profile to the <see cref="ProfileManager"/>.
