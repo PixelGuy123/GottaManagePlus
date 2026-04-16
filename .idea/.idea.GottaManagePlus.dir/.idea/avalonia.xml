@@ -8,6 +8,7 @@
         <entry key="Styles/Borders.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Buttons.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/FileBrowser.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Controls/HighlightedTextBlock.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/PseudoTextBox.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/ReadonlyTextBox.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/SelectableTextBox.axaml" value="GottaManagePlus.csproj" />
@@ -28,6 +29,7 @@
         <entry key="Views/CreateProfileDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/LoadingDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MainWindow.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/ModPreviewPanelView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MyModsView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/PreviewProfileDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/ProfilesView.axaml" value="GottaManagePlus.csproj" />

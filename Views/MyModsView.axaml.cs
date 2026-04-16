@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 
 namespace GottaManagePlus.Views;
 
@@ -18,6 +19,15 @@ public partial class MyModsView : UserControl
         
         // No Mod Text Fontsize Update
         ModsScrollViewer.SizeChanged += ModsScrollViewerOnSizeChanged;
+        
+        // Update the Manifest Visualizer Properties
+        ManifestVisualizer.PaneOpened += OnManifestVisualizerOnPaneOpened;
+    }
+
+    private void OnManifestVisualizerOnPaneOpened(object? sender, RoutedEventArgs e)
+    {
+        ManifestVisualizerDescription.FontSize = !string.IsNullOrEmpty(ManifestVisualizerDescription.Text) ? 
+            Math.Max(12, 18d - ManifestVisualizerDescription.Text.Length * 0.15d) : 12d;
     }
 
     private void ModsScrollViewerOnSizeChanged(object? _, SizeChangedEventArgs e)

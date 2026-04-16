@@ -18,14 +18,4 @@
             <Setter Property="Background" Value="{DynamicResource MainMenus-Bg}" />
         </Style>
     </Style>
-    
-    <!-- Corner Radius Feature for Borders -->
-    <Style Selector="Border">
-        <Style Selector="^.AllCornerRadius">
-            <Setter Property="CornerRadius" Value="15" />
-        </Style>
-        <Style Selector="^.RightCornerRadius">
-            <Setter Property="CornerRadius" Value="0 15 15 0" />
-        </Style>
-    </Style>
 </Styles>

@@ -38,6 +38,10 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
             manifest.Metadata.Path = _gameEnvironmentController.SearchAbsolutePath(pluginDir.FullName,
                 Constants.App_SpecialFolderForMods_Name,
                 ".metadata");
+            
+            // LastUpdateTime Setup
+            var dateTime = DateTime.Now;
+            manifest.Metadata.LastUpdateDate = new DateOnly(dateTime.Year, dateTime.Month, dateTime.Day);
 
             // First, get the full paths.
             foreach (var (assetType, resource) in manifest.GetAllResources(modRootPath))

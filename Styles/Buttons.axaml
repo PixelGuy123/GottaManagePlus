@@ -33,6 +33,12 @@
                             <Button Classes="YCTPButton">
                                 <Svg Path="/Assets/UI/Inspect.svg"/>
                             </Button>
+                            <Button Classes="YCTPButton">
+                                <Svg Path="/Assets/UI/exit.svg"/>
+                            </Button>
+                            <Button Classes="YCTPButton" Width="175">
+                                <TextBlock Text="This is a text block."></TextBlock>
+                            </Button>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -45,8 +51,8 @@
         <Setter Property="Padding" Value="0"/>
         <!-- YCTP BUTTON -->
         <Style Selector="^.YCTPButton">
-            <Setter Property="Height" Value="64"/>
             <Setter Property="Width" Value="64"/>
+            <Setter Property="Height" Value="64"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
                 <Setter Property="Background" Value="#8c0d93"/>
@@ -65,6 +71,16 @@
                 "/>
             </Style>
             
+            <!-- Text Update -->
+            <Style Selector="^ TextBlock">
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontFamily" Value="{StaticResource ComicRelief}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="5"/>
+            </Style>
+            
             <!-- Event Definitions -->
             <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
                 <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 2 #bef0c0"/>
@@ -77,7 +93,11 @@
                     .usesStroke { stroke: #949794; }
                 "/>
             </Style>
-            <!-- Default Animation Disable -->
+            <!--- Text Update -->
+            <Style Selector="^:pointerover TextBlock">
+                <Setter Property="Foreground" Value="#949794"></Setter>
+            </Style>
+                <!-- Default Animation Disable -->
             <Setter Property="Transitions" Value="{x:Null}" />
             <Setter Property="RenderTransform" Value="none" />
             <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 

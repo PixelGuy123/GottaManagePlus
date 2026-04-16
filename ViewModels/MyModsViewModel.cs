@@ -36,7 +36,10 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     [ObservableProperty] private ObservableCollection<ModManifest> _observableMods = [];
     [ObservableProperty] private ModManifest? _currentModManifest;
-    [ObservableProperty] private string? _text;
+    [ObservableProperty] private string? _searchText;
+    
+    // ---- Mod Preview ----
+    [ObservableProperty] private ModManifest? _manifestInPreview;
 
     // ---- Public Getters ----
     public int NumberOfModsPerRow { get; private set; } = 6;
@@ -49,7 +52,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     private void OnObservableUnchangedModsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
         OnPropertyChanged(nameof(HasAnyModsToDisplay));
 
-    [RelayCommand] public void ResetSearch() => Text = null;
+    [RelayCommand] public void ResetSearch() => SearchText = null;
     [RelayCommand] public async Task DeleteModManifest(ModManifest mod) => await DeleteModManifestUiAsync(mod);
     [RelayCommand] public async Task AddModRequest() => await AddModUiAsync();
     [RelayCommand] public async Task OpenModPath(ModManifest mod) => await OpenModPathUiAsync(mod);
@@ -61,9 +64,17 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         ObservableUnchangedMods = new ObservableCollection<ModManifest>(
         [
             new ModManifest { Name = "Design Mod 1" },
-            new ModManifest { Name = "Design Mod 2" }
+            new ModManifest { Name = "Design Mod 2", Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor " +
+                                                                   "magna eu est semper consectetur. Vestibulum elementum mollis sem vel " +
+                                                                   "tempor. Suspendisse potenti. Nam quis varius augue. Vestibulum ante ipsum " +
+                                                                   "primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec " +
+                                                                   "faucibus quam non arcu blandit, ac posuere quam dapibus. Donec efficitur " +
+                                                                   "bibendum felis. Donec cursus gravida tortor, in venenatis quam malesuada aliquam." +
+                                                                   " Suspendisse eu erat sem. Quisque tortor augue, feugiat eu elementum sed, accumsan id " +
+                                                                   "quam.\n\nInterdum et malesuada fames ac ante ipsum primis in faucibus. Nulla bibendum risus rhoncus pellentesque pellentesque. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Praesent interdum scelerisque massa, sit amet imperdiet nisl maximus in. Aliquam at eros ut quam vulputate auctor. Aliquam at risus eget dui finibus ullamcorper. Aliquam gravida erat sit amet ante efficitur pretium. Nulla ac neque a lorem aliquet rutrum ac eu ligula. Integer viverra diam vitae vestibulum condimentum. Praesent vel turpis enim. Nam ut nulla velit. Morbi turpis ipsum, vulputate at sapien eget, pharetra bibendum diam. Vestibulum ornare urna sed lectus mattis tristique. Mauris lobortis tellus sed purus gravida scelerisque et eget erat. Ut volutpat a odio vel posuere.\n\nNullam elit metus, congue ac lacus vel, venenatis egestas nisl. Nunc non ante quam. Proin ut tellus elit. Ut sit amet ex finibus ante malesuada laoreet nec vitae sapien. Etiam bibendum, massa id rutrum gravida, magna enim mollis dolor, vulputate gravida augue velit eu elit. Donec eu odio tristique, porttitor nisl dictum, efficitur odio. Suspendisse ac egestas mauris. Sed quis tortor sed arcu dictum sagittis. Quisque porttitor elementum metus ut efficitur. Duis at urna dui. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin molestie leo id efficitur facilisis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc et aliquet purus, eu consectetur neque.\n\nSed vehicula augue vel mauris facilisis, sit amet dignissim lectus condimentum. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vivamus elementum iaculis arcu. Curabitur viverra viverra eros sit amet tristique. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis dictum eros quis velit fringilla pretium. Praesent vitae ante vel sapien laoreet venenatis eu quis orci. Proin venenatis augue ut justo feugiat cursus. Cras lobortis lobortis est, a sodales felis semper mattis. Curabitur sit amet dui non mauris luctus aliquam. Pellentesque pellentesque suscipit orci eget ultricies. Integer eleifend vel mi ac suscipit. Duis gravida quam lacus, vitae sagittis ipsum bibendum nec. Vivamus sollicitudin purus nec tortor aliquam accumsan. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;\n\nMauris rutrum, nunc ac ullamcorper hendrerit, eros nunc laoreet ligula, in congue urna eros rhoncus mi. In efficitur at turpis dictum ultrices. Cras tellus nunc, egestas quis tellus a, eleifend dictum libero. Praesent dapibus sodales fringilla. Vivamus euismod, tellus ac viverra egestas, metus mi sollicitudin diam, et aliquet lectus arcu id massa. Suspendisse sed odio nec dui ultrices tincidunt in in tortor. Vivamus felis nisi, fringilla in posuere id, finibus accumsan metus. Aenean pretium urna sit amet molestie gravida. Vivamus vestibulum, felis vitae tincidunt hendrerit, lacus metus iaculis leo, non tristique purus elit in quam. Duis pharetra dolor quis nulla rutrum, a hendrerit massa efficitur. Nulla quis odio nec diam dapibus eleifend at non tellus. Integer sit amet sem odio. Sed eu magna tortor. Nulla sollicitudin nisl eu arcu varius, id porta ante volutpat. "}
         ]);
         ObservableMods = new ObservableCollection<ModManifest>(ObservableUnchangedMods);
+        ManifestInPreview = ObservableUnchangedMods[1];
     }
 
     // ---- DI Constructor ----

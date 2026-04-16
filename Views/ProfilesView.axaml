@@ -42,11 +42,10 @@
     <!-- START of Profiles -->
     <Border
         Name="BodyBorder"
-        Classes="Menu_Border AllCornerRadius"
+        Classes="Menu_Border"
         BoxShadow="0 3 10 2 #7D000000">
         <Border
-            Classes="Menu_Border AllCornerRadius"
-            ClipToBounds="True">
+            Classes="Menu_Border">
             <Grid RowDefinitions="Auto, *">
                 <Border Grid.Row="0" 
                         HorizontalAlignment="Stretch" 
@@ -100,7 +99,7 @@
                                 FilterMode="Contains"
                             />
                             <Button 
-                                Classes="ModViewerHeader YCTPButton SmallYCTPButton"
+                                Classes="ModViewerHeader YCTPButton Miniature"
                                 Margin="5 0 0 0"
                                 Command="{CompiledBinding ResetSearch}">
                                 <Image

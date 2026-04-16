@@ -32,6 +32,7 @@ public class ModMetadata
     public string? InstallationUrl { get; set; } // Supports Gamebanana and GitHub for now
     public List<string> DependenciesUrls { get; set; } = [];
     public AutoSortedList<WrappedGameVersion> SupportedPlusVersions { get; set; } = []; // Automatically sorted by high order
+    public DateOnly LastUpdateDate { get; set; }
     
     // ### Important Fields ###
     public bool Activated { get; set; } // Whether the mod is active or not.
