@@ -6,7 +6,6 @@
     mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     xmlns:models="using:GottaManagePlus.Models"
-    xmlns:controls="using:GottaManagePlus.Styles.Controls"
     xmlns:converters="using:GottaManagePlus.Styles.Converters"
     x:Class="GottaManagePlus.Views.MyModsView"
     x:DataType="vm:MyModsViewModel">
@@ -54,8 +53,44 @@
             <Setter Property="BorderThickness" Value="5" />
             <Setter Property="Background" Value="Black" />
             <Setter Property="BorderBrush" Value="{StaticResource YctpBg}" />
-            <Style Selector="^.SelectedYCTP">
-                <Setter Property="BorderBrush" Value="{StaticResource YctpBg-Selected}" />
+            
+            <!-- Text Formatting -->
+            <Style Selector="^ TextBlock">
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontFamily" Value="{StaticResource ComicRelief}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </Style>
+        <Style Selector="Button.YCTP">
+            <Setter Property="CornerRadius" Value="35" />
+            <Setter Property="BorderThickness" Value="5" />
+            <Setter Property="Background" Value="Black" />
+            <Setter Property="BorderBrush" Value="{StaticResource YctpBg}" />
+            
+            <!-- Template Changes -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                            <ContentPresenter
+                                Content="{TemplateBinding Content}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <!-- Svg Color Update -->
+            <Style Selector="^ Svg">
+                <Setter Property="Css" Value="
+                    .usesFill { fill: #FFFFFF; }
+                    .usesStroke { stroke: #FFFFFF; }
+                "/>
             </Style>
         </Style>
     </UserControl.Styles>
@@ -98,7 +133,9 @@
                                 Foreground="White"
                                 Classes="SideMenu-Label RightHeader">
                                 <Run Text="{CompiledBinding ObservableUnchangedMods.Count}" />
-                                <Run Text="Installed Mods" />
+                                <Run Text="Installed Mods |" />
+                                <Run Text="{CompiledBinding ModsEnabledCount}"/>
+                                <Run Text="Mods Enabled"/>
                             </TextBlock>
                         </Panel>
                     </StackPanel>
@@ -169,19 +206,13 @@
                                 <Svg Path="/Assets/UI/exit.svg" />
                             </Button>
 
-                            <!-- Trash button -->
-                            <Button Grid.Row="0" Classes="YCTPButton Miniature"
-                                    Command="{Binding }"
-                                    VerticalAlignment="Top"
-                                    HorizontalAlignment="Right">
-                                <Svg Path="/Assets/UI/Trash.svg" />
-                            </Button>
-
                             <!-- Mod Thumbnail -->
                             <!-- Image Display -->
                             <Border Grid.Row="1"
-                                    Classes="YCTP SelectedYCTP"
+                                    Classes="YCTP"
+                                    BorderBrush="{StaticResource YctpBg-Warning}"
                                     Margin="5"
+                                    RenderOptions.BitmapInterpolationMode="HighQuality"
                                     MaxWidth="225"
                                     Padding="10">
                                 <Border.Background>
@@ -258,6 +289,7 @@
                     <SplitView.Content>
                         <ScrollViewer Name="ModsScrollViewer"
                                       Background="{DynamicResource ModsListBg}">
+                            <!-- No Mods Indicator if possible -->
                             <Panel>
                                 <TextBlock Name="NoModTextIndicator"
                                            IsVisible="{CompiledBinding !HasAnyModsToDisplay, Mode=OneWay}"
@@ -270,105 +302,91 @@
                                         <RotateTransform Angle="12.5" />
                                     </TextBlock.RenderTransform>
                                 </TextBlock>
-
+                                
+                                <!-- Actual Mod List -->
                                 <ItemsRepeater IsVisible="{CompiledBinding HasAnyModsToDisplay, Mode=OneWay}"
                                                ItemsSource="{CompiledBinding ObservableMods, Mode=OneWay}">
                                     <ItemsRepeater.Layout>
                                         <UniformGridLayout ItemsStretch="Fill"
                                                            Orientation="Horizontal"
                                                            MaximumRowsOrColumns="{CompiledBinding NumberOfModsPerRow, Mode=OneTime}"
-                                                           MinItemWidth="150"
-                                                           MinItemHeight="250"
-                                                           MinColumnSpacing="10"
+                                                           MinColumnSpacing="2"
                                                            MinRowSpacing="10" />
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
                                         <DataTemplate DataType="{x:Type models:ModManifest}">
-                                            <Border
-                                                Padding="14 4"
-                                                CornerRadius="35"
-                                                BorderThickness="5"
-                                                Background="Black"
-                                                BorderBrush="{StaticResource YctpBg}">
-                                                <Grid
-                                                    RowDefinitions="Auto, *, Auto">
-                                                    <!-- Metadata Display -->
-                                                    <StackPanel
-                                                        Grid.Row="0"
-                                                        VerticalAlignment="Top"
-                                                        Orientation="Vertical">
-                                                        <!-- Mod Name display -->
-                                                        <TextBlock
-                                                            MaxHeight="75"
-                                                            Classes="ModLabel"
-                                                            Text="{CompiledBinding Name, Mode=OneWay}"
-                                                            FontSize="{CompiledBinding Name, Converter={x:Static converters:FontConverters.Max20TextToSizeConverter}, Mode=OneWay}" />
-                                                        <!-- Version and Support display -->
-                                                        <TextBlock
-                                                            Foreground="{CompiledBinding SupportsCurrentVersion, Mode=OneWay, Converter={x:Static converters:ForegroundConverters.BoolToColor}}"
-                                                            FontSize="12"
-                                                            Text="{CompiledBinding Metadata, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToStringifiedVersion}}"
-                                                            Classes="ModLabel" />
-                                                        <!-- Supports -->
-                                                        <TextBlock
-                                                            IsVisible="{CompiledBinding SupportsCurrentVersion, Mode=OneWay}"
-                                                            Foreground="{CompiledBinding SupportsCurrentVersion, Mode=OneWay, Converter={x:Static converters:ForegroundConverters.BoolToColor}}"
-                                                            Classes="ModLabel"
-                                                            FontWeight="Bold"
-                                                            TextTrimming="None"
-                                                            TextWrapping="WrapWithOverflow"
-                                                            Text="Supports this version."
-                                                            FontSize="10" />
-                                                        <!-- NOT Support -->
-                                                        <TextBlock
-                                                            IsVisible="{CompiledBinding !SupportsCurrentVersion, Mode=OneWay}"
-                                                            Foreground="{CompiledBinding SupportsCurrentVersion, Mode=OneWay, Converter={x:Static converters:ForegroundConverters.BoolToColor}}"
-                                                            Classes="ModLabel"
-                                                            FontWeight="Bold"
-                                                            TextTrimming="None"
-                                                            TextWrapping="WrapWithOverflow"
-                                                            Text="Doesn't support this version."
-                                                            FontSize="10">
-                                                        </TextBlock>
-                                                    </StackPanel>
-                                                    <!-- Image Display -->
-                                                    <Border Grid.Row="1" Margin="5"
-                                                            MaxWidth="{CompiledBinding MaxHeight, RelativeSource={RelativeSource Self}, Mode=OneWay}"
-                                                            MaxHeight="128"
-                                                            Padding="10"
-                                                            CornerRadius="10"
-                                                            ClipToBounds="True"
-                                                            BorderThickness="5"
-                                                            BorderBrush="{DynamicResource YctpBg-Selected}">
-                                                        <Border.Background>
-                                                            <ImageBrush
-                                                                Stretch="UniformToFill"
-                                                                Source="{CompiledBinding Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}" />
-                                                        </Border.Background>
-                                                    </Border>
-                                                    <!-- Button Display -->
-                                                    <StackPanel Grid.Row="2"
-                                                                Orientation="Horizontal"
-                                                                HorizontalAlignment="Center"
-                                                                VerticalAlignment="Center"
-                                                                Spacing="35">
-
-                                                        <Button Classes="YCTPButton Miniature"
-                                                                HorizontalAlignment="Left"
-                                                                Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).OpenModPath, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
-                                                                CommandParameter="{CompiledBinding ., Mode=OneWay}">
-                                                            <Svg Path="/Assets/UI/Inspect.svg" />
-                                                        </Button>
-
-                                                        <Button Classes="YCTPButton Miniature"
-                                                                HorizontalAlignment="Right"
-                                                                Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModManifest, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"
-                                                                CommandParameter="{CompiledBinding ., Mode=OneWay}">
-                                                            <Svg Path="/Assets/UI/Trash.svg" />
-                                                        </Button>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
+                                            <Grid
+                                                ColumnDefinitions="Auto, *, Auto"
+                                                RowDefinitions="Auto 22.5">
+                                                <!-- Clickable Thumbnail -->
+                                                <Button
+                                                    Grid.Row="0"
+                                                    Grid.Column="0"
+                                                    Grid.ColumnSpan="3"
+                                                    MinWidth="150"
+                                                    MinHeight="150"
+                                                    BorderBrush="{StaticResource YctpBg-Warning}"
+                                                    Classes="YCTP"
+                                                    CornerRadius="5">
+                                                    <Button.Background>
+                                                        <ImageBrush
+                                                            Stretch="UniformToFill"
+                                                            Source="{CompiledBinding Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}" />
+                                                    </Button.Background>
+                                                    <FlyoutBase.AttachedFlyout>
+                                                        <Flyout>
+                                                            <TextBlock Text="Open this mod." />
+                                                        </Flyout>
+                                                    </FlyoutBase.AttachedFlyout>
+                                                </Button>
+                                                
+                                                <!-- Disable/Enable Button -->
+                                                <Button
+                                                    Grid.Row="1"
+                                                    Grid.Column="0"
+                                                    Classes="YCTP"
+                                                    BorderThickness="3"
+                                                    BorderBrush="{CompiledBinding Metadata.Activated, Converter={x:Static converters:BoolConverters.BoolToYCTPColor}, Mode=OneWay}"
+                                                    CornerRadius="5">
+                                                    <Svg Path="{CompiledBinding Metadata.Activated, Converter={x:Static converters:BoolConverters.BoolToCheckmarkIconPath}, Mode=OneWay}"/>
+                                                    <Button.Transitions>
+                                                        <Transitions>
+                                                            <BrushTransition
+                                                                Duration="0:0:0.25"
+                                                                Easing="SineEaseOut"
+                                                                Property="BorderBrush"
+                                                                />
+                                                        </Transitions>
+                                                    </Button.Transitions>
+                                                </Button>
+                                                
+                                                <!-- Trash Button -->
+                                                <Button
+                                                    Grid.Row="1"
+                                                    Grid.Column="2"
+                                                    Classes="YCTP"
+                                                    BorderBrush="{StaticResource YctpBg-Error}"
+                                                    BorderThickness="3"
+                                                    CornerRadius="5"
+                                                    
+                                                    CommandParameter="{CompiledBinding .}"
+                                                    Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModManifest, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}">
+                                                    <Svg Path="/Assets/UI/Trash.svg"/>
+                                                </Button>
+                                                
+                                                <!-- Mod Name -->
+                                                <Border
+                                                    Grid.Row="1"
+                                                    Grid.Column="1"
+                                                    BorderThickness="3"
+                                                    CornerRadius="5"
+                                                    Classes="YCTP">
+                                                    <TextBlock 
+                                                        Text="{CompiledBinding Name}"
+                                                        FontSize="12"
+                                                        TextTrimming="CharacterEllipsis"/>
+                                                </Border>
+                                            </Grid>
                                         </DataTemplate>
                                     </ItemsRepeater.ItemTemplate>
                                 </ItemsRepeater>

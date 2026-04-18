@@ -101,7 +101,7 @@
                                                 
                                                 <!-- Select YCTPs -->
                                                 <Style Selector="^:selected Border.YCTP">
-                                                    <Setter Property="Background" Value="{DynamicResource YctpBg-Selected}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource YctpBg-Warning}"/>
                                                 </Style>
                                             </Style>
                                         </ListBox.Styles>

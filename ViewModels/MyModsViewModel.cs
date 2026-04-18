@@ -42,8 +42,9 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     [ObservableProperty] private ModManifest? _manifestInPreview;
 
     // ---- Public Getters ----
-    public int NumberOfModsPerRow { get; private set; } = 6;
     public bool HasAnyModsToDisplay => ObservableUnchangedMods.Count != 0;
+    public int ModsEnabledCount => ObservableMods.Count(mod => mod.Metadata?.Activated == true);
+    public int NumberOfModsPerRow { get; private set; } = 6;
     public string CurrentPlusVersion => _gameEnvironmentController.CurrentEnvironment!.GameVersion.ToString();
     
     // ---- Event Handlers & Commands ----
@@ -63,6 +64,27 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         if (!Design.IsDesignMode) return;
         ObservableUnchangedMods = new ObservableCollection<ModManifest>(
         [
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
+            new ModManifest { Name = "Design Mod 1" },
             new ModManifest { Name = "Design Mod 1" },
             new ModManifest { Name = "Design Mod 2", Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor " +
                                                                    "magna eu est semper consectetur. Vestibulum elementum mollis sem vel " +

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.Media;
 using GottaManagePlus.ViewModels;
 
 namespace GottaManagePlus;
@@ -22,7 +23,11 @@ public class ViewLocator : IDataTemplate
         var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
         var type = Type.GetType(name);
 
-        if (type == null) return new TextBlock { Text = "Not Found: " + name };
+        if (type == null) return new TextBlock
+        {
+            Text = "Not Found: " + name,
+            Foreground = Brushes.Red
+        };
         
         var control = (Control)Activator.CreateInstance(type)!;
         control.DataContext = param;

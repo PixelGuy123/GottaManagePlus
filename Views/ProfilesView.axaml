@@ -165,7 +165,7 @@
                                         BorderThickness="5"
                                         BoxShadow="inset 50 -25 125 0 Black"
                                         Background="Gray"
-                                        BorderBrush="{StaticResource YctpBg-Selected}">
+                                        BorderBrush="{StaticResource YctpBg-Warning}">
                                         <Border.IsVisible>
                                             <MultiBinding 
                                                 Converter="{x:Static converters:EqualityConverters.AllEqual}"

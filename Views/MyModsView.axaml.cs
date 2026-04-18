@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -44,3 +43,4 @@ public partial class MyModsView : UserControl
             );
     }
 }
+
