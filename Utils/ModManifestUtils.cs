@@ -90,7 +90,7 @@ public static class ModManifestUtils
     /// <param name="relativeBasePath">The base path the relative paths from the manifest will address.</param>
     /// <returns>An array filled with paths and whether they
     /// are an asset (<see langword="true"/>) or a plugin (<see langword="false"/>).</returns>
-    public static (AssetType, DestinedAsset)[] GetAllResources(this ModManifest manifest, string relativeBasePath)
+    public static (AssetType assetType, DestinedAsset destinedAsset)[] GetAllResources(this ModManifest manifest, string relativeBasePath)
     {
         // Sum up of files to gather (Plugins have the size bigger due to .xml and .pdb files).
         var max = manifest.Plugins.Count * 3 + manifest.Patchers.Count + manifest.Assets.Count;

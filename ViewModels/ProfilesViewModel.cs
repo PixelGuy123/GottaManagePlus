@@ -48,7 +48,7 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
     [RelayCommand] public async Task UpdateProfiles() => await UpdateProfilesList();
 
     // ---- Design-Time Constructor ----
-    public ProfilesViewModel() : base(PageNames.Profiles)
+    public ProfilesViewModel() : base(PageNames.Game)
     {
         if (!Design.IsDesignMode) return;
         ObservableUnchangedProfiles = new ObservableCollection<ProfileMetadata>(
@@ -71,7 +71,7 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
         IProfileDestructor destructor,
         IProfileCreator profileCreator,
         IProfileCloner profileCloner,
-        GameEnvironmentController environmentController) : base(PageNames.Profiles)
+        GameEnvironmentController environmentController) : base(PageNames.Game)
     {
         if (Design.IsDesignMode) return;
 

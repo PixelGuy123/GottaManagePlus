@@ -9,7 +9,7 @@ public enum PageNames
 {
     Home,
     Settings,
-    Profiles
+    Game
 }
 
 public static class Constants

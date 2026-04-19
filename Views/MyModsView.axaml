@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
+    mc:Ignorable="d" d:DesignWidth="1480" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
     xmlns:models="using:GottaManagePlus.Models"
     xmlns:converters="using:GottaManagePlus.Styles.Converters"
@@ -18,6 +18,7 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
+            <converters:ModToYCTPBrushConverter x:Key="ModToYCTPBrush"/>
             <Bitmap x:Key="DefaultThumbnail">/Assets/UI/Image_Mod_NoThumbnail.png</Bitmap>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="/Styles/ProfileVisualization/ProfileResources.axaml" />
@@ -119,25 +120,21 @@
                 </Border>
                 <!-- Mod Header -->
                 <Grid Grid.Row="0"
-                      Margin="0 5"
+                      Margin="52 5 0 5"
                       ColumnDefinitions="Auto, *">
                     <StackPanel Grid.Column="0"
                                 Spacing="15"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Left">
-                        <Panel> <!-- Stack TextBlocks together -->
-                            <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                            <TextBlock
-                                FontWeight="Bold"
-                                Foreground="White"
-                                Classes="SideMenu-Label RightHeader">
-                                <Run Text="{CompiledBinding ObservableUnchangedMods.Count}" />
-                                <Run Text="Installed Mods |" />
-                                <Run Text="{CompiledBinding ModsEnabledCount}"/>
-                                <Run Text="Mods Enabled"/>
-                            </TextBlock>
-                        </Panel>
+                        <!--TODO: USE LANGUAGE HERE-->
+                        <TextBlock
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Classes="SideMenu-Label RightHeader">
+                            Installed Mods: <Run Text="{CompiledBinding ObservableUnchangedMods.Count}" /> | 
+                            <Run Text="{CompiledBinding ModsEnabledCount}"/> Mods Enabled
+                        </TextBlock>
                     </StackPanel>
                     <StackPanel
                         Grid.Column="1"
@@ -146,7 +143,7 @@
                         Margin="10 0"
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
-                        <!--TEMP COMMENT: USE LANGUAGE HERE-->
+                        <!--TODO: USE LANGUAGE HERE-->
                         <!--Scroll viewer search box-->
                         <Button
                             Command="{CompiledBinding AddModRequest}"
@@ -169,14 +166,18 @@
                             <Svg Path="/Assets/UI/delete-search.svg" />
                         </Button>
                         <!-- Current version display -->
-                        <TextBlock
-                            Foreground="PowderBlue"
-                            FontWeight="Bold"
-                            TextDecorations="Underline"
-                            FontSize="22"
-                            FontFamily="{StaticResource ComicRelief}"
-                            Text="{CompiledBinding CurrentPlusVersion, Mode=OneTime}"
-                            Classes="SideMenu-Label" />
+                        <Button Classes="clickable-text"
+                                Command="{CompiledBinding OpenGamePath}">
+                            <TextBlock
+                                Foreground="PowderBlue"
+                                FontWeight="Bold"
+                                TextDecorations="Underline"
+                                FontSize="22"
+                                FontFamily="{StaticResource ComicRelief}"
+                                Text="{CompiledBinding CurrentPlusVersion, Mode=OneTime}"
+                                Classes="SideMenu-Label" />
+                        </Button>
+                        
                     </StackPanel>
                 </Grid>
 
@@ -200,7 +201,7 @@
                             <!-- The Top Menu -->
                             <!-- Exit Button (Close sidebar) -->
                             <Button Grid.Row="0" Classes="YCTPButton Miniature"
-                                    Command="{Binding }"
+                                    Command="{CompiledBinding ExitModVisualization}"
                                     VerticalAlignment="Top"
                                     HorizontalAlignment="Left">
                                 <Svg Path="/Assets/UI/exit.svg" />
@@ -212,6 +213,7 @@
                                     Classes="YCTP"
                                     BorderBrush="{StaticResource YctpBg-Warning}"
                                     Margin="5"
+                                    BoxShadow="-2.5 5 15 0 Black"
                                     RenderOptions.BitmapInterpolationMode="HighQuality"
                                     MaxWidth="225"
                                     Padding="10">
@@ -225,64 +227,97 @@
                             <!-- Title and Description -->
                             <Border
                                 Classes="YCTP"
+                                BoxShadow="-2.5 5 15 0 Black"
                                 Margin="25 25 25 15"
                                 Padding="5"
                                 Grid.Row="2">
-                                <StackPanel
-                                    Orientation="Vertical">
+                                <Grid RowDefinitions="Auto Auto * Auto Auto Auto"> <!-- Title, Separator, Description, Separator, Metadata, Buttons -->
                                     <!-- Mod Title -->
                                     <TextBlock
+                                        Grid.Row="0"
                                         Text="{CompiledBinding ManifestInPreview.Name, Mode=OneWay}"
                                         FontSize="24"
                                         FontFamily="{StaticResource ComicRelief}"
                                         Foreground="White"
                                         HorizontalAlignment="Center" />
                                     <Separator
+                                        Grid.Row="1"
                                         BorderThickness="0,1,0,0"
                                         BorderBrush="White"
                                         Margin="0,10" />
+                                    
                                     <!-- Mod Description -->
                                     <TextBlock
+                                        Grid.Row="2"
                                         Name="ManifestVisualizerDescription"
-                                        Text="{CompiledBinding ManifestInPreview.Description, Mode=OneWay}"
+                                        Text="{CompiledBinding ManifestInPreview.Description, Mode=OneWay, TargetNullValue=[No description found]}"
                                         FontSize="12"
-                                        MaxLines="10"
                                         TextTrimming="CharacterEllipsis"
+                                        MaxLines="10"
                                         TextWrapping="Wrap"
                                         FontFamily="{StaticResource ComicRelief}"
                                         Foreground="White"
-                                        HorizontalAlignment="Center" />
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Top"/>
+                                    
+                                    <Separator
+                                        Grid.Row="3"
+                                        BorderThickness="0,1,0,0"
+                                        BorderBrush="White"
+                                        Margin="0,10" />
+                                    
                                     <!-- Mod Metadata -->
                                     <TextBlock
-                                        Margin="0 5 0 0"
+                                        Grid.Row="4"
+                                        Margin="0 5 0 10"
                                         FontSize="9"
                                         FontFamily="{StaticResource ComicRelief}"
                                         Foreground="White"
                                         HorizontalAlignment="Left">
-                                        <Run Text="Made by:" />
+                                        Made by: 
                                         <Run Text="{CompiledBinding ManifestInPreview.Author, Mode=OneWay}" />
                                         <LineBreak />
-                                        <Run Text="Last Update Date:" />
-                                        <!-- TEMP LANGUAGE UPDATE REMINDER -->
-                                        <Run
-                                            Text="{CompiledBinding ManifestInPreview.Metadata.LastUpdateDate, TargetNullValue=Unknown, Converter={x:Static converters:DateConverters.ToShortDate}}" />
+                                        Last Update Date:
+                                        <Run Text="{CompiledBinding ManifestInPreview.Metadata.LastUpdateDate, TargetNullValue=Unknown, Converter={x:Static converters:DateConverters.ToShortDate}}" />
                                         <LineBreak />
-                                        <Run Text="Version:" />
-                                        <Run
-                                            Text="{CompiledBinding ManifestInPreview.Version, TargetNullValue=Unknown}" />
+                                        Version:
+                                        <Run Text="{CompiledBinding ManifestInPreview.Version, TargetNullValue=Unknown}" />
+                                        <LineBreak />
+                                        Supported Versions:
+                                        <Run Text="{CompiledBinding ManifestInPreview.Metadata.StringifiedSupportedPlusVersions, Converter={x:Static converters:ListStringConverters.ConvertToString}}"/>
+                                        <!-- TODO: TEMP LANGUAGE UPDATE REMINDER -->
                                     </TextBlock>
-
+                                    
                                     <!-- View Mod Details -->
-                                    <Button Classes="YCTPButton"
-                                            Width="128"
+                                    <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button
+                                                Classes="YCTPButton"
+                                                Command="{CompiledBinding OpenModPath}"
+                                                Width="100"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Margin="0 0 0 10">
+                                            <!-- TODO: Add language support here -->
+                                            <TextBlock
+                                                Text="Open Plugin Folder"
+                                                TextWrapping="WrapWithOverflow"
+                                                FontSize="10" />
+                                        </Button>
+                                        <Button
+                                            Classes="YCTPButton"
+                                            Command="{CompiledBinding OpenModAssetsPath}"
+                                            Width="100"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Margin="0 0 0 10">
-                                        <TextBlock
-                                            Text="View Details"
-                                            FontSize="16" />
-                                    </Button>
-                                </StackPanel>
+                                            <!-- TODO: Add language support here -->
+                                            <TextBlock
+                                                Text="Open Assets Folder"
+                                                TextWrapping="WrapWithOverflow"
+                                                FontSize="10" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
                         </Grid>
                     </SplitView.Pane>
@@ -292,7 +327,7 @@
                             <!-- No Mods Indicator if possible -->
                             <Panel>
                                 <TextBlock Name="NoModTextIndicator"
-                                           IsVisible="{CompiledBinding !HasAnyModsToDisplay, Mode=OneWay}"
+                                           IsVisible="{CompiledBinding !ObservableUnchangedMods.Count, Mode=OneWay}"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            Opacity="0.35"
@@ -304,7 +339,7 @@
                                 </TextBlock>
                                 
                                 <!-- Actual Mod List -->
-                                <ItemsRepeater IsVisible="{CompiledBinding HasAnyModsToDisplay, Mode=OneWay}"
+                                <ItemsRepeater IsVisible="{CompiledBinding !!ObservableUnchangedMods.Count, Mode=OneWay}"
                                                ItemsSource="{CompiledBinding ObservableMods, Mode=OneWay}">
                                     <ItemsRepeater.Layout>
                                         <UniformGridLayout ItemsStretch="Fill"
@@ -323,16 +358,21 @@
                                                     Grid.Row="0"
                                                     Grid.Column="0"
                                                     Grid.ColumnSpan="3"
-                                                    MinWidth="150"
+                                                    HorizontalAlignment="Stretch"
                                                     MinHeight="150"
-                                                    BorderBrush="{StaticResource YctpBg-Warning}"
                                                     Classes="YCTP"
                                                     CornerRadius="5">
                                                     <Button.Background>
                                                         <ImageBrush
-                                                            Stretch="UniformToFill"
+                                                            Stretch="Fill"
                                                             Source="{CompiledBinding Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}" />
                                                     </Button.Background>
+                                                    <Button.BorderBrush>
+                                                        <MultiBinding Converter="{StaticResource ModToYCTPBrush}">
+                                                            <Binding Path="."/>
+                                                            <Binding Path="((vm:MyModsViewModel)DataContext).ManifestInPreview" RelativeSource="{RelativeSource FindAncestor, AncestorType=ItemsRepeater}"/>
+                                                        </MultiBinding>
+                                                    </Button.BorderBrush>
                                                     <FlyoutBase.AttachedFlyout>
                                                         <Flyout>
                                                             <TextBlock Text="Open this mod." />
@@ -346,7 +386,7 @@
                                                     Grid.Column="0"
                                                     Classes="YCTP"
                                                     BorderThickness="3"
-                                                    BorderBrush="{CompiledBinding Metadata.Activated, Converter={x:Static converters:BoolConverters.BoolToYCTPColor}, Mode=OneWay}"
+                                                    BorderBrush="{CompiledBinding Metadata.Activated, Converter={x:Static converters:BoolConverters.BoolToYCTPError}, Mode=OneWay}"
                                                     CornerRadius="5">
                                                     <Svg Path="{CompiledBinding Metadata.Activated, Converter={x:Static converters:BoolConverters.BoolToCheckmarkIconPath}, Mode=OneWay}"/>
                                                     <Button.Transitions>
@@ -379,8 +419,23 @@
                                                     Grid.Row="1"
                                                     Grid.Column="1"
                                                     BorderThickness="3"
+                                                    BorderBrush="{CompiledBinding SupportsCurrentVersion, Converter={x:Static converters:BoolConverters.BoolToYCTPError}, Mode=OneWay}"
                                                     CornerRadius="5"
                                                     Classes="YCTP">
+                                                    <FlyoutBase.AttachedFlyout>
+                                                        <Flyout>
+                                                            <Panel>
+                                                                <!-- Supports Version Text-->
+                                                                <TextBlock IsVisible="{CompiledBinding SupportsCurrentVersion}">
+                                                                    This mod supports version <Run Text="{CompiledBinding ((vm:MyModsViewModel)DataContext).CurrentPlusVersion, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"/>.
+                                                                </TextBlock>
+                                                                <!-- Does not support Version Text -->
+                                                                <TextBlock IsVisible="{CompiledBinding !SupportsCurrentVersion}">
+                                                                    This mod DOES NOT support version <Run Text="{CompiledBinding ((vm:MyModsViewModel)DataContext).CurrentPlusVersion, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"/>.
+                                                                </TextBlock>
+                                                            </Panel>
+                                                        </Flyout>
+                                                    </FlyoutBase.AttachedFlyout>
                                                     <TextBlock 
                                                         Text="{CompiledBinding Name}"
                                                         FontSize="12"

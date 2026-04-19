@@ -48,6 +48,30 @@ public static class GameEnvironmentControllerUtils
             : Path.GetRelativePath(controller.CurrentEnvironment.RootPath, controller.SearchAbsolutePath(paths));
 
     /// <summary>
+    /// Checks whether the path given is safe by the <see cref="GameEnvironmentControllerUtils.SearchAbsolutePath"/> standards.
+    /// </summary>
+    /// <param name="controller">The controller for the environment.</param>
+    /// <param name="paths">The path collection to be tested agaisnt.</param>
+    /// <returns><see langword="true"/> if the path is safe; otherwise, <see langword="false"/>.</returns>
+    public static bool IsPathSafetyValid(this GameEnvironmentController controller, params string[] paths)
+    {
+        try
+        {
+            // Does a search with no return.
+            controller.SearchAbsolutePath(paths);
+            
+            // If the search is a success, then return true.
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+        
+        // Any other exception is thrown back.
+    }
+
+    /// <summary>
     /// Returns the default path for profiles through the controller or create such directory if it doesn't exist.
     /// </summary>
     /// <param name="controller">The controller to search the path.</param>

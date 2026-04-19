@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Serialization;
 using GottaManagePlus.Utils.Collections;
 
@@ -36,6 +37,11 @@ public class ModMetadata
     
     // ### Important Fields ###
     public bool Activated { get; set; } // Whether the mod is active or not.
+    
+    // ---- Access Getters for UI ----
+    [JsonIgnore] public List<string> StringifiedSupportedPlusVersions => new(
+        SupportedPlusVersions
+        .Select(p => p.ToString()));
 }
 
 public struct DestinedAsset
@@ -48,4 +54,9 @@ public struct DestinedAsset
     /// </summary>
     public string MovedAsset => !string.IsNullOrEmpty(Destination) ? 
         Path.Combine(Destination, Path.GetFileName(LocalPath)) : throw new NullReferenceException("Invalid destination set.");
+
+    public override string ToString() =>
+        !string.IsNullOrEmpty(Destination)
+            ? $"LocalPath: \'{LocalPath}\' — Destination: \'{Destination}\'"
+            : $"LocalPath: \'{LocalPath}\'";
 }

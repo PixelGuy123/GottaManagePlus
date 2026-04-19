@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +21,8 @@ namespace GottaManagePlus.ViewModels;
 
 public partial class MyModsViewModel : PageViewModel, IDisposable
 {
+    // TODO: Make a valid error popup message for every prompt available. 
+    
     // ---- Dependencies ----
     private readonly DialogService _dialogService = null!;
     private readonly ProfileManager _profileManager = null!;
@@ -31,7 +32,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     private readonly GameEnvironmentController _gameEnvironmentController = null!;
 
     // ---- Observable Properties ----
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasAnyModsToDisplay))]
+    [ObservableProperty]
     private ObservableCollection<ModManifest> _observableUnchangedMods = [];
 
     [ObservableProperty] private ObservableCollection<ModManifest> _observableMods = [];
@@ -42,21 +43,21 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     [ObservableProperty] private ModManifest? _manifestInPreview;
 
     // ---- Public Getters ----
-    public bool HasAnyModsToDisplay => ObservableUnchangedMods.Count != 0;
-    public int ModsEnabledCount => ObservableMods.Count(mod => mod.Metadata?.Activated == true);
-    public int NumberOfModsPerRow { get; private set; } = 6;
-    public string CurrentPlusVersion => _gameEnvironmentController.CurrentEnvironment!.GameVersion.ToString();
+    public int ModsEnabledCount => ObservableMods.Count(mod => mod.Metadata.Activated);
+    public int? NumberOfModsPerRow { get; private set; } = 6;
+    public string CurrentPlusVersion => Design.IsDesignMode ? 
+        "0.14.1" : _gameEnvironmentController.CurrentEnvironment!.GameVersion.ToString();
     
     // ---- Event Handlers & Commands ----
     partial void OnCurrentModManifestChanged(ModManifest? value) => UpdateModsList(value);
 
-    private void OnObservableUnchangedModsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
-        OnPropertyChanged(nameof(HasAnyModsToDisplay));
-
     [RelayCommand] public void ResetSearch() => SearchText = null;
     [RelayCommand] public async Task DeleteModManifest(ModManifest mod) => await DeleteModManifestUiAsync(mod);
     [RelayCommand] public async Task AddModRequest() => await AddModUiAsync();
-    [RelayCommand] public async Task OpenModPath(ModManifest mod) => await OpenModPathUiAsync(mod);
+    [RelayCommand] public async Task OpenModPath(ModManifest mod) => await OpenPathUiAsync(mod.GetPluginDirectoryFromManifest(_gameEnvironmentController));
+    [RelayCommand] public async Task OpenModAssetsPath(ModManifest mod) => await OpenModAssetsPathUiAsync(mod);
+    [RelayCommand] public async Task OpenGamePath(ModManifest mod) => await OpenPathUiAsync(_gameEnvironmentController.CurrentEnvironment!.RootPath);
+    [RelayCommand] public void ExitModVisualization() => ManifestInPreview = null;
 
     // ---- Design-Time Constructor ----
     public MyModsViewModel() : base(PageNames.Home)
@@ -119,7 +120,6 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
         FillUpAllMods(_profileManager.ActiveProfile?.ModDataFiles);
         _profileManager.OnActiveProfileUpdate += ProfilesProvider_OnProfilesUpdate;
-        ObservableUnchangedMods.CollectionChanged += OnObservableUnchangedModsCollectionChanged;
     }
 
     public void Dispose()
@@ -200,10 +200,35 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             "Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);
     }
 
-    private async Task OpenModPathUiAsync(ModManifest mod)
+    private async Task OpenModAssetsPathUiAsync(ModManifest mod)
     {
-        var modDirectoryPath = mod.GetPluginDirectoryFromManifest(_gameEnvironmentController);
-        if (string.IsNullOrEmpty(modDirectoryPath) || !Directory.Exists(modDirectoryPath))
+        HashSet<string> directoriesToOpen = [];
+        
+        // Gather all the asset directories available.
+        foreach (var path in from asset in mod.Assets 
+                 where !string.IsNullOrEmpty(asset.Destination) 
+                 select _gameEnvironmentController.SearchAbsolutePath(asset.Destination!))
+        {
+            // If the path exists and isn't added to the list, add it.
+            if (Directory.Exists(path))
+                directoriesToOpen.Add(path);
+        }
+        
+        // If there's more than one asset folder to be opened,
+        // ask user for permission to open multiple directories.
+        if (directoriesToOpen.Count > 1 && !await _dialogService.PromptUserQuestion("Open Multiple Directories",
+                $"This mod has {directoriesToOpen.Count} distinct asset folders. Do you wish to open all of them?",
+                DialogServiceUtils.QuestionAnswerType.AllowOrDisallow))
+            return;
+        
+        // Attempts to open every directory available.
+        foreach (var directory in directoriesToOpen)
+            await OpenPathUiAsync(directory);
+    }
+    
+    private async Task OpenPathUiAsync(string path)
+    {
+        if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
         {
             await _dialogService.GenerateLoadingProcess(
                 "The path to the mod is somehow invalid!\nTry reloading the profiles list.",
@@ -211,7 +236,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             return;
         }
 
-        if (!await _directoryLauncher.OpenDirectoryInfo(new DirectoryInfo(modDirectoryPath)))
+        if (!await _directoryLauncher.OpenDirectoryInfo(new DirectoryInfo(path)))
         {
             await _dialogService.GenerateLoadingProcess(
                 "Failed to open the path to the mod due to an unknown error!\nTry reloading the profiles list.",

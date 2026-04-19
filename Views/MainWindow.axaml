@@ -24,118 +24,93 @@
     <!-- Styles to define -->
     <Window.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
-        
-        <Style Selector="ContentControl Border#BodyBorder">
-            <Setter Property="Margin" Value="10"/>
-        </Style>
     </Window.Styles>
+    
+    <!-- Resources to Include -->
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Styles/ProfileVisualization/ProfileResources.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
 
     <!-- START of Body -->
-    <Grid
-        Background="{DynamicResource MainWindowBg}"
-        Name="BodyGrid"
-        IsHitTestVisible="False"
-        ColumnDefinitions="Auto, *"
-        RowDefinitions="Auto, Auto">
-        <!-- START of Side Menu -->
-            <!-- START of Nav Bar -->
-            <Image
-                Grid.Column="0"
-                Grid.Row="0"
-                Margin="10 0"
-                HorizontalAlignment="Left" 
-                Source="/Assets/UI/Logo.png"/>
-            <Border
-                Grid.Column="0"
-                Grid.Row="1"
-                HorizontalAlignment="Left"
-                Width="200"
-                MinHeight="300"
-                Margin="0 -20"
-                Classes="Menu_Border">
-                <!-- YCTP Style-->
-                <Border.Background>
-                    <ImageBrush 
-                        Source="/Assets/UI/NavMenuBG.png"
-                        Stretch="Fill"
-                    />
-                </Border.Background>
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock 
-                            Text="Navigation" 
-                            Foreground="White" 
-                            FontSize="24" 
-                            Classes="SideMenu-Label" 
-                            Margin="0 40 0 10"/>
-                        <Button
-                            Name="MyModsBtn"
-                            Classes="SideMenu-Btn"
-                            Command="{CompiledBinding GoToHomeCommand}"
-                            HorizontalContentAlignment="Center"
-                            Opacity="{Binding ExecutablePathSet, Mode=OneWay}"
-                            IsHitTestVisible="{Binding ExecutablePathSet, Mode=OneWay}"
-                        >
-                            <Button.Transitions>
-                                <Transitions>
-                                    <DoubleTransition
-                                        Property="Opacity"
-                                        Duration="0:0:0.07"
-                                        Easing="SineEaseInOut"
-                                    />
-                                </Transitions>
-                            </Button.Transitions>
-                            <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                            <TextBlock HorizontalAlignment="Center" Text="My Mods"/> <!-- Aligned Text -->
-                        </Button>
-                        <Button
-                        Classes="SideMenu-Btn"
-                        Command="{CompiledBinding GoToSettingsCommand}"
-                        >
-                            <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                            <TextBlock Text="Settings"/> <!-- Aligned Text -->
-                        </Button>
-                        <Button 
-                        Classes="SideMenu-Btn"
-                        Command="{CompiledBinding RevealAboutSection}"
-                        >
-                            <!--TEMP COMMENT: USE LANGUAGE HERE-->
-                            <TextBlock Text="About"/> <!-- Aligned Text -->
-                        </Button>
-                    </StackPanel>
-            </Border>
-            <!-- END of Nav Bar -->
-        <!-- END of Side Menu -->
+    <SplitView
+        IsPaneOpen="False"
+        Background="{StaticResource MainWindowBg}"
+        PanePlacement="Left"
+        PaneBackground="Black"
+        DisplayMode="Overlay"
+        OpenPaneLength="150">
+        <!-- Content SplitView -->
+        <SplitView.Content>
+            <Panel>
+                <!-- Current Page Control -->
+                <ContentControl
+                    Content="{CompiledBinding CurrentPage, Mode=OneWay}" />
+                <!-- Sidebar button -->
+                <Button
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="-2.5 -3 0 0"
+                    Classes="YCTPButton">
+                    <Svg Path="/Assets/UI/Sidebar.svg"/>
+                </Button>
+                <!-- Dialog Element -->
+                <Border
+                    Background="#7D000000"
+                    IsVisible="{CompiledBinding !!Opacity, Mode=OneWay, RelativeSource={RelativeSource Self}}"
+                    Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0, Mode=OneWay}">
+                    <Border.Transitions>
+                        <Transitions>
+                            <DoubleTransition
+                                Property="Opacity"
+                                Duration="0:0:0.1"
+                                Easing="SineEaseOut"
+                                />
+                        </Transitions>
+                    </Border.Transitions>
+                    <ContentControl 
+                        Content="{CompiledBinding Dialog, Mode=OneWay}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                </Border>
+                <!-- End of Dialog Element -->
+            </Panel>
+        </SplitView.Content>
         
-        <!-- Current Page Control -->
-        <ContentControl 
-            Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
-            Content="{CompiledBinding CurrentPage, Mode=OneWay}" />
-        <!-- Dialog Element -->
-        <Border
-            Grid.Row="0"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Grid.RowSpan="2"
-            Background="#7D000000"
-            IsVisible="{CompiledBinding Opacity, Mode=OneWay, RelativeSource={RelativeSource Self}}"
-            Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0, Mode=OneWay}">
-            <Border.Transitions>
-                <Transitions>
-                    <DoubleTransition
-                        Property="Opacity"
-                        Duration="0:0:0.1"
-                        Easing="SineEaseOut"
-                        />
-                </Transitions>
-            </Border.Transitions>
-            <ContentControl 
-                Content="{CompiledBinding Dialog, Mode=OneWay}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"/>
-        </Border>
-        <!-- End of Dialog Element -->
-    </Grid>
+        <!-- START of Side Menu -->
+        <SplitView.Pane>
+            <Grid ClipToBounds="True">
+                <!-- YCTP Border -->
+                <Border 
+                    BorderBrush="{StaticResource YctpBg}" 
+                    BorderThickness="0 0 5 0" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Stretch"/>
+        
+                <!-- Side Content -->
+                <ContentControl 
+                    Padding="0 0 5 0"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch">
+                    <StackPanel Orientation="Vertical">
+                        <Button
+                            HorizontalAlignment="Right"
+                            Classes="YCTPButton"
+                            Width="40" Height="40"
+                            Margin="0 0 0 10">
+                            <Svg Path="/Assets/UI/Sidebar.svg"/>
+                        </Button>
+                        <Image
+                            HorizontalAlignment="Center"
+                            Source="/Assets/UI/Logo.png"/>
+                    </StackPanel>
+                </ContentControl>
+            </Grid>
+        </SplitView.Pane>
+        <!-- END of Side Menu -->
+    </SplitView>
     <!-- END of Body -->
-    
-
 </Window>

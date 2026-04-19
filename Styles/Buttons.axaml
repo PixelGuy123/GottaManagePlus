@@ -39,6 +39,9 @@
                             <Button Classes="YCTPButton" Width="175">
                                 <TextBlock Text="This is a text block."></TextBlock>
                             </Button>
+                            <Button Foreground="White" Classes="clickable-text">
+                                <TextBlock Text="Click this text" />
+                            </Button>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -122,6 +125,24 @@
                 </Style>
             </Style>
         </Style>
+    </Style>
+    
+    <Style Selector="Button.clickable-text">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Padding="{TemplateBinding Padding}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     
     

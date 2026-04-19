@@ -37,10 +37,4 @@ public static class EqualityConverters
             var first = values.FirstOrDefault();
             return values.Skip(1).Any(v => first?.Equals(v) != true) ? 1.0 : 0.0;
         });
-
-    /// <summary>
-    /// Tells whether a collection is empty or not.
-    /// </summary>
-    public static readonly FuncValueConverter<IList, bool> IsCollectionEmpty =
-        new(list => list?.Count != 0);
 }

@@ -9,6 +9,7 @@ using FileTypeChecker.Extensions;
 using FileTypeChecker.Types;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;
 
@@ -27,21 +28,35 @@ public sealed class SecurityScanner(ILogger logger)
     /// Scans a mod's file structure in order to find any suspicious file in the assets or plugins.
     /// </summary>
     /// <param name="modRootPath">The root path of the mod folder structure.</param>
+    /// <param name="controller">The controller for the environment.</param>
     /// <param name="result">The result report that needs to be updated with this function.</param>
     /// <param name="progress">The progress to be reported.</param>
     /// <param name="manifest">The mod's manifest itself.</param>
     /// <param name="cancellationToken">The token in case the action is canceled.</param>
-    public async Task ScanAsync(string modRootPath, ModInstallationResult result, IProgress<ProgressReport>? progress,
+    /// <returns><see langword="true"/> if the manifest is safe for loading; otherwise, <see langword="false"/>.</returns>
+    public async Task<bool> ScanAsync(string modRootPath, GameEnvironmentController controller, ModInstallationResult result, IProgress<ProgressReport>? progress,
         ModManifest manifest, CancellationToken cancellationToken = default)
     {
         _logger.Information("Starting security scan on \'{modRootPath}\'", modRootPath);
         // Get a flatted out array of every asset to be scanned
         var allAssets = manifest.GetAllResources(modRootPath);
+        var safeForLoading = true;
         var numOfTasks = 0;
 
         // Go through each asset and scan them
         foreach (var (assetType, resource) in allAssets)
         {
+            if (!controller.IsPathSafetyValid(resource.LocalPath) ||
+                (!string.IsNullOrEmpty(resource.Destination) &&
+                 !controller.IsPathSafetyValid(resource.Destination)))
+            {
+                _logger.Warning(
+                    "SAFETY WARNING: The path {0} attempts to access outside boundaries from the environment.",
+                    resource.ToString());
+                result.SecurityIssues.Add($"SAFETY WARNING: The path {resource.ToString()} attempts to access outside boundaries from the environment.");
+                safeForLoading = false;
+            }
+
             var resourcePath = resource.LocalPath;
             progress?.Report(new ProgressReport(numOfTasks, allAssets.Length, "Scanning files:",
                 $"Checking \'{resource}\'"));
@@ -81,8 +96,7 @@ public sealed class SecurityScanner(ILogger logger)
         }
         
         _logger.Information("Finished scan!");
-
-        return;
+        return safeForLoading;
 
         void WarnSecurityIssue(string resource)
         {

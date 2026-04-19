@@ -17,7 +17,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         
         // Event registration
-        MyModsBtn.PropertyChanged += MyModsButtonOnPropertyChanged;
+        // MyModsBtn.PropertyChanged += MyModsButtonOnPropertyChanged;
     }
     // Opacity update to not be specifically 0
     private void MyModsButtonOnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs args)

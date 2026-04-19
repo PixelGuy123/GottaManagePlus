@@ -11,6 +11,16 @@ namespace GottaManagePlus.Utils;
 public static class DialogServiceUtils
 {
     /// <summary>
+    /// The type of answers a prompted user can respond.
+    /// </summary>
+    public enum QuestionAnswerType
+    {
+        YesOrNo = 0,
+        AllowOrDisallow,
+        ProceedOrCancel
+    }
+    
+    /// <summary>
     /// Initiates an asynchronous loading process for the specified dialog view model. 
     /// Upon completion, it displays either a failure or success confirmation dialog based on the outcome of the initial operation.
     /// </summary>
@@ -58,19 +68,35 @@ public static class DialogServiceUtils
     /// <param name="dialogService">The service instance responsible for managing dialog interactions.</param>
     /// <param name="title">The title displayed at the top of the confirmation dialog.</param>
     /// <param name="question">The primary question text presented to the user.</param>
+    /// <param name="answerType">The answers available for the user.</param>
     /// <returns>
     /// <see langword="true"/> if the user confirms the action (selects "Yes"); otherwise, <see langword="false"/>.
     /// </returns>
-    public static async Task<bool> PromptUserQuestion(this DialogService dialogService, string title, string question)
+    public static async Task<bool> PromptUserQuestion(this DialogService dialogService, string title, string question, QuestionAnswerType answerType = QuestionAnswerType.YesOrNo)
     {
         // Get the dialog.
         var confirmViewModel = dialogService.GetDialog<ConfirmDialogViewModel>();
 
         // Prepare and display.
-        confirmViewModel.Prepare(null, title, question, "Yes", "No");
+        var answer = answerType.AnswerToString();
+        confirmViewModel.Prepare(null, title, question, answer.Yes, answer.No);
         await dialogService.ShowDialog(confirmViewModel);
 
         // Return confirmation.
         return confirmViewModel.Confirmed;
     }
+    
+    // ---- Private API -----
+    /// <summary>
+    /// Converts a <see cref="QuestionAnswerType"/> to its <see langword="string"/> form.
+    /// </summary>
+    /// <param name="answerType">The answer type for conversion.</param>
+    /// <returns>A <see cref="Tuple{string, string}"/> for a <c>Yes</c> and a <c>No</c>.</returns>
+    private static (string Yes, string No) AnswerToString(this QuestionAnswerType answerType) => answerType switch
+    {
+        QuestionAnswerType.YesOrNo => ("Yes", "No"),
+        QuestionAnswerType.AllowOrDisallow => ("Allow", "Disallow"),
+        QuestionAnswerType.ProceedOrCancel => ("Proceed", "Cancel"),
+        _ => ("Yes", "No")
+    };
 }

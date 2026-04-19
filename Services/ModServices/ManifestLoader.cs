@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
 using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
 using Serilog;
 
 namespace GottaManagePlus.Services.ModServices;
@@ -50,7 +51,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
                 _logger.Warning("Failed to deserialize metadata (null result).");
                 return null;
             }
-            
+
             // Look for .metadata file if it is available
             if (File.Exists(metadataPath))
             {
