@@ -3,11 +3,11 @@
     
     <!-- Inclusions -->
     <StyleInclude Source="Buttons.axaml"/>
-    <StyleInclude Source="TextBlock.axaml"/>
     <StyleInclude Source="ScrollViewer.axaml"/>
     <StyleInclude Source="AutoCompleteBox.axaml"/>
     <StyleInclude Source="Borders.axaml"/>
     <StyleInclude Source="ReusableEffects.axaml"/>
+    <StyleInclude Source="TextBlock.axaml"/>
     <StyleInclude Source="Labels.axaml"/>
     
     <!-- MISC styling that's way too specific to get its own .axaml -->

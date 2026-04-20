@@ -62,12 +62,14 @@
                 <Setter Property="CornerRadius" Value="15"/>
                 <Setter Property="Margin" Value="5"/>
                 <Setter Property="Padding" Value="6"/>
-                <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 2 #3f043e"/>
+                <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #3f043e"/>
             </Style>
             
             <!-- Icon Definitions -->
             <Style Selector="^ Svg">
-                <Setter Property="Margin" Value="3 0 -0.5 2"/>
+                <Setter Property="IsHitTestVisible" Value="False"/>
+                <Setter Property="Opacity" Value="{Binding Opacity, RelativeSource={RelativeSource FindAncestor, AncestorType=Button}}"/>
+                <Setter Property="Margin" Value="3 0 2.5 2"/>
                 <Setter Property="Css" Value="
                     .usesStroke { stroke: #FFFFFF; }
                     .usesFill { fill: #FFFFFF; }
@@ -76,6 +78,8 @@
             
             <!-- Text Update -->
             <Style Selector="^ TextBlock">
+                <Setter Property="IsHitTestVisible" Value="False"/>
+                <Setter Property="Opacity" Value="{Binding Opacity, RelativeSource={RelativeSource FindAncestor, AncestorType=Button}}"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="FontFamily" Value="{StaticResource ComicRelief}"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -86,7 +90,7 @@
             
             <!-- Event Definitions -->
             <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 2 #bef0c0"/>
+                <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #bef0c0"/>
                 <Setter Property="Background" Value="#75e170"/>
             </Style>
             <!-- Svg Color Update -->
@@ -118,10 +122,10 @@
                 <Setter Property="Width" Value="48"/>
                 <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter"> 
                     <Setter Property="CornerRadius" Value="12"/>
-                    <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 1 #3f043e"/>
+                    <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #3f043e"/>
                 </Style>
                 <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                    <Setter Property="BoxShadow" Value="inset 2.5 -2.5 0 1 #bef0c0"/>
+                    <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #bef0c0"/>
                 </Style>
             </Style>
         </Style>

@@ -18,7 +18,8 @@ sealed class Program
             .UsePlatformDetect()
             .With(new SkiaOptions
             {
-                MaxGpuResourceSizeBytes = 256 * 1024 * 1024 // 256 MB
+                MaxGpuResourceSizeBytes = 256 * 1024 * 1024, // 256 MB
+                UseOpacitySaveLayer = true // Allow Svgs to have transparency
             })
             .WithInterFont()
             .LogToTrace();

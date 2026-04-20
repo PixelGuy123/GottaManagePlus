@@ -74,7 +74,7 @@
                     IsVisible="{CompiledBinding AllowCancellation, Mode=OneWay}"
                     Content="{CompiledBinding CancelText, Mode=OneWay}" 
                     Classes="DialogBtn DangerDialogBtn"
-                    Command="{CompiledBinding Cancel}"
+                    Command="{Binding Cancel}"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center"
                     Margin="10"/>

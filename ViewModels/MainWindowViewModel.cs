@@ -17,18 +17,27 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 {
     private readonly PageFactory? _pageFactory;
     private readonly DialogService _dialogService = null!;
+    private readonly GameEnvironmentController _gameEnvironmentController = null!;
     private readonly SettingsService _settingsService = null!;
     private readonly ProfileManager _profileManager = null!;
     private readonly ProfileRepository _profileRepository = null!;
     
-    [ObservableProperty] 
-    private bool _executablePathSet;
+    // Public Getters
+    public bool ExecutablePathSet => Design.IsDesignMode || _gameEnvironmentController.IsEnvironmentValid;
     
+    
+    // Observable Properties
     [ObservableProperty]
     private PageViewModel? _currentPage;
 
     [ObservableProperty] 
     private DialogViewModel? _dialog;
+
+    [ObservableProperty]
+    private bool _sideMenuOpen = Design.IsDesignMode;
+
+    [RelayCommand]
+    public void ToggleSideMenu() => SideMenuOpen = !SideMenuOpen;
     
     [RelayCommand]
     public void GoToHome()
@@ -39,8 +48,6 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 
     [RelayCommand]
     public void GoToSettings() => GoTo<SettingsViewModel>();
-
-
     [RelayCommand]
     public async Task RevealAboutSection() => await RevealAboutSectionUi();
     
@@ -50,7 +57,6 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         if (!Design.IsDesignMode) return;
         
         CurrentPage = new MyModsViewModel(); // Default page
-        ExecutablePathSet = true;
     }
     
     // Constructor
@@ -64,6 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     {
         _pageFactory = pageFactory;
         _dialogService = dialogService;
+        _gameEnvironmentController = gameEnvironmentController;
         _settingsService = settingsService;
         _profileManager = profileManager;
         _profileRepository = profileRepository;
@@ -72,16 +79,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         _dialogService.GetDialog<AppInfoDialogViewModel>();
         
         // **** Settings Setup ****
-        // Add the save settings callback to ensure the path is always updated
-        _settingsService.OnSaveSettings += () => 
-            ExecutablePathSet = gameEnvironmentController.IsEnvironmentValid;
 
         // If the executable is all set, then the manager should visualize the mods
         gameEnvironmentController.SetNewEnvironment(_settingsService.CurrentSettings.BaldiPlusExecutablePath);
         if (gameEnvironmentController.CurrentEnvironment != null)
         {
             CurrentPage = _pageFactory.GetPageViewModel<MyModsViewModel>();
-            ExecutablePathSet = true;
         }
         else // Otherwise, force the user to set that manually
         {

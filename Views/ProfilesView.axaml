@@ -101,7 +101,7 @@
                             <Button 
                                 Classes="ModViewerHeader YCTPButton Miniature"
                                 Margin="5 0 0 0"
-                                Command="{CompiledBinding ResetSearch}">
+                                Command="{Binding ResetSearch}">
                                 <Image
                                     Source="/Assets/UI/Icon_Cancel_Generic.png"
                                 />
@@ -116,7 +116,7 @@
                             <!-- Update Profile Field -->
                             <Button 
                                 HorizontalAlignment="Right"
-                                Command="{CompiledBinding UpdateProfiles}"
+                                Command="{Binding UpdateProfiles}"
                                 Classes="ModViewerHeader YCTPButton">
                                 <Image
                                     Source="/Assets/UI/Icon_Reload.png"
@@ -128,7 +128,7 @@
                             <!-- Add Profile Field -->
                             <Button 
                                 HorizontalAlignment="Right"
-                                Command="{CompiledBinding CreateProfileUi}"
+                                Command="{Binding CreateProfileUi}"
                                 Classes="ModViewerHeader YCTPButton">
                                 <Image
                                     Source="/Assets/UI/Icon_AddModContainer.png"
@@ -197,7 +197,7 @@
                                             <!-- Switch Default Button -->
                                             <Button
                                                 Classes="YCTPButton SmallYCTPButton"
-                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ScrollViewer}}"
+                                                Command="{Binding ((vm:ProfilesViewModel)DataContext).SwitchToProfile, RelativeSource={RelativeSource FindAncestor, AncestorType=ScrollViewer}}"
                                                 CommandParameter="{CompiledBinding ., Mode=OneWay}">
                                                 <Button.IsHitTestVisible>
                                                     <MultiBinding 
@@ -218,7 +218,7 @@
                                             <!-- Info Button -->
                                             <Button
                                                 Classes="YCTPButton SmallYCTPButton"
-                                                Command="{CompiledBinding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ScrollViewer}}"
+                                                Command="{Binding ((vm:ProfilesViewModel)DataContext).OpenProfileMetadata, RelativeSource={RelativeSource FindAncestor, AncestorType=ScrollViewer}}"
                                                 CommandParameter="{CompiledBinding ., Mode=OneWay}">
                                                 <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
                                             </Button>

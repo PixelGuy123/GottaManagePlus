@@ -2,25 +2,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Design.PreviewWith>
-        <Border Padding="20">
+        <Border Padding="20" Background="Green">
             <TextBlock
-                Classes="SideMenu-Label"
-                Text="This is a header" 
-                Background="White"/>
+                Name="HeaderTitle"
+                Text="This is a header" />
         </Border>
     </Design.PreviewWith>
-
-    <!-- SideMenu TextBlock Styling -->
-    <Style Selector=":is(TextBlock).SideMenu-Label">
-        <Setter Property="Margin" Value="0 1.75" />
-        <Setter Property="FontFamily" Value="{StaticResource Baskerville}"/>
-        <Setter Property="HorizontalAlignment" Value="Center" />
+    
+    <!-- Header Title Properties-->
+    <Style Selector="TextBlock#HeaderTitle">
+        <Setter Property="Margin" Value="68 5 0 5"/>
+        <Setter Property="FontFamily" Value="{StaticResource Baskerville}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="FontSize" Value="28"/>
-        <Setter Property="Foreground" Value="Black"/>
-
-        <Style Selector="^.RightHeader">
-            <Setter Property="Margin" Value="10 1.75 0 0" />
-        </Style>
+        <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
     </Style>
 </Styles>

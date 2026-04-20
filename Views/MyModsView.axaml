@@ -41,12 +41,6 @@
             <Setter Property="Foreground" Value="White" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
-        <!-- Header Title Properties-->
-        <Style Selector="TextBlock#HeaderTitle">
-            <Setter Property="FontFamily" Value="{StaticResource Baskerville}" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="20" />
-        </Style>
 
         <!-- Border YCTP Properties -->
         <Style Selector="Border.YCTP">
@@ -100,14 +94,11 @@
     <!-- START of Mod List-->
     <Border
         Name="BodyBorder"
-        IsHitTestVisible="False"
         Classes="Menu_Border">
         <Border
             Classes="Menu_Border">
             <Grid RowDefinitions="Auto, *">
                 <Border Grid.Row="0"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
                         Classes="Menu_Header">
                     <Border.Background>
                         <ImageBrush
@@ -119,25 +110,17 @@
                     </Border.Background>
                 </Border>
                 <!-- Mod Header -->
-                <Grid Grid.Row="0"
-                      Margin="52 5 0 5"
-                      ColumnDefinitions="Auto, *">
-                    <StackPanel Grid.Column="0"
-                                Spacing="15"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Left">
+                <DockPanel
+                      Grid.Row="0">
                         <!--TODO: USE LANGUAGE HERE-->
                         <TextBlock
-                            FontWeight="Bold"
-                            Foreground="White"
-                            Classes="SideMenu-Label RightHeader">
+                            DockPanel.Dock="Left"
+                            Name="HeaderTitle">
                             Installed Mods: <Run Text="{CompiledBinding ObservableUnchangedMods.Count}" /> | 
                             <Run Text="{CompiledBinding ModsEnabledCount}"/> Mods Enabled
                         </TextBlock>
-                    </StackPanel>
                     <StackPanel
-                        Grid.Column="1"
+                        DockPanel.Dock="Right"
                         Spacing="10"
                         HorizontalAlignment="Right"
                         Margin="10 0"
@@ -146,7 +129,7 @@
                         <!--TODO: USE LANGUAGE HERE-->
                         <!--Scroll viewer search box-->
                         <Button
-                            Command="{CompiledBinding AddModRequest}"
+                            Command="{Binding AddModRequest}"
                             Margin="10 0"
                             Classes="ModViewerHeader YCTPButton Miniature">
                             <Svg Path="/Assets/UI/add.svg" />
@@ -162,24 +145,23 @@
                             FilterMode="Contains" />
                         <Button
                             Classes="ModViewerHeader YCTPButton Miniature"
-                            Command="{CompiledBinding ResetSearch}">
+                            Command="{Binding ResetSearch}">
                             <Svg Path="/Assets/UI/delete-search.svg" />
                         </Button>
                         <!-- Current version display -->
                         <Button Classes="clickable-text"
-                                Command="{CompiledBinding OpenGamePath}">
+                                Command="{Binding OpenGamePath}">
                             <TextBlock
                                 Foreground="PowderBlue"
                                 FontWeight="Bold"
                                 TextDecorations="Underline"
                                 FontSize="22"
                                 FontFamily="{StaticResource ComicRelief}"
-                                Text="{CompiledBinding CurrentPlusVersion, Mode=OneTime}"
-                                Classes="SideMenu-Label" />
+                                Text="{CompiledBinding CurrentPlusVersion, Mode=OneTime}"/>
                         </Button>
                         
                     </StackPanel>
-                </Grid>
+                </DockPanel>
 
                 <!-- Actual Mod Scroll Viewer -->
                 <SplitView
@@ -201,7 +183,7 @@
                             <!-- The Top Menu -->
                             <!-- Exit Button (Close sidebar) -->
                             <Button Grid.Row="0" Classes="YCTPButton Miniature"
-                                    Command="{CompiledBinding ExitModVisualization}"
+                                    Command="{Binding ExitModVisualization}"
                                     VerticalAlignment="Top"
                                     HorizontalAlignment="Left">
                                 <Svg Path="/Assets/UI/exit.svg" />
@@ -292,7 +274,7 @@
                                     <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center">
                                         <Button
                                                 Classes="YCTPButton"
-                                                Command="{CompiledBinding OpenModPath}"
+                                                Command="{Binding OpenModPath}"
                                                 Width="100"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
@@ -305,7 +287,7 @@
                                         </Button>
                                         <Button
                                             Classes="YCTPButton"
-                                            Command="{CompiledBinding OpenModAssetsPath}"
+                                            Command="{Binding OpenModAssetsPath}"
                                             Width="100"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
@@ -373,11 +355,11 @@
                                                             <Binding Path="((vm:MyModsViewModel)DataContext).ManifestInPreview" RelativeSource="{RelativeSource FindAncestor, AncestorType=ItemsRepeater}"/>
                                                         </MultiBinding>
                                                     </Button.BorderBrush>
-                                                    <FlyoutBase.AttachedFlyout>
+                                                    <Button.Flyout>
                                                         <Flyout>
                                                             <TextBlock Text="Open this mod." />
                                                         </Flyout>
-                                                    </FlyoutBase.AttachedFlyout>
+                                                    </Button.Flyout>
                                                 </Button>
                                                 
                                                 <!-- Disable/Enable Button -->
@@ -410,7 +392,7 @@
                                                     CornerRadius="5"
                                                     
                                                     CommandParameter="{CompiledBinding .}"
-                                                    Command="{CompiledBinding ((vm:MyModsViewModel)DataContext).DeleteModManifest, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}">
+                                                    Command="{Binding ((vm:MyModsViewModel)DataContext).DeleteModManifest, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}">
                                                     <Svg Path="/Assets/UI/Trash.svg"/>
                                                 </Button>
                                                 
@@ -422,20 +404,6 @@
                                                     BorderBrush="{CompiledBinding SupportsCurrentVersion, Converter={x:Static converters:BoolConverters.BoolToYCTPError}, Mode=OneWay}"
                                                     CornerRadius="5"
                                                     Classes="YCTP">
-                                                    <FlyoutBase.AttachedFlyout>
-                                                        <Flyout>
-                                                            <Panel>
-                                                                <!-- Supports Version Text-->
-                                                                <TextBlock IsVisible="{CompiledBinding SupportsCurrentVersion}">
-                                                                    This mod supports version <Run Text="{CompiledBinding ((vm:MyModsViewModel)DataContext).CurrentPlusVersion, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"/>.
-                                                                </TextBlock>
-                                                                <!-- Does not support Version Text -->
-                                                                <TextBlock IsVisible="{CompiledBinding !SupportsCurrentVersion}">
-                                                                    This mod DOES NOT support version <Run Text="{CompiledBinding ((vm:MyModsViewModel)DataContext).CurrentPlusVersion, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}"/>.
-                                                                </TextBlock>
-                                                            </Panel>
-                                                        </Flyout>
-                                                    </FlyoutBase.AttachedFlyout>
                                                     <TextBlock 
                                                         Text="{CompiledBinding Name}"
                                                         FontSize="12"

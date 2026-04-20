@@ -47,7 +47,7 @@ public partial class SettingsViewModel : PageViewModel
             dialog.Prepare(true, Constants.WarningDialog, """
                       Looks like the BB+ folder is not set or is not valid.
                       If this is your first time using the tool, just select the executable of Baldi's Basics Plus inside Settings.
-                      You cannot interact with "My Mods" section while under this condition.
+                      You cannot go to the Home Page while under this condition.
                       """);
             return _dialogService.ShowDialog(dialog);
         });
@@ -88,7 +88,7 @@ public partial class SettingsViewModel : PageViewModel
         var fileLocalPath = file.TryGetLocalPath();
 
         // The path must obviously not be null
-        if (!string.IsNullOrEmpty(fileLocalPath) && _gameEnvironmentController.IsEnvironmentValid) // Do not set path until confirmed by Save action
+        if (!string.IsNullOrEmpty(fileLocalPath) && !_gameEnvironmentController.IsEnvironmentValid) // Do not set path until confirmed by Save action
         {
             CurrentSaveState.GameExecutablePath = fileLocalPath;
             return;

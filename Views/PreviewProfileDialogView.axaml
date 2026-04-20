@@ -148,7 +148,7 @@
                             <!-- Profile Path -->
                             <controls:FileBrowser
                                 LabelFontFamily="{StaticResource WorkSans}"
-                                SelectFileCommand="{CompiledBinding OpenProfilePath}"
+                                SelectFileCommand="{Binding OpenProfilePath}"
                                 Placeholder="File missing"
                                 Label="Profile Path:"/>
                         </StackPanel>
@@ -224,16 +224,16 @@
                     Classes="DialogBtn DangerDialogBtn"
                     IsHitTestVisible="{CompiledBinding AllowProfileDeletion, Mode=OneWay}"
                     Opacity="{CompiledBinding AllowProfileDeletion, Mode=OneWay}"
-                    Command="{CompiledBinding CloseAndDeleteProfile}"/>
+                    Command="{Binding CloseAndDeleteProfile}"/>
                 <Button
                     Content="{CompiledBinding CloseText, Mode=OneWay}" 
                     Classes="DialogBtn GenericDialogBtn"
-                    Command="{CompiledBinding CloseWithoutChanges}"/>
+                    Command="{Binding CloseWithoutChanges}"/>
                 <Button
                     Name="ExportButton"
                     Content="{CompiledBinding ExportText, Mode=OneWay}" 
                     Classes="DialogBtn GenericDialogBtn"
-                    Command="{CompiledBinding ExportProfile}"/>
+                    Command="{Binding ExportProfile}"/>
             </StackPanel>
         </Grid>
     </Border>

@@ -1,8 +1,13 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:GottaManagePlus.Styles.Controls">
+        xmlns:controls="using:GottaManagePlus.Styles.Controls"
+        xmlns:converters="using:GottaManagePlus.Styles.Converters">
     <Design.PreviewWith>
-        <controls:FileBrowser/>
+        <Border Background="REd" Padding="10">
+            <StackPanel Orientation="Vertical" Spacing="10">
+                <controls:FileBrowser/>
+            </StackPanel>
+        </Border>
     </Design.PreviewWith>
 
     <!-- Add necessary styles -->
@@ -16,33 +21,38 @@
                 <StackPanel Name="PART_StackPanel" Orientation="Vertical">
                     <TextBlock
                         Name="PART_Label"
+                        FontWeight="{TemplateBinding FontWeight}"
                         Text="{TemplateBinding Label}"
                         FontFamily="{TemplateBinding LabelFontFamily}"
                     />
                     <DockPanel Name="PART_DockPanel">
                         <Button
                             Margin="5 0 0 0"
-                            Classes="YCTPButton SmallYCTPButton"
+                            Classes="YCTPButton Miniature"
                             IsVisible="{TemplateBinding SelectFileCommand, Converter={x:Static ObjectConverters.IsNotNull}}"
                             Command="{TemplateBinding SelectFileCommand}"
                             Name="PART_SelectButton"
                             DockPanel.Dock="{TemplateBinding ButtonAlignment}">
-                            <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
+                            <Svg Path="/Assets/UI/folder-search.svg"/>
                         </Button>
                         <Button
                             Name="PART_OpenButton"
                             DockPanel.Dock="{TemplateBinding ButtonAlignment}"
                             Margin="5 0 0 0"
-                            Classes="YCTPButton SmallYCTPButton"
+                            Classes="YCTPButton Miniature"
                             IsVisible="{TemplateBinding OpenFileCommand, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            IsHitTestVisible="{TemplateBinding FilePath, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Opacity="{TemplateBinding FilePath, Converter={x:Static converters:ObjectConverters.ObjectNotNullToOpacityIndicator}}"
                             Command="{TemplateBinding OpenFileCommand}">
-                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
+                            <Svg Path="/Assets/UI/folder-info.svg" />
                         </Button>
                         <controls:TrimmableTextBox Text="{TemplateBinding FilePath}"
                                                    Name="PART_TrimmableTextBox"
                                                    Watermark="{TemplateBinding Placeholder}"
-                                                   TextTrimming="PrefixCharacterEllipsis"
-                                                   FontFamily="{TemplateBinding PlaceholderFontFamily}"/>
+                                                   TextTrimming="PathSegmentEllipsis"
+                                                   FontFamily="{TemplateBinding PlaceholderFontFamily}"
+                                                   Foreground="Black"
+                                                   FontWeight="Normal"/>
                     </DockPanel>
                 </StackPanel>
             </ControlTemplate>

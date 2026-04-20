@@ -7,6 +7,7 @@ namespace GottaManagePlus.Services.ExplorerServices;
 /// <summary>
 /// A class responsible for handling any type of file picking request.
 /// </summary>
+// TODO: Add Logger implementation for the exceptions inside these IO services.
 public class FilePicker
 {
     private IStorageProvider? _storageProvider;
@@ -29,7 +30,7 @@ public class FilePicker
         if (!string.IsNullOrEmpty(preselectedPath))
             folder = await _storageProvider.TryGetFolderFromPathAsync(preselectedPath);
         
-        var files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions()
+        var files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = title,
             AllowMultiple = false,

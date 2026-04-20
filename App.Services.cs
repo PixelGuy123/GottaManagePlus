@@ -65,6 +65,12 @@ public partial class App
         collection.AddSingleton<IGameEnvironmentFactory, PlusEnvironmentFactory>();
         collection.AddSingleton<GameEnvironmentController>();
         
+        // IO Services that need TopLevel Access
+        collection.AddSingleton<FilePicker>();
+        collection.AddSingleton<DirectoryPicker>();
+        collection.AddSingleton<FileLauncher>();
+        collection.AddSingleton<DirectoryLauncher>();
+        
         // Logging Setup
         Log.Logger = new LoggerConfiguration()
 #if DEBUG
@@ -85,10 +91,6 @@ public partial class App
     private static void SetupTransientServices(ServiceCollection collection)
     {
         // Transient Services
-        collection.AddTransient<FilePicker>();
-        collection.AddTransient<DirectoryPicker>();
-        collection.AddTransient<FileLauncher>();
-        collection.AddTransient<DirectoryLauncher>();
         collection.AddTransient<GamebananaApiService>();
         
         // Profile Management

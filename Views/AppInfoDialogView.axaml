@@ -123,7 +123,7 @@
                         </HyperlinkButton>
                     <Button
                         Grid.Column="1"
-                        Command="{CompiledBinding Ok}"
+                        Command="{Binding Ok}"
                         Content="{Binding ConfirmText}"
                         Classes="DialogBtn GenericDialogBtn"/>
                     <HyperlinkButton Grid.Column="2" HorizontalAlignment="Right" NavigateUri="{CompiledBinding DiscordLink, Mode=OneWay}">

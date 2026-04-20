@@ -10,7 +10,10 @@
     <Style Selector="Border">
         <!-- Menu Header Borders -->
         <Style Selector="^.Menu_Header">
+            <Setter Property="MinHeight" Value="60"/> 
             <Setter Property="MaxHeight" Value="96"/> 
+            <Setter Property="HorizontalAlignment" Value="Stretch"/> 
+            <Setter Property="VerticalAlignment" Value="Stretch"/> 
         </Style>
         
         <!-- Menu Border -->

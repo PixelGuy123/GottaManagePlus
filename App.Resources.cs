@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using Avalonia.Platform.Storage;
 
 namespace GottaManagePlus;
@@ -12,8 +11,19 @@ public enum PageNames
     Game
 }
 
+public static class AppInfo
+{
+    // ---- Public API ----
+    public static string AppVersion => 'v' + _appVersion.ToString();
+    
+    // ---- Private API ----
+    private static readonly Version _appVersion = new("0.1.0.01");
+}
+
 public static class Constants
 {
+    // Current APP Version
+    
     // Common paths for Steam to store its games
     public static readonly string BaldiPlusFolderSteamPath =
         // IF Windows, use the following path

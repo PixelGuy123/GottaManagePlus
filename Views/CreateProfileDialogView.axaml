@@ -157,7 +157,7 @@
                                     Label="Select a profile package:"
                                     Placeholder="No package selected!"
                                     FilePath="{CompiledBinding ProfileImportPath}"
-                                    OpenFileCommand="{CompiledBinding BrowseFile}"/>
+                                    OpenFileCommand="{Binding BrowseFile}"/>
                             </Border>
                         </TabItem>
                     </TabControl>
@@ -171,14 +171,14 @@
                         <Button
                             Content="{CompiledBinding CancelText, Mode=OneWay}" 
                             Classes="DialogBtn DangerDialogBtn"
-                            Command="{CompiledBinding Cancel}"/>
+                            Command="{Binding Cancel}"/>
                         <Button
                             Name="CreateProfileBtn"
                             Opacity="{Binding CanCreateProfile, Mode=OneWay}"
                             IsHitTestVisible="{Binding CanCreateProfile, Mode=OneWay}"
                             Content="{CompiledBinding CreateText, Mode=OneWay}" 
                             Classes="DialogBtn GenericDialogBtn"
-                            Command="{CompiledBinding Confirm}">
+                            Command="{Binding Confirm}">
                             <Button.Transitions>
                                 <Transitions>
                                     <DoubleTransition

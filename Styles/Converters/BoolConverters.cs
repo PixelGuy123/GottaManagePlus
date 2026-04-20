@@ -18,4 +18,7 @@ public static class BoolConverters
         new(flag => flag ? 
             Application.Current!.Resources["YctpBg"] as IBrush : // Green Success
             Application.Current!.Resources["YctpBg-Warning"] as IBrush); // Warning
+    
+    public static readonly FuncValueConverter<bool, double> BoolToOpacityIndicator =
+        new(flag => flag ? 1d : 0.5d);
 }
