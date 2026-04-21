@@ -41,7 +41,7 @@
                             Margin="5 0 0 0"
                             Classes="YCTPButton Miniature"
                             IsVisible="{TemplateBinding OpenFileCommand, Converter={x:Static ObjectConverters.IsNotNull}}"
-                            IsHitTestVisible="{TemplateBinding FilePath, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            IsHitTestVisible="{TemplateBinding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Opacity="{TemplateBinding FilePath, Converter={x:Static converters:ObjectConverters.ObjectNotNullToOpacityIndicator}}"
                             Command="{TemplateBinding OpenFileCommand}">
                             <Svg Path="/Assets/UI/folder-info.svg" />

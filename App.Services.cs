@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Interfaces.ProfileManagement;
@@ -24,17 +25,6 @@ namespace GottaManagePlus;
 
 public partial class App
 {
-    private void SetupConfiguration(ServiceCollection collection)
-    {
-        // Configuration Setup
-        var config = new ConfigurationBuilder()
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddJsonFile("AppSettings.json", optional: false, reloadOnChange: true)
-            .Build();
-        collection.AddSingleton<IConfiguration>(config);
-        collection.Configure<AppSettings>(config.GetSection(nameof(AppSettings)));
-    }
-
     private static void SetupViewModels(ServiceCollection collection)
     {
         // View Models
@@ -70,6 +60,9 @@ public partial class App
         collection.AddSingleton<DirectoryPicker>();
         collection.AddSingleton<FileLauncher>();
         collection.AddSingleton<DirectoryLauncher>();
+        
+        // Application Service
+        collection.AddSingleton<ApplicationBridge>();
         
         // Logging Setup
         Log.Logger = new LoggerConfiguration()
@@ -116,6 +109,7 @@ public partial class App
         // Mod Services
         collection.AddTransient<ModInstaller>();
         collection.AddTransient<ModUnInstaller>();
+        collection.AddTransient<ModRepositoryScanner>();
     }
 
     private static void SetupScopedServices(ServiceCollection collection)
@@ -130,7 +124,7 @@ public partial class App
         });
     }
 
-    private static void SetupServicesForWindowAttributes(ServiceProvider services, TopLevel window)
+    private static void SetupServicesForWindowAttributes(ServiceProvider services, IClassicDesktopStyleApplicationLifetime desktop, TopLevel window)
     {
         // Assign storage providers
         var filesService = services.GetRequiredService<FilePicker>();
@@ -143,5 +137,9 @@ public partial class App
         fileLauncher.RegisterLauncher(window.Launcher);
         var directoryLauncher = services.GetRequiredService<DirectoryLauncher>();
         directoryLauncher.RegisterLauncher(window.Launcher);
+        
+        // Assign Application bridge
+        var appBridge = services.GetRequiredService<ApplicationBridge>();
+        appBridge.SetDesktopEnvironment(desktop);
     }
 }

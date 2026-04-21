@@ -159,6 +159,7 @@
                                     FilePath="{CompiledBinding ProfileImportPath}"
                                     OpenFileCommand="{Binding BrowseFile}"/>
                             </Border>
+                            <!-- TODO: Add a display for the metadata of the profile (such as what configs, patchers or mods it has) -->
                         </TabItem>
                     </TabControl>
                     <!-- Buttons -->

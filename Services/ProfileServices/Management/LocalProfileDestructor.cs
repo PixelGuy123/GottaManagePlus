@@ -30,7 +30,7 @@ public sealed class LocalProfileDestructor(
     public async Task DeleteProfile(ProfileMetadata metadata, IProgress<ProgressReport>? progress)
     {
         // The metadata must exist inside the repository and contain more than one metadata.
-        if (_repository.GetAll().Count <= 1 || !_repository.TryGet(metadata.Name, out _)) return;
+        if (_repository.Count <= 1 || !_repository.TryGet(metadata.Name, out _)) return;
         
         // Delete physically the profile from the profiles' folder.
         _logger.Information("Deleting \'{profile}\'...", metadata.Name);
@@ -41,10 +41,7 @@ public sealed class LocalProfileDestructor(
         _repository.Delete(metadata);
         _logger.Information("Profile deleted successfully.");
         
-        // Afterward, if the metadata is the one active in the manager, switch to default.
-        if (metadata == _manager.ActiveProfile)
-        {
-            await _manager.SetActiveProfile(_repository.GetAll()[0], progress);
-        }
+        // Afterward, reload the profiles.
+        await _manager.UpdateProfileRepository(null, progress);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using GottaManagePlus.Interfaces.GameEnvironment;
 
@@ -10,9 +11,28 @@ public sealed class GameEnvironmentController(IEnumerable<IGameEnvironmentFactor
 {
     // ----- Private API -----
     private readonly IEnumerable<IGameEnvironmentFactory> _factories = factories;
+    private IGameEnvironment? _currentEnvironment;
     
     // ----- Public API -----
-    public IGameEnvironment? CurrentEnvironment { get; private set; }
+    /// <summary>
+    /// The current <see cref="IGameEnvironment"/>.
+    /// </summary>
+    public IGameEnvironment? CurrentEnvironment
+    {
+        get => _currentEnvironment;
+        private set
+        {
+            var previousEnvironment = _currentEnvironment;
+            _currentEnvironment = value;
+            OnEnvironmentUpdate?.Invoke(value, previousEnvironment);
+        }
+    }
+    
+    /// <summary>
+    /// An event that is raised every time the current environment is updated.
+    /// </summary>
+    public event EnvironmentUpdateHandler? OnEnvironmentUpdate;
+    public delegate void EnvironmentUpdateHandler(IGameEnvironment? newEnvironment, IGameEnvironment? previousEnvironment);
 
     /// <summary>
     /// Sets a new environment to the controller based on the available factories.
@@ -34,24 +54,31 @@ public sealed class GameEnvironmentController(IEnumerable<IGameEnvironmentFactor
     /// <summary>
     /// Checks whether the current environment is valid or not.
     /// </summary>
-    public bool IsEnvironmentValid
-    {
-        get
-        {
-            // If null, false.
-            if (CurrentEnvironment == null) return false;
-            
-            // Try to change environment to check if a factory finds it.
-            var previousEnvironment = CurrentEnvironment;
-            SetNewEnvironment(CurrentEnvironment.RootPath);
-            
-            // If the environment remains the same, and the current environment isn't null, then true.
-            if (CurrentEnvironment == previousEnvironment) return CurrentEnvironment != null;
-            
-            // Reset the variable's state and return false.
-            CurrentEnvironment = previousEnvironment;
-            return false;
+    /// <returns><see langword="true"/> if the environment is valid; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// This method is only needed to check if the current environment is still valid in storage.
+    /// If <see cref="SetNewEnvironment"/> was used previously, <c>CurrentEnvironment != null</c> is a better alternative.
+    /// </remarks>
+    public bool IsEnvironmentValid() => CurrentEnvironment != null && IsEnvironmentValid(CurrentEnvironment.ExecutablePath);
 
+    /// <summary>
+    /// Checks whether the environment is valid or not through executable path.
+    /// </summary>
+    /// <returns><see langword="true"/> if the environment is valid; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// This method is only needed to check if the current environment is still valid in storage.
+    /// If <see cref="SetNewEnvironment"/> was used previously, <c>CurrentEnvironment != null</c> is a better alternative.
+    /// </remarks>
+    public bool IsEnvironmentValid(string executablePath)
+    {
+        // Try to find the right factory.
+        IGameEnvironment? newEnvironment = null;
+        foreach (var factory in _factories)
+        {
+            var env = factory.CreateEnvironment(executablePath);
+            if (env == null) continue;
+            newEnvironment = env;
         }
+        return newEnvironment != null;
     }
 }

@@ -3,11 +3,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using Serilog;
 
 namespace GottaManagePlus.Services.ExplorerServices;
 
-public class FileLauncher
+public class FileLauncher(ILogger logger)
 {
+    private readonly ILogger _logger = logger;
     private ILauncher? _launcher;
     public void RegisterLauncher(ILauncher launcher) => _launcher = launcher;
 
@@ -17,75 +19,76 @@ public class FileLauncher
     /// <param name="fileInfo">The <see cref="FileInfo"/> instance to be launched.</param>
     /// <returns><see langword="true"/> if the launch was successful; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="InvalidOperationException">If the launcher hasn't been registered yet.</exception>
-    public async Task<bool> OpenFileInfo(FileInfo fileInfo)
+    public bool OpenFileInfo(FileInfo fileInfo)
     {
-        if (_launcher == null) throw new InvalidOperationException("Launcher has not been registered yet.");
-        return await _launcher.LaunchFileInfoAsync(fileInfo);
+        if (_launcher == null)
+        {
+            _logger.Error("{Name}\'s Launcher is null!", GetType().Name);
+            throw new InvalidOperationException("Launcher has not been registered yet.");
+        }
         
-        // 2026-28-03: Commented temporarily since there's an extension method I wanna test
-        //
-        // if (OperatingSystem.IsWindows())
-        // {
-        //     // Windows
-        //     Process.Start("explorer.exe", $"/select,\"{fileInfo.FullName}\"");
-        //     return true;
-        // }
-        // if (OperatingSystem.IsMacOS())
-        // {
-        //     // macOS
-        //     Process.Start("open", $"-R \"{fileInfo.FullName}\"");
-        //     return true;
-        // }
-        // if (OperatingSystem.IsLinux())
-        // {
-        //     try
-        //     {
-        //         // Try common file managers with select capability
-        //         string[] fileManagers =
-        //         [
-        //             "nautilus",
-        //             "dolphin",
-        //             "caja"
-        //         ];
-        //     
-        //         // Go through each explorer to see which one works
-        //         foreach (var manager in fileManagers)
-        //         {
-        //             try
-        //             {
-        //                 // Console.WriteLine($"Trying {manager} --select \"{fileInfo.FullName}\"");
-        //                 Process.Start(new ProcessStartInfo
-        //                 {
-        //                     FileName = manager,
-        //                     Arguments = $"--select \"{fileInfo.FullName}\"",
-        //                     CreateNoWindow = true,
-        //                     UseShellExecute = false
-        //                 });
-        //                 return true;
-        //             }
-        //             catch
-        //             {
-        //                 // Ignores the exception and tries the next manager
-        //             }
-        //         }
-        //     
-        //         // Fallback: Just open the directory
-        //         Process.Start(new ProcessStartInfo
-        //         {
-        //             FileName = "xdg-open",
-        //             Arguments = $"\"{fileInfo.DirectoryName}\"",
-        //             CreateNoWindow = true,
-        //             UseShellExecute = false
-        //         });
-        //         return true;
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Log.Logger.Error($"Failed to open file explorer: {ex.Message}");
-        //         return false;
-        //     }
-        // }
+        if (OperatingSystem.IsWindows())
+        {
+            // Windows
+            Process.Start("explorer.exe", $"/select,\"{fileInfo.FullName}\"");
+            return true;
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            // macOS
+            Process.Start("open", $"-R \"{fileInfo.FullName}\"");
+            return true;
+        }
+        if (OperatingSystem.IsLinux())
+        {
+            try
+            {
+                // Try common file managers with select capability
+                string[] fileManagers =
+                [
+                    "nautilus",
+                    "dolphin",
+                    "caja"
+                ];
+            
+                // Go through each explorer to see which one works
+                foreach (var manager in fileManagers)
+                {
+                    try
+                    {
+                        // Console.WriteLine($"Trying {manager} --select \"{fileInfo.FullName}\"");
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = manager,
+                            Arguments = $"--select \"{fileInfo.FullName}\"",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        return true;
+                    }
+                    catch
+                    {
+                        // Ignores the exception and tries the next manager
+                    }
+                }
+            
+                // Fallback: Just open the directory
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "xdg-open",
+                    Arguments = $"\"{fileInfo.DirectoryName}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error("Failed to open file explorer: {ExMessage}", ex.Message);
+                return false;
+            }
+        }
 
-        // return false;
+        return false;
     }
 }

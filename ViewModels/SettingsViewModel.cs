@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -25,6 +26,8 @@ public partial class SettingsViewModel : PageViewModel
     public SettingsViewModel(FilePicker filePicker, FileLauncher fileLauncher, SettingsService settingsService,
         GameEnvironmentController gameEnvironmentController, DialogService dialogService, ILogger logger) : base(PageNames.Settings)
     {
+        if (Design.IsDesignMode) return;
+        
         _filePicker = filePicker;
         _fileLauncher = fileLauncher;
         _settingsService = settingsService;
@@ -34,22 +37,20 @@ public partial class SettingsViewModel : PageViewModel
         CurrentSaveState = Models.UI.SaveState.InitializeState(settingsService);
 
         // Update this index
-        UpdateNumberOfRowsPerIndex();
+        UpdateSettingsDisplays();
     }
 
 
     internal void DisplayGameFolderRequirementFolder()
     {
         // Display the warning dialog to remind the user
-        Dispatcher.UIThread.InvokeAsync(() =>
+        Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            dialog.Prepare(true, Constants.WarningDialog, """
+            await _dialogService.NotifyUser(Constants.WarningDialog, """
                       Looks like the BB+ folder is not set or is not valid.
                       If this is your first time using the tool, just select the executable of Baldi's Basics Plus inside Settings.
                       You cannot go to the Home Page while under this condition.
                       """);
-            return _dialogService.ShowDialog(dialog);
         });
     }
     
@@ -69,6 +70,8 @@ public partial class SettingsViewModel : PageViewModel
     private SaveState _currentSaveState = null!;
     [ObservableProperty] 
     private int _numberOfRowsPerModIndex;
+    [ObservableProperty] 
+    private string? _executablePath;
     
     // Property changes
     partial void OnNumberOfRowsPerModIndexChanged(int value) => CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
@@ -88,15 +91,21 @@ public partial class SettingsViewModel : PageViewModel
         var fileLocalPath = file.TryGetLocalPath();
 
         // The path must obviously not be null
-        if (!string.IsNullOrEmpty(fileLocalPath) && !_gameEnvironmentController.IsEnvironmentValid) // Do not set path until confirmed by Save action
+        if (!string.IsNullOrEmpty(fileLocalPath)) // Do not set path until confirmed by Save action
         {
+            if (!_gameEnvironmentController.IsEnvironmentValid(fileLocalPath))
+            {
+                _logger.Warning("Failed to set '{FileLocalPath}' as executable path.", fileLocalPath);
+                await _dialogService.NotifyUser("File Not Found", "The executable file is invalid or hasn't been found!");
+                return;
+            }
             CurrentSaveState.GameExecutablePath = fileLocalPath;
+            ExecutablePath = fileLocalPath;
             return;
         }
 
-        await _dialogService.GenerateLoadingProcess(
-            "Failed to locate the executable file or the directory, where this executable may be located, is invalid.",
-            null);
+        // Fail Dialog
+        await _dialogService.NotifyUser(Constants.FailDialog, "Failed to locate the executable file or the directory, where this executable may be located, is invalid.");
         _logger.Warning("Failed to set the folder!");
     }
 
@@ -104,11 +113,9 @@ public partial class SettingsViewModel : PageViewModel
     public async Task OpenExecutablePath()
     {
         if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath) && 
-            !await _fileLauncher.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
+            !_fileLauncher.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
         {
-            await _dialogService.GenerateLoadingProcess(
-                "Failed to open the path to the executable due to an unknown error!",
-                null);
+            await _dialogService.NotifyUser(Constants.FailDialog, "Failed to open the path to the executable due to an unknown error!");
         }
     }
 
@@ -118,25 +125,28 @@ public partial class SettingsViewModel : PageViewModel
         // Serialize saved state
         CurrentSaveState.UpdateSavedState();
 
-        var settings = _settingsService.CurrentSettings;
-        // Saving executable path
-        if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath))
-            settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
-        // Saving number of rows
-        settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
+        // Update through mutable settings
+        _settingsService.Update(settings =>
+        {
+            // Saving executable path
+            if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath))
+                settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
+            // Saving number of rows
+            settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
 
-        // Saving executable path to the folder validator
-        _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
-
+            // Saving executable path to the folder validator
+            _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
+        });
+        
         // Saving dialog
         await _dialogService.GenerateLoadingProcess(
             $"""
              Failed to save the settings. You can try again.
              If it doesn't work, you can try:
-             {Constants.SolutionFilePermissions}
+             {Constants.CommonIssuesSolution}
              """,
             null,
-            "Saving settings...", "Saving...", (Delegate)_settingsService.Save);
+            "Saving settings...", "Saving...", (Delegate)_settingsService.SaveAsync);
     }
 
     [RelayCommand]
@@ -145,20 +155,23 @@ public partial class SettingsViewModel : PageViewModel
         CurrentSaveState = CurrentSaveState.LastSavedState; // Revert to a previous reference
         
         // Update manually a few values
-        UpdateNumberOfRowsPerIndex();
+        UpdateSettingsDisplays();
     }
     
     // Private members
-    private void UpdateNumberOfRowsPerIndex()
+    private void UpdateSettingsDisplays()
     {
+        // Update number oof rows
+        NumberOfRowsPerModIndex = 0;
         for (var i = 0; i < PossibleRowsPerModStates.Length; i++)
         {
             if (PossibleRowsPerModStates[i] != CurrentSaveState.NumberOfModsPerRow) continue;
             
             NumberOfRowsPerModIndex = i;
-            return;
+            break;
         }
-
-        NumberOfRowsPerModIndex = 0;
+        
+        // Update Executable's Path
+        ExecutablePath = CurrentSaveState.GameExecutablePath;
     }
 }

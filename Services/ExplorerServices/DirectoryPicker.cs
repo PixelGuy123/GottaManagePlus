@@ -1,14 +1,16 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using Serilog;
 
 namespace GottaManagePlus.Services.ExplorerServices;
 
 /// <summary>
 /// A class responsible for handling any type of folder picking request.
 /// </summary>
-public class DirectoryPicker
+public class DirectoryPicker(ILogger logger)
 {
+    private readonly ILogger _logger = logger;
     private IStorageProvider? _storageProvider;
     public void RegisterProvider(IStorageProvider provider) => _storageProvider = provider;
     
@@ -20,7 +22,11 @@ public class DirectoryPicker
     /// <exception cref="InvalidOperationException">Thrown if the <see cref="IStorageProvider"/> from the <see cref="DirectoryPicker"/> is <see langword="null"/>.</exception>
     public async Task<IStorageFolder?> OpenFolderAsync(string? title = null)
     {
-        if (_storageProvider == null) throw new InvalidOperationException("StorageProvider has not been registered yet.");
+        if (_storageProvider == null)
+        {
+            _logger.Error("{Name}\'s StorageProvider is null!", GetType().Name);
+            throw new InvalidOperationException("StorageProvider has not been registered yet.");
+        }
         
         var folders = await _storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions()
         {

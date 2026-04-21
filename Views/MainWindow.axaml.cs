@@ -7,7 +7,7 @@ namespace GottaManagePlus.Views;
 
 public partial class MainWindow : Window
 {
-    private bool _canClose = false;
+    private bool _canClose;
     
     public MainWindow()
     {
@@ -28,8 +28,7 @@ public partial class MainWindow : Window
             if (DataContext is not MainWindowViewModel viewModel) return;
         
             e.Cancel = true; // Cancels the closing event
-
-            if (!await viewModel.HandleSettingsSave()) return;
+            if (!await viewModel.HandleSettingsSave(!e.IsProgrammatic)) return;
         
             _canClose = true;
             Close(); // Manually close

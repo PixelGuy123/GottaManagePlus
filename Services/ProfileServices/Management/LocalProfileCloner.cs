@@ -51,6 +51,13 @@ public class LocalProfileCloner(
             Path.Combine(newProfileDir.FullName, Constants.ProfileMetadataFileName),
             newMetadata.Serialize());
         
+        // Locate the compacted file and rename it.
+        var zipFilePath = Path.Combine(newProfileDir.FullName, metadata.Name + Constants.ProfileDefaultExtension);
+        if (File.Exists(zipFilePath))
+            File.Move(zipFilePath,
+                Path.Combine(newProfileDir.FullName,
+                    newName + Constants.ProfileDefaultExtension));
+        
         return newMetadata;
     }
 }

@@ -4,6 +4,7 @@ using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Threading.Tasks;
 using Avalonia;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -53,11 +54,23 @@ public abstract partial class DialogViewModel : ViewModelBase
     public void Prepare(params object?[]? args)
     {
         if (_isDialogPrepared)
-            throw new InvalidOperationException("Dialog is already prepared.");
-        
+        {
+            var e = new InvalidOperationException("Dialog is already prepared.");
+            Log.Logger.Error("Failed to open dialog (\'{dialogType}\').\n{e}", GetType().Name, e);
+            throw e;
+        }
+
         // Setup abstraction
-        Setup(args);
-        
+        try
+        {
+            Setup(args);
+        }
+        catch (Exception e)
+        {
+            Log.Logger.Error("Failed to open dialog (\'{dialogType}\').\n{e}", GetType().Name, e);
+            throw;
+        }
+
         // Dialog is prepared by default
         _isDialogPrepared = true;
     }

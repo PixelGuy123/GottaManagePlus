@@ -4,19 +4,22 @@ using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices.Writers;
 using GottaManagePlus.Utils;
+using Serilog;
 
 namespace GottaManagePlus.Services.ProfileServices.Management;
 
 public sealed class LocalProfileCreator(
     ProfileRepository repository,
     ProfileZipWriter zipWriter,
-    GameEnvironmentController controller
+    GameEnvironmentController controller,
+    ILogger logger
     ) : IProfileCreator
 {
     // ---- Private API ----
     private readonly ProfileRepository _repository = repository;
     private readonly ProfileZipWriter _zipWriter = zipWriter;
     private readonly GameEnvironmentController _controller = controller;
+    private readonly ILogger _logger = logger;
 
     // ---- Public API ----
     /// <summary>
@@ -28,13 +31,24 @@ public sealed class LocalProfileCreator(
     /// </param>
     public async Task<ProfileMetadata?> CreateProfile(ProfileMetadata basicMetadataReference)
     {
+        _logger.Information("Creating new empty Profile '{Name}'", basicMetadataReference.Name);
         // Get the directory, if it exists.
-        var profilesFolder = _controller.GetOrCreateProfilesFolderPath();
+        var profilesFolder = _controller.GetOrCreateProfilesFolderPath(_logger);
         
         // Create a new empty profile.
+        _logger.Information("Writing profile to disk...");
         var clearedMetadata = await _zipWriter.WriteEmptyProfileToAsync(profilesFolder, basicMetadataReference, _controller);
 
+        // If it's null, return null too.
+        if (clearedMetadata == null) 
+            return null;
+
         // Add that profile to the database.
-        return _repository.Add(clearedMetadata) ? clearedMetadata : null;
+        if (_repository.Add(clearedMetadata))
+            return clearedMetadata;
+
+        _logger.Information("ProfileMetadata already exists. Returning copy from repository...");
+        // Retrieves copy inside the repository.
+        return _repository.Get(clearedMetadata.Name);
     }
 }

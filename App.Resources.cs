@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using Avalonia.Platform.Storage;
 
 namespace GottaManagePlus;
@@ -8,16 +9,13 @@ public enum PageNames
 {
     Home,
     Settings,
-    Game
+    LogViewer
 }
 
 public static class AppInfo
 {
     // ---- Public API ----
-    public static string AppVersion => 'v' + _appVersion.ToString();
-    
-    // ---- Private API ----
-    private static readonly Version _appVersion = new("0.1.0.01");
+    public static readonly string AppVersion = 'v' + AssemblyName.GetAssemblyName(Assembly.GetExecutingAssembly().Location).Version!.ToString();
 }
 
 public static class Constants
@@ -40,13 +38,16 @@ public static class Constants
 
     // The path to this GMP instance
     public static readonly string ApplicationLocation = AppContext.BaseDirectory;
-    // The backup directory based on call
-    public static string BackupDir => "_gmp_backup_" + DateTime.Now.Ticks;
     
     // Extensions and names that the app uses
-    public const string 
-        AppRootFolder = ".gmp", App_SpecialFolderForMods_Name = "_gmp",App_ProfileExportFolder = "exports", AppProfilesFolder = "profiles",
-        ProfileMetadataFileName = ".metadata", ExportedProfileExtension = ".gmpProfile", 
+    public const string
+        App_RootFolder = ".gmp",
+        App_SpecialFolderForMods_Name = "_gmp",
+        App_ProfileExportFolder = "exports",
+        App_ProfilesFolder = "profiles",
+        App_TemporaryFolder = "temp";
+    public const string
+        ProfileMetadataFileName = ".metadata", ExportedProfileExtension = ".gmpProfile", ProfileDefaultExtension = ".zip", 
         ModSupportForGameVersionPreviewFilePrefixName = "supVer_", BepInExFolderName = "BepInEx";
     
     // File Picker Filters
@@ -65,13 +66,29 @@ public static class Constants
         PatchersFolder = "patchers",
         PluginsFolder = "plugins";
     
-    // Platform-specific recommendations
-    public static readonly string SolutionFilePermissions =
-            // Linux Suggestion
-            OperatingSystem.IsLinux() ? 
-            """
-            TODO: Actually write a solution for this.
-            """ :
-            // Default is Windows suggestion
-            "1. Executing this tool with administrator permissions.";
+   
+    // Common issues solutions for each platform
+    public static string CommonIssuesSolution =>
+        OperatingSystem.IsWindows() ? SolutionCommonIssuesWindows :
+        OperatingSystem.IsMacOS() ? SolutionCommonIssuesMacOS :
+        OperatingSystem.IsLinux() ? SolutionCommonIssuesLinux :
+        SolutionCommonIssuesWindows; // Default to Windows
+
+    private const string SolutionCommonIssuesWindows = """
+                                                       1. Run the application as administrator.
+                                                       2. Temporarily disable antivirus software.
+                                                       3. Ensure the game directory has proper read/write permissions.
+                                                       """;
+
+    private const string SolutionCommonIssuesMacOS = """
+                                                     1. Allow the application in System Preferences > Security & Privacy > General.
+                                                     2. Grant Full Disk Access to the application if required.
+                                                     3. Check and adjust file permissions using Terminal commands like chmod.
+                                                     """;
+
+    private const string SolutionCommonIssuesLinux = """
+                                                     1. Run the application with elevated privileges using sudo if necessary.
+                                                     2. Adjust file permissions with chmod or chown commands.
+                                                     3. Check if SELinux or AppArmor is blocking access and configure accordingly.
+                                                     """;
 }

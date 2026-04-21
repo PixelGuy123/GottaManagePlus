@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Services.ModServices;
 using GottaManagePlus.Services.ProfileServices.Writers;
 using GottaManagePlus.Utils;
 using Serilog;
@@ -14,12 +15,14 @@ namespace GottaManagePlus.Services.ProfileServices.Management;
 public sealed class EnvironmentToProfileSaver(
     GameEnvironmentController controller,
     ProfileZipWriter zipWriter,
+    ModRepositoryScanner modRepositoryScanner,
     ILogger logger)
     : IEnvironmentToLocalParser
 {
     // ---- Private API -----
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileZipWriter _zipWriter = zipWriter;
+    private readonly ModRepositoryScanner _modRepositoryScanner = modRepositoryScanner;
     private readonly ILogger _logger = logger;
     
     // ---- Public API -----
@@ -34,23 +37,23 @@ public sealed class EnvironmentToProfileSaver(
         IProgress<ProgressReport>? progress,
         CancellationToken cancellationToken = default)
     {
-        var pathToSave = metadata.GetPhysicalPath(_controller);
+        var pathToSave = _controller.GetOrCreateProfilesFolderPath();
         try
         {
-            var profileDir = new DirectoryInfo(pathToSave);
-            if (!profileDir.Exists)
-                profileDir.Create();
-
             // Collect configuration and patcher files
             metadata.ConfigurationFiles.Clear();
-            var configPath = _controller.SearchRelativePath(Constants.BepInExFolderName, Constants.ConfigFolder);
+            var configPath = _controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder);
             foreach (var config in Directory.EnumerateFiles(configPath, "*.cfg", SearchOption.AllDirectories))
                 metadata.ConfigurationFiles.Add(config);
 
-            var patcherPath = _controller.SearchRelativePath(Constants.BepInExFolderName, Constants.PatchersFolder);
+            var patcherPath = _controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder);
             foreach (var patcher in Directory.EnumerateFiles(patcherPath, "*.dll", SearchOption.AllDirectories))
                 metadata.PatcherFiles.Add(patcher);
+            
+            // Add mods too through the scanner
+            await _modRepositoryScanner.ScanRepository(metadata, progress, cancellationToken);
 
+            // Writes the profile back.
             await _zipWriter.WriteProfileToAsync(pathToSave, metadata, _controller, progress, cancellationToken);
         }
         catch (Exception e)

@@ -1,15 +1,16 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using Serilog;
 
 namespace GottaManagePlus.Services.ExplorerServices;
 
 /// <summary>
 /// A class responsible for handling any type of file picking request.
 /// </summary>
-// TODO: Add Logger implementation for the exceptions inside these IO services.
-public class FilePicker
+public class FilePicker(ILogger logger)
 {
+    private readonly ILogger _logger = logger;
     private IStorageProvider? _storageProvider;
     public void RegisterProvider(IStorageProvider provider) => _storageProvider = provider;
     
@@ -24,7 +25,11 @@ public class FilePicker
     /// <exception cref="InvalidOperationException">Thrown if the <see cref="IStorageProvider"/> from the <see cref="FilePicker"/> is <see langword="null"/>.</exception>
     public async Task<IStorageFile?> OpenSingleFileAsync(string? title = null, string? suggestedFileName = null, string? preselectedPath = null, params FilePickerFileType[] filterChoices)
     {
-        if (_storageProvider == null) throw new InvalidOperationException("StorageProvider has not been registered yet.");
+        if (_storageProvider == null)
+        {
+            _logger.Error("{Name}\'s StorageProvider is null!", GetType().Name);
+            throw new InvalidOperationException("StorageProvider has not been registered yet.");
+        }
 
         IStorageFolder? folder = null;
         if (!string.IsNullOrEmpty(preselectedPath))

@@ -3,9 +3,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using GottaManagePlus.Models.Exceptions;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
 using Serilog;
 using SharpCompress.Archives;
-using ProgressReport = GottaManagePlus.Models.ProgressReport;
 
 namespace GottaManagePlus.Services.ModServices;
 
@@ -22,18 +23,18 @@ public sealed class ModArchiveExtractor(ILogger logger)
     /// Extracts an archive to a uniquely named temporary directory.
     /// </summary>
     /// <param name="archivePath">Path to the archive file.</param>
-    /// <param name="progress">The progress to be reported back.</param>
+    /// <param name="controller">The controller for folder access.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>Path to the temporary directory containing extracted files.</returns>
     /// <exception cref="ArchiveExtractionException">Thrown when extraction fails.</exception>
-    public async Task<string?> ExtractToTempAsync(string archivePath, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
+    public async Task<string?> ExtractToTempAsync(string archivePath, GameEnvironmentController controller, CancellationToken cancellationToken = default)
     {
         try
         {
             // 1. Get a temporary directory to actually extract the archive.
             _logger.Information("Extractor - Creating sub directory...");
             var temporaryDirectory =
-                Directory.CreateTempSubdirectory($"GMP_{Path.GetFileNameWithoutExtension(archivePath)}_ModExtraction");
+                controller.CreateTempSubdirectory(_logger);
             _logger.Information("Extractor - Subdirectory created at '{TemporaryDirectoryFullName}'.",
                 temporaryDirectory.FullName);
 

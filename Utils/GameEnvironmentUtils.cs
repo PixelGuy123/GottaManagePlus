@@ -66,11 +66,11 @@ public static partial class GameEnvironmentUtils
             var endVersionStrIndex = content.IndexOf(endVersionString, startVersionStrIndex, StringComparison.Ordinal);
             // Extract the raw version string from between the markers.
             var versionSubStr = content.Substring(startVersionStrIndex, endVersionStrIndex - startVersionStrIndex);
-            logger.Error("Retrieved version substring ({VersionSubStr}).", versionSubStr);
+            logger.Information("Retrieved version substring ({VersionSubStr}).", versionSubStr);
 
             // Attempt to parse the extracted string into a WrappedGameVersion object.
             gameVersion = new WrappedGameVersion(versionSubStr);
-            logger.Error("Managed to parse into valid version? ({WrappedGameVersion}).", gameVersion);
+            logger.Information("Managed to parse into valid version? ({WrappedGameVersion}).", gameVersion);
             
             return true;
         }

@@ -111,7 +111,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
             }
             
             // Create environment instance.
-            var environment = new PlusEnvironment(rootPath, baldiDataFolder, gameVersion);
+            var environment = new PlusEnvironment(rootPath, baldiDataFolder, executablePath, gameVersion);
             _uniquePlusEnvironments.TryAdd(executablePath, environment); // Adds to the database
             return environment;
         }

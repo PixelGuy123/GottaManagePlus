@@ -46,7 +46,7 @@ public sealed class ProfileExporter(ILogger logger)
             
             // Make the writer, then write the content to it.
             using var writer = WriterFactory.OpenWriter(fileStream, ArchiveType,
-                new WriterOptions(CompressionType.LZMA, (int)CompressionLevel.BestSpeed));
+                new WriterOptions(CompressionType.LZMA));
             
             _logger.Information("Exporting profile to \'{dir}\'...", profileDir.FullName);
             // Write the directory to the zip file.

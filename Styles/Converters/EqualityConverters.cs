@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Diagnostics;
 using System.Linq;
 using Avalonia.Data.Converters;
 
@@ -37,4 +37,16 @@ public static class EqualityConverters
             var first = values.FirstOrDefault();
             return values.Skip(1).Any(v => first?.Equals(v) != true) ? 1.0 : 0.0;
         });
+
+    /// <summary>
+    /// Checks whether number is higher than one.
+    /// </summary>
+    public static readonly FuncValueConverter<int, bool> IsHigherThanOne =
+        new(num => num > 1);
+    
+    /// <summary>
+    /// Checks whether number is higher than one (Opacity mode).
+    /// </summary>
+    public static readonly FuncValueConverter<int, double> IsHigherThanOne_Opacity =
+        new(num => num > 1 ? 1 : 0.5d);
 }

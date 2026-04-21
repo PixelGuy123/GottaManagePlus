@@ -92,7 +92,8 @@
                                 Margin="0 5"
                                 Label="Baldi's Basics Plus Executable Path:"
                                 Placeholder="No executable selected..."
-                                FilePath="{CompiledBinding CurrentSaveState.GameExecutablePath}"
+                                PlaceholderFontFamily="{StaticResource WorkSans}"
+                                FilePath="{CompiledBinding ExecutablePath}"
                                 FontWeight="Bold"
                                 Foreground="White"
                                 OpenFileCommand="{Binding OpenExecutablePath}"
@@ -111,6 +112,7 @@
                             <StackPanel Orientation="Vertical">
                                 <Label Content="Number of mods per row:"/>
                                 <ComboBox
+                                    FontFamily="{StaticResource WorkSans}"
                                     Name="NumOfModsPerRowCombo"
                                     SelectedIndex="{CompiledBinding NumberOfRowsPerModIndex}"
                                     ItemsSource="{CompiledBinding PossibleRowsPerModStates, Mode=OneTime}"/>

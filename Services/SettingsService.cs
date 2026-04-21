@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using Microsoft.Extensions.Options;
@@ -11,52 +12,108 @@ namespace GottaManagePlus.Services;
 
 public sealed class SettingsService
 {
-    
-    // Doesn't use an interface and I doubt this project would ever need a secondary configurations service
-    public SettingsService(IOptions<AppSettings> initialOptions, ILogger logger)
-    {
-        _settings = JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(initialOptions.Value, AppSettingsContext.Default.AppSettings), AppSettingsContext.Default.AppSettings)!;
-        // Clamps the number in case the user changes manually in settings
-        _settings.NumberOfRowsPerMod = Math.Clamp(_settings.NumberOfRowsPerMod, 4, 6);
-
-        _logger = logger;
-    }
-    
-    private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
     private readonly ILogger _logger;
-    private readonly AppSettings _settings;
-    
-    public AppSettings CurrentSettings => JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(_settings, AppSettingsContext.Default.AppSettings), AppSettingsContext.Default.AppSettings)!;
-    
-    public event Action? OnSaveSettings;
+    private readonly string _filePath;
+    private readonly AppSettings _appSettings;
 
-    public void UpdateSettings(Action<AppSettings> updateAction)
+    /// <summary>
+    /// Gets the currently loaded settings. 
+    /// Modifications should be made via <see cref="Update(Action{AppSettings})"/> to ensure validation.
+    /// </summary>
+    public AppSettings.ReadonlyAppSettings CurrentSettings => new(_appSettings);
+
+    public SettingsService(
+        ILogger logger)
     {
-        updateAction(_settings);
-        OnSaveSettings?.Invoke();
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
+        
+        _appSettings = LoadOrDefault();
+        ApplyConstraints(_appSettings);
+        
+        _logger.Information("Settings loaded from {FilePath}", _filePath);
     }
+    
+    // ----- Private API -----
 
-    public async Task<bool> Save()
+    /// <summary>
+    /// Loads settings from disk, falling back to DI options or default instance.
+    /// </summary>
+    private AppSettings LoadOrDefault()
     {
-        _logger.Information("Saving settings...");
-        var json = JsonSerializer.Serialize(_settings, AppSettingsContext.Default.AppSettings);
-        StreamWriter? writer = null;
         try
         {
-            writer = new StreamWriter(File.Open(_filePath, FileMode.OpenOrCreate));
-            await writer.WriteAsync(json);
-            _logger.Information("Settings successfully saved!");
+            if (File.Exists(_filePath))
+            {
+                var json = File.ReadAllText(_filePath);
+                var loaded = JsonSerializer.Deserialize(json, AppSettingsContext.Default.AppSettings);
+                if (loaded is not null)
+                {
+                    _logger.Debug("Successfully deserialized settings from disk");
+                    return loaded;
+                }
+                _logger.Warning("Deserialization returned null; using fallback");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to load settings from disk; using fallback");
+        }
+
+        // Fallback chain: IOptions<T> → new instance with defaults
+        return new AppSettings();
+    }
+
+    /// <summary>
+    /// Applies business constraints (e.g., clamping) to ensure valid state.
+    /// Call after loading or mutating settings.
+    /// </summary>
+    private static void ApplyConstraints(AppSettings settings)
+    {
+        settings.NumberOfRowsPerMod = Math.Clamp(settings.NumberOfRowsPerMod, 4, 6);
+    }
+
+    /// <summary>
+    /// Safely updates settings using a mutation action, then applies constraints.
+    /// </summary>
+    public void Update(Action<AppSettings> mutate)
+    {
+        ArgumentNullException.ThrowIfNull(mutate);
+
+        mutate(_appSettings);
+        ApplyConstraints(_appSettings);
+        _logger.Debug("Settings updated in memory");
+    }
+
+    /// <summary>
+    /// Persists current settings to disk using atomic write pattern.
+    /// </summary>
+    /// <returns>True if save succeeded; false otherwise.</returns>
+    public async Task<bool> SaveAsync()
+    {
+        var tempPath = _filePath + ".tmp";
+        try
+        {
+            _logger.Information("Saving settings to {FilePath}", _filePath);
+            var json = JsonSerializer.Serialize(_appSettings, AppSettingsContext.Default.AppSettings);
+
+            // write to temp file, then replace
+            await File.WriteAllTextAsync(tempPath, json);
+            File.Replace(tempPath, _filePath, null);
+
+            _logger.Information("Settings successfully saved");
             return true;
         }
         catch (Exception ex)
         {
-            _logger.Error("{exception}", ex);
+            _logger.Error(ex, "Failed to save settings");
             return false;
         }
         finally
         {
-            if (writer != null)
-                await writer.DisposeAsync();
+            // Deletes tempPath if available
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
         }
     }
 }

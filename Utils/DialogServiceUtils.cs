@@ -42,22 +42,14 @@ public static class DialogServiceUtils
         {
             // If failure, show fail dialog.
             if (!string.IsNullOrEmpty(failDialogDescription))
-            {
-                var failDialog = dialogService.GetDialog<ConfirmDialogViewModel>();
-                failDialog.Prepare(true, Constants.FailDialog, failDialogDescription);
-                await dialogService.ShowDialog(failDialog);
-            }
-
+                await dialogService.NotifyUser(Constants.FailDialog, failDialogDescription);
+            
             return false;
         }
 
         // If success, show success dialog.
         if (!string.IsNullOrEmpty(successDialogDescription))
-        {
-            var successDialog = dialogService.GetDialog<ConfirmDialogViewModel>();
-            successDialog.Prepare(true, Constants.SuccessDialog, successDialogDescription);
-            await dialogService.ShowDialog(successDialog);
-        }
+            await dialogService.NotifyUser(Constants.SuccessDialog, successDialogDescription);
 
         return true;
     }
@@ -84,6 +76,20 @@ public static class DialogServiceUtils
 
         // Return confirmation.
         return confirmViewModel.Confirmed;
+    }
+    
+    /// <summary>
+    /// Raises a dialog telling the user something.
+    /// </summary>
+    /// <param name="dialogService">The service instance responsible for managing dialog interactions.</param>
+    /// <param name="title">The title displayed at the top of the confirmation dialog.</param>
+    /// <param name="message">The message displayed at the middle of the confirmation dialog.</param>
+    /// <param name="confirmationButton">The label for the confirmation button.</param>
+    public static async Task NotifyUser(this DialogService dialogService, string title, string message, string? confirmationButton = null)
+    {
+        var messageDialog = dialogService.GetDialog<ConfirmDialogViewModel>();
+        messageDialog.Prepare(true, title, message, confirmationButton);
+        await dialogService.ShowDialog(messageDialog);
     }
     
     // ---- Private API -----

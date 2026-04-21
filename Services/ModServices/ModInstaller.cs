@@ -59,7 +59,7 @@ public sealed class ModInstaller(
         {
             // 2. First, we need to physically extract the archive to somewhere, so that
             // file manipulation can be performed.
-            temporaryDirectory = await _modArchiveExtractor.ExtractToTempAsync(archivePath, progress, cancellationToken);
+            temporaryDirectory = await _modArchiveExtractor.ExtractToTempAsync(archivePath, _controller, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested(); // Between each step, a cancellation token check is done.
             

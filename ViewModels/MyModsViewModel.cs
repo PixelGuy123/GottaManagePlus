@@ -186,16 +186,14 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             }
             catch (Exception e)
             {
-                Log.Error("Failed to delete the mod directory for {ModName}!\n{Exception}", modToDelete.Name, e);
-                await _dialogService.GenerateLoadingProcess(
-                    $"Failed to delete mod files for {modToDelete.Name}. Check file permissions.",
-                    null);
+                Log.Logger.Error("Failed to delete the mod directory for {ModName}!\n{Exception}", modToDelete.Name, e);
+                await _dialogService.NotifyUser(Constants.FailDialog, $"Failed to delete mod files for {modToDelete.Name}. Check file permissions.");
                 return;
             }
         }
 
         await _dialogService.GenerateLoadingProcess(
-            $"Failed to save the changes. If this issue persists, try:\n{Constants.SolutionFilePermissions}",
+            $"Failed to save the changes. If this issue persists, try:\n{Constants.CommonIssuesSolution}",
             null,
             "Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);
     }
@@ -230,17 +228,13 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     {
         if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
         {
-            await _dialogService.GenerateLoadingProcess(
-                "The path to the mod is somehow invalid!\nTry reloading the profiles list.",
-                null);
+            await _dialogService.NotifyUser(Constants.FailDialog, "The path to the mod is somehow invalid!\nTry reloading the profiles list.");
             return;
         }
 
         if (!await _directoryLauncher.OpenDirectoryInfo(new DirectoryInfo(path)))
         {
-            await _dialogService.GenerateLoadingProcess(
-                "Failed to open the path to the mod due to an unknown error!\nTry reloading the profiles list.",
-                null);
+            await _dialogService.NotifyUser(Constants.FailDialog, "Failed to open the path to the mod due to an unknown error!\nTry reloading the profiles list.");
         }
     }
 }

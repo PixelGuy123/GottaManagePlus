@@ -141,10 +141,8 @@
                             
                             <!-- Creation date -->
                             <Label Content="Created at:"/>
-                            <TextBlock Text="{CompiledBinding Profile.CreationDate, Mode=OneWay}"/>
                             <!-- Update date -->
                             <Label Content="Last modified:"/>
-                            <TextBlock Text="{CompiledBinding Profile.LastUpdateDate, Mode=OneWay}"/>
                             <!-- Profile Path -->
                             <controls:FileBrowser
                                 LabelFontFamily="{StaticResource WorkSans}"

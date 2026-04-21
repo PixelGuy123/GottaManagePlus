@@ -20,7 +20,7 @@ public sealed class ProfileRepository(ILogger logger)
     /// Raised when any action (clear, add, remove) is invoked.
     /// </summary>
     public event Action<ProfileRepository>? OnProfilesUpdate;
-    
+
     /// <summary>
     /// Returns a readonly collection of profiles inside the repository.
     /// </summary>
@@ -31,6 +31,10 @@ public sealed class ProfileRepository(ILogger logger)
     /// Whether the repository is empty or not.
     /// </summary>
     public bool IsEmpty => _profiles.Count == 0;
+    /// <summary>
+    /// The amount of profiles inside the repository.
+    /// </summary>
+    public int Count => _profiles.Count;
 
     /// <summary>
     /// Clears out the list of profiles in-memory.
@@ -92,7 +96,7 @@ public sealed class ProfileRepository(ILogger logger)
     /// <summary>
     /// Searches for a profile based on name and returns it as an argument.
     /// </summary>
-    /// <param name="profileName">The name of the profile to search for.</param>
+    /// <param name="profileName">The name of the profile.</param>
     /// <param name="profileMetadata">The <see cref="ProfileMetadata"/> instance retrieved.</param>
     /// <returns><see langword="true"/> if the profile is found; otherwise, <see langword="false"/>.</returns>
     public bool TryGet(string profileName, [NotNullWhen(true)] out ProfileMetadata? profileMetadata)
@@ -100,5 +104,18 @@ public sealed class ProfileRepository(ILogger logger)
         profileMetadata = _profiles.Find(p =>
             p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));
         return profileMetadata != null;
+    }
+
+    /// <summary>
+    /// Searches for a profile based on name and return it back.
+    /// </summary>
+    /// <param name="profileName">The name of the profile.</param>
+    /// <returns>The <see cref="ProfileMetadata"/> inside the repository, if found.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">If the profile is not found, this exception is raised.</exception>
+    public ProfileMetadata Get(string profileName)
+    {
+        var profileMetadata = _profiles.Find(p =>
+            p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));
+        return profileMetadata ?? throw new ArgumentOutOfRangeException(profileName, "Profile not found.");
     }
 }

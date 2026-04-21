@@ -10,7 +10,6 @@ namespace GottaManagePlus.Models.UI;
 public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
                                                 // Manually implements INotify due to source generators issue (https://github.com/AvaloniaUI/Avalonia/discussions/18593)
 {
-    private SettingsService _settingsService = null!;
     private string _savedState = null!; // Json
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -20,10 +19,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
     public static SaveState InitializeState(SettingsService settingsService)
     {
         // Create State
-        var state = new SaveState
-        {
-            _settingsService = settingsService
-        };
+        var state = new SaveState();
         
         // Update State Fields
         var currentSettings = settingsService.CurrentSettings;
@@ -63,7 +59,6 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
             var deserializedState = JsonSerializer.Deserialize<SaveState>(_savedState, SaveStateContext.Default.SaveState);
             if (deserializedState == null) 
                 return this;
-            deserializedState._settingsService = _settingsService;
             deserializedState._savedState = _savedState;
             return deserializedState;
         }

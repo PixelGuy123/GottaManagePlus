@@ -35,14 +35,24 @@ public sealed class ProfileToEnvironmentExtractor(
         IProgress<ProgressReport>? progress,
         CancellationToken cancellationToken = default)
     {
-        _logger.Information("Initiated profile extraction...");
+        
+        // Get the profile's physical path.
         var profilePath = metadata.GetPhysicalPath(_controller);
-        var profileDir = new DirectoryInfo(profilePath);
-        if (!profileDir.Exists)
+        _logger.Information("Extracting profile \'{profile}\' from path \'{path}\'...",
+            metadata.Name,
+            profilePath);
+        
+        // If it doesn't exist, cancel.
+        if (!Directory.Exists(profilePath))
+        {
+            _logger.Warning("Profile does not exist.");
             return false;
+        }
+
+        // Attempt to extract profile.
         var success = await _zipExtractor.ExtractProfile(
             metadata,
-            profileDir.FullName,
+            profilePath,
             _controller.CurrentEnvironment!.RootPath,
             _controller,
             progress,

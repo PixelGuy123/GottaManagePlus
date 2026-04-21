@@ -4,13 +4,11 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;
 using SharpCompress.Common;
-using SharpCompress.Compressors.Deflate;
 using SharpCompress.Writers;
 
 using ProgressReport = GottaManagePlus.Models.ProgressReport; // Avoid ambiguity
@@ -24,7 +22,6 @@ public sealed class ProfileZipWriter(ILogger logger)
 {
     // Const Fields
     private const ArchiveType CompressedExtension = ArchiveType.Zip;
-    private const string FileExtension = ".zip";
     
     // ----- Private API -----
     private readonly ILogger _logger = logger;
@@ -64,20 +61,21 @@ public sealed class ProfileZipWriter(ILogger logger)
     /// <param name="path">The path this profile will be written at (MUST be a directory).</param>
     /// <param name="profile">The profile itself to be written.</param>
     /// <param name="controller">The environment controller for preventing malicious paths from force-copying things outside the game folder.</param>
-    /// <returns>A new instance of <see cref="ProfileMetadata"/> that contains no storage data.</returns>
+    /// <returns>A new instance of <see cref="ProfileMetadata"/> that contains no storage data, or <see langword="null"/> if the writing failed.</returns>
     /// <exception cref="ArgumentException">If the path given is not a directory, this error is raised.</exception>
-    public async Task<ProfileMetadata> WriteEmptyProfileToAsync(string path, ProfileMetadata profile, GameEnvironmentController controller)
+    public async Task<ProfileMetadata?> WriteEmptyProfileToAsync(string path, ProfileMetadata profile, GameEnvironmentController controller)
     {
         var clearedMetadata = new ProfileMetadata(profile, true);
-        await WriteProfileInternalAsync(path, clearedMetadata, controller, "Empty Profile Zip Writing started!", 
-            WriteEmptyProfileContent);
+        if (!await WriteProfileInternalAsync(path, clearedMetadata, controller, "Empty Profile Zip Writing started!",
+                WriteEmptyProfileContent)) 
+            return null;
         return clearedMetadata;
     }
     
     /// <summary>
     /// Common internal method for writing profiles with different content strategies.
     /// </summary>
-    private async Task WriteProfileInternalAsync(string path, ProfileMetadata profile, GameEnvironmentController controller, 
+    private async Task<bool> WriteProfileInternalAsync(string path, ProfileMetadata profile, GameEnvironmentController controller, 
         string startMessage, Action<IWriter> contentWriter)
     {
         if (!File.GetAttributes(path).HasFlag(FileAttributes.Directory))
@@ -88,36 +86,40 @@ public sealed class ProfileZipWriter(ILogger logger)
 
         try
         {
-            temporaryDirectory = Directory.CreateTempSubdirectory($"GMP_{profile.Name}_ProfileZipWriter");
+            temporaryDirectory = controller.CreateTempSubdirectory(_logger);
             var profileRootDirectory = Directory.CreateDirectory(
                 Path.Combine(temporaryDirectory.FullName, profile.Name)
             );
             
             // --- Write compressed content ---
-            _logger.Information("Writing profile\'s content...");
-            await using (var fileStream = File.OpenWrite(
-                Path.Combine(profileRootDirectory.FullName, $"{profile.Name}{FileExtension}")))
+            var zipPathToWrite = Path.Combine(profileRootDirectory.FullName, $"{profile.Name}{Constants.ProfileDefaultExtension}");
+            _logger.Information("Writing profile\'s content to \'{zipPathToWrite}\'...", zipPathToWrite);
+            await using (var fileStream = File.OpenWrite(zipPathToWrite))
             {
                 using var writer = WriterFactory.OpenWriter(fileStream, CompressedExtension,
-                    new WriterOptions(CompressionType.LZMA, (int)CompressionLevel.BestSpeed));
+                    new WriterOptions(CompressionType.LZMA));
 
                 // Does the content writing here
                 contentWriter(writer);
             }
             
             // --- Write metadata file ---
-            _logger.Information("Writing metadata file...");
-            File.WriteAllText(Path.Combine(profileRootDirectory.FullName, Constants.ProfileMetadataFileName), profile.Serialize());
+            var metadataPath = Path.Combine(profileRootDirectory.FullName, Constants.ProfileMetadataFileName);
+            _logger.Information("Writing metadata file to \'{metadata}\'...", metadataPath);
+            File.WriteAllText(metadataPath, profile.Serialize());
 
             // Move final directory to target location
-            var desiredPath = controller.SearchAbsolutePath(path);
+            var desiredPath = Path.Combine(path, profile.Name);
+            _logger.Information("Moving base directory \'{ogPath}\' to \'{destPath}\'...", profileRootDirectory.FullName, desiredPath);
             profileRootDirectory.MoveTo(desiredPath);
             
             _logger.Information("Successfully written profile!");
+            return true;
         }
         catch (Exception e)
         {
             _logger.Error("Failed to create the profile content.\n{exception}", e);
+            return false;
         }
         finally
         {
@@ -142,7 +144,7 @@ public sealed class ProfileZipWriter(ILogger logger)
         // --- Pre‑calculate total number of write operations ---
         int totalOps = 0, completed = 0;
         
-        foreach (var modData in profile.ModDataFiles ?? [])
+        foreach (var modData in profile.ModDataFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Count existing asset files
@@ -181,7 +183,7 @@ public sealed class ProfileZipWriter(ILogger logger)
             }
         }
 
-        foreach (var modItem in profile.ModDataFiles ?? [])
+        foreach (var modItem in profile.ModDataFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Write assets

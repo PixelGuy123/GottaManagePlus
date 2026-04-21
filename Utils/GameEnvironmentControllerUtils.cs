@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using GottaManagePlus.Services.GameEnvironmentServices;
+using Serilog;
 
 namespace GottaManagePlus.Utils;
 
@@ -75,11 +76,17 @@ public static class GameEnvironmentControllerUtils
     /// Returns the default path for profiles through the controller or create such directory if it doesn't exist.
     /// </summary>
     /// <param name="controller">The controller to search the path.</param>
+    /// <param name="logger">Logger to report directory manipulation.</param>
     /// <returns>A <see cref="string"/> pointing to the default path of the profiles' folder.</returns>
-    public static string GetOrCreateProfilesFolderPath(this GameEnvironmentController controller)
+    public static string GetOrCreateProfilesFolderPath(this GameEnvironmentController controller, ILogger? logger = null)
     {
-        var path = controller.SearchAbsolutePath(Constants.AppRootFolder, Constants.AppProfilesFolder);
-        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        var path = controller.SearchAbsolutePath(Constants.App_RootFolder, Constants.App_ProfilesFolder);
+        if (!Directory.Exists(path))
+        {
+            logger?.Information("Creating Profiles directory at \'{path}\'.", path);
+            Directory.CreateDirectory(path);
+        }
+        else logger?.Information("Retrieved Profiles directory at \'{path}\'.", path);
         return path;
     }
 
@@ -87,11 +94,48 @@ public static class GameEnvironmentControllerUtils
     /// Return the default path for exported profiles through controller or create such directory if it doesn't exist.
     /// </summary>
     /// <param name="controller">The controller to search the path.</param>
+    /// <param name="logger">Logger to report directory manipulation.</param>
     /// <returns>A <see cref="string"/> pointing to the default path of the profiles' export folder.</returns>
-    public static string GetOrCreateProfilesExportFolderPath(this GameEnvironmentController controller)
+    public static string GetOrCreateProfilesExportFolderPath(this GameEnvironmentController controller, ILogger? logger = null)
     {
-        var path = controller.SearchAbsolutePath(Constants.AppRootFolder, Constants.App_ProfileExportFolder);
-        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        var path = controller.SearchAbsolutePath(Constants.App_RootFolder, Constants.App_ProfileExportFolder);
+        if (!Directory.Exists(path))
+        {
+            logger?.Information("Creating Profiles Export directory at \'{path}\'.", path);
+            Directory.CreateDirectory(path);
+        }
+        else logger?.Information("Retrieved Profiles Export directory at \'{path}\'.", path);
         return path;
+    }
+    
+    /// <summary>
+    /// Creates a temporary subdirectory inside the game's .gmp/temp folder with a unique GUID name.
+    /// </summary>
+    /// <param name="controller">The controller to resolve the game's root path.</param>
+    /// <param name="logger">Optional logger to report directory creation.</param>
+    /// <returns>A <see cref="DirectoryInfo"/> instance pointing to the newly created temporary subdirectory.</returns>
+    public static DirectoryInfo CreateTempSubdirectory(this GameEnvironmentController controller, ILogger? logger = null)
+    {
+        // Get the base temp folder path: .gmp/temp
+        var tempBasePath = controller.SearchAbsolutePath(Constants.App_RootFolder, Constants.App_TemporaryFolder);
+    
+        // Ensure the base temp directory exists
+        if (!Directory.Exists(tempBasePath))
+        {
+            logger?.Information("Creating base temp directory at \'{TempBasePath}\'.", tempBasePath);
+            Directory.CreateDirectory(tempBasePath);
+        }
+        else
+        {
+            logger?.Information("Base temp directory already exists at \'{TempBasePath}\'.", tempBasePath);
+        }
+    
+        // Generate a unique directory name (GUID is cross-platform safe)
+        var uniqueDirName = Guid.NewGuid().ToString();
+        var tempSubDirPath = Path.Combine(tempBasePath, uniqueDirName);
+    
+        // Create the temporary subdirectory
+        logger?.Information("Creating temporary subdirectory \'{TempSubDirPath}\'.", tempSubDirPath);
+        return Directory.CreateDirectory(tempSubDirPath);
     }
 }

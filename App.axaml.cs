@@ -30,7 +30,6 @@ public partial class App : Application
         var collection = new ServiceCollection();
         
         // Services to set up
-        SetupConfiguration(collection);
         SetupSingletonServices(collection);
         SetupTransientServices(collection);
         SetupScopedServices(collection);
@@ -57,7 +56,7 @@ public partial class App : Application
                 Log.CloseAndFlush();
             };
 
-            SetupServicesForWindowAttributes(services, TopLevel.GetTopLevel(desktop.MainWindow)!);
+            SetupServicesForWindowAttributes(services, desktop,TopLevel.GetTopLevel(desktop.MainWindow)!);
         }
 
         base.OnFrameworkInitializationCompleted();

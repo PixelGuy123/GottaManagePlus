@@ -50,24 +50,26 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                 {
                     // Try to move directory asset to the right destination.
                     case ModManifestUtils.AssetType.Asset:
-                        if (!Directory.Exists(resource.LocalPath) || !Directory.Exists(resource.Destination)) continue;
+                        if (!Directory.Exists(resource.LocalPath) || string.IsNullOrEmpty(resource.Destination) || Directory.Exists(resource.Destination)) continue;
                 
                         _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, resource.Destination);
-                        Directory.Move(resource.LocalPath, resource.Destination);
+                        Directory.Move(resource.LocalPath, resource.Destination!);
                         break;
                     // Move the plugin to the new directory.
                     case ModManifestUtils.AssetType.Plugin:
                         if (File.Exists(resource.LocalPath))
                         {
-                            _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, pluginDir.FullName);
-                            File.Move(resource.LocalPath, pluginDir.FullName);
+                            var pluginDestinationPath = Path.Combine(pluginDir.FullName, Path.GetFileName(resource.LocalPath));
+                            _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, pluginDestinationPath);
+                            File.Move(resource.LocalPath, pluginDestinationPath);
                         }
                         break;
                     case ModManifestUtils.AssetType.Patcher:
                         if (File.Exists(resource.LocalPath))
                         {
-                            _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, patcherDir.FullName);
-                            File.Move(resource.LocalPath, patcherDir.FullName);
+                            var patcherDestinationPath = Path.Combine(patcherDir.FullName, Path.GetFileName(resource.LocalPath));
+                            _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, patcherDestinationPath);
+                            File.Move(resource.LocalPath, patcherDestinationPath);
                         }
                         break;
                     default:

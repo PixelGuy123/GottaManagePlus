@@ -48,14 +48,14 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
     [RelayCommand] public async Task UpdateProfiles() => await UpdateProfilesList();
 
     // ---- Design-Time Constructor ----
-    public ProfilesViewModel() : base(PageNames.Game)
+    public ProfilesViewModel() : base(PageNames.LogViewer)
     {
         if (!Design.IsDesignMode) return;
         ObservableUnchangedProfiles = new ObservableCollection<ProfileMetadata>(
         [
-            new ProfileMetadata { Name = "Design Profile 1", Description = "Sample design data." },
-            new ProfileMetadata { Name = "Design Profile 2", Description = "Sample design data." },
-            new ProfileMetadata { Name = "Design Profile 3 with very long name for testing out of bounds text", Description = "Sample design data." }
+            new ProfileMetadata { Name = "Design Profile 1" },
+            new ProfileMetadata { Name = "Design Profile 2" },
+            new ProfileMetadata { Name = "Design Profile 3 with very long name for testing out of bounds text" }
         ]);
         ObservableProfiles = new ObservableCollection<ProfileMetadata>(ObservableUnchangedProfiles);
     }
@@ -71,7 +71,7 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
         IProfileDestructor destructor,
         IProfileCreator profileCreator,
         IProfileCloner profileCloner,
-        GameEnvironmentController environmentController) : base(PageNames.Game)
+        GameEnvironmentController environmentController) : base(PageNames.LogViewer)
     {
         if (Design.IsDesignMode) return;
 
@@ -164,7 +164,7 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
 
         if (!await _dialogService.GenerateLoadingProcess(
                 failDialogDescription:
-                $"Failed to export the profile! If you're still having issues, try this:\n{Constants.SolutionFilePermissions}",
+                $"Failed to export the profile! If you're still having issues, try this:\n{Constants.CommonIssuesSolution}",
                 successDialogDescription: null,
                 "Profile Export", "Exporting profile...", (Delegate)_profileExportController.ExportProfile, profile
             ))
@@ -242,7 +242,7 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
 
         // Loading process
         await _dialogService.GenerateLoadingProcess(
-            $"Failed to switch the profile ({profile.Name}) due to an unknown reason.\nIf this issue persists, you can try:\n{Constants.SolutionFilePermissions}",
+            $"Failed to switch the profile ({profile.Name}) due to an unknown reason.\nIf this issue persists, you can try:\n{Constants.CommonIssuesSolution}",
             $"Successfully switched to {profile.Name}!",
             null, null, (Delegate)_profileManager.SetActiveProfile, profile
         );

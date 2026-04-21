@@ -76,7 +76,7 @@ public sealed class ProfileManager(
     /// </summary>
     /// <param name="preferredProfile">The preferred profile to be chosen after the process if possible.</param>
     /// <param name="progress">The progress to be reported.</param>
-    public async Task UpdateProfileRepository(string? preferredProfile, IProgress<ProgressReport>? progress)
+    public async Task<bool> UpdateProfileRepository(string? preferredProfile, IProgress<ProgressReport>? progress)
     {
         // Progress report.
         progress?.Report(new ProgressReport("Updating Profiles", "Scanning local storage..."));
@@ -89,21 +89,29 @@ public sealed class ProfileManager(
             // Reloads the repository.
             _profileScanner.ScanAndLoadProfiles();
 
+            // If the repository is empty, make a default profile.
+            if (_repository.IsEmpty)
+            {
+                ActiveProfile = null;
+                var profile = await _creator.CreateProfile(ProfileMetadata.Default);
+                if (profile != null) // Reminder that SetActiveProfile automatically saves the profile too.
+                    await SetActiveProfile(profile, null);
+                else
+                    throw new InvalidOperationException("No profile has been selected!");
+            }
+            
             // If the profile is already set, search for it.
             if (!string.IsNullOrEmpty(preferredProfile) &&
                 _repository.TryGet(preferredProfile, out var profileMetadata))
             {
                 // Switch to that profile.
                 await SetActiveProfile(profileMetadata, progress);
+                return true;
             }
-            // If the repository is empty, make a default profile.
-            else if (_repository.IsEmpty)
-            {
-                ActiveProfile = null;
-                var profile = await _creator.CreateProfile(ProfileMetadata.Default);
-                if (profile != null)
-                    await SetActiveProfile(profile, null);
-            }
+            
+            // If the repository isn't empty, pick the first profile available.
+            await SetActiveProfile(_repository.GetAll()[0], null);
+            return true;
         }
         catch (Exception e)
         {
@@ -112,6 +120,7 @@ public sealed class ProfileManager(
             // Roll back on the repository's profiles.
             _repository.Clear();
             safeProfileListCopy.ForEach(p => _repository.Add(p));
+            return false;
         }
     }
 }

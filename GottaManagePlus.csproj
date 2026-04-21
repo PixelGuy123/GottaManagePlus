@@ -5,9 +5,17 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <AssemblyVersion>2026.01.0.3</AssemblyVersion>
-    <FileVersion>2026.01.0.3</FileVersion>
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+    <Version>$(AppVersion)</Version>
+    <FileVersion>$(AppVersion)</FileVersion>
     <LangVersion>13.0</LangVersion>
+  </PropertyGroup>
+  
+  <!-- Global Version Display -->
+  <PropertyGroup>
+    <AppVersion>
+      0.1.0.2
+    </AppVersion>
   </PropertyGroup>
 
   <!--APP Bundle description for dotnet-bundler (macOS)-->
@@ -15,8 +23,8 @@
     <CFBundleName>GottaManagePlus</CFBundleName>
     <CFBundleDisplayName>Gotta Manage Plus</CFBundleDisplayName>
     <CFBundleIdentifier>com.pixelguy.gottamanageplus</CFBundleIdentifier>
-    <CFBundleVersion>2026.01.0.3</CFBundleVersion>
-    <CFBundleShortVersionString>2026.01.0.3</CFBundleShortVersionString>
+    <CFBundleVersion>$(AppVersion)</CFBundleVersion>
+    <CFBundleShortVersionString>$(AppVersion)</CFBundleShortVersionString>
     <CFBundlePackageType>APPL</CFBundlePackageType>
     <CFBundleSignature>????</CFBundleSignature>
     <CFBundleExecutable>GottaManagePlus</CFBundleExecutable>
@@ -57,11 +65,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
     <PackageReference Include="File.TypeChecker" Version="4.4.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.6" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.6" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />

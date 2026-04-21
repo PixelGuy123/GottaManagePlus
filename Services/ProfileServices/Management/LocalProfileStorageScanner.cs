@@ -11,7 +11,6 @@ public sealed class LocalProfileStorageScanner(
     GameEnvironmentController controller,
     ProfileZipReader zipReader,
     ProfileRepository repository,
-    IProfileCreator creator,
     ILogger logger)
     : IProfileStorageScanner
 {
@@ -19,7 +18,6 @@ public sealed class LocalProfileStorageScanner(
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileZipReader _zipReader = zipReader;
     private readonly ProfileRepository _profileRepository = repository;
-    private readonly IProfileCreator _creator = creator;
     private readonly ILogger _logger = logger;
 
     /// <summary>
@@ -27,6 +25,7 @@ public sealed class LocalProfileStorageScanner(
     /// </summary>
     public void ScanAndLoadProfiles()
     {
+        _logger.Information("Re-scanning local storage...");
         // Clear the repository beforehand.
         _profileRepository.Clear();
 
@@ -36,10 +35,11 @@ public sealed class LocalProfileStorageScanner(
         // Search every directory, read the metadata and register to the repo.
         foreach (var profileDir in Directory.EnumerateDirectories(profilesFolder))
         {
+            _logger.Information("Found profile \'{profileDir}\'", profileDir);
             var metadata = _zipReader.ReadProfile(profileDir);
             if (metadata == null)
             {
-                _logger.Warning("Could not read metadata from {ProfileDir}", profileDir);
+                _logger.Warning("Could not read metadata from profile.");
                 continue;
             }
             _profileRepository.Add(metadata);

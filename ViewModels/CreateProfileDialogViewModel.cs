@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -9,17 +8,20 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services.ExplorerServices;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class CreateProfileDialogViewModel : DialogViewModel
 {
+    // Constants
+    private static readonly char[] InvalidPathChars = [.. Path.GetInvalidFileNameChars(), '_'];
+    private const int profileNameLengthLimit = 20;
+    
     // Observables
     [ObservableProperty]
     private string _title = "Creating a new profile...", _cancelText = "Cancel", _createText = "Create Profile",
-        _errorText = $"This name already exists or contains one of the invalid characters ({string.Join(", ", Path.GetInvalidFileNameChars()
+        _errorText = $"This name must be unique (not duplicate), below or equal to {profileNameLengthLimit} characters and shall not contain one of these invalid symbols ({string.Join(", ", InvalidPathChars
             .Where(c => !char.IsControl(c))
             .Select(c => $"'{c}'"))}).";
     
@@ -72,9 +74,9 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         // If the value exists, add _Clone to it
         if (!string.IsNullOrEmpty(value))
         {
-            var newName = $"{value}_Clone";
+            var newName = $"{value}-Clone";
             while (ExistingProfiles.Contains(newName))
-                newName += "_Clone";
+                newName += "-Clone";
             CloneProfileName = newName;
             ProfileIndexToClone = ExistingProfiles.IndexOf(value);
         }
@@ -92,8 +94,6 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         
         // Set as import path
         ProfileImportPath = file?.TryGetLocalPath();
-        
-        // TODO: Display a 
     }
 
     [RelayCommand]
@@ -127,10 +127,10 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
 
     private static bool IsValidFilename([NotNullWhen(true)] string? name) // Annotation to make compiler happy
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(name) || name.Length > profileNameLengthLimit)
             return false;
         
-        return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+        return name.IndexOfAny(InvalidPathChars) < 0;
     }
     
     // Setup method
