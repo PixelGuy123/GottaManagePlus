@@ -32,7 +32,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
     public async Task<ModManifest?> LoadMetadataAsync(string modRootPath, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
         // Locate _gmp/metadata.json
-        var manifestPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, "manifest.json");
+        var manifestPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, "manifest.json"); // TODO: Turn these into constants
         var metadataPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, ".metadata");
         if (!File.Exists(manifestPath))
         {

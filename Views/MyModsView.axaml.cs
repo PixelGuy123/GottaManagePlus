@@ -28,6 +28,9 @@ public partial class MyModsView : UserControl
         ManifestVisualizerDescription.FontSize = !string.IsNullOrEmpty(ManifestVisualizerDescription.Text) ? 
             Math.Max(12, 18d - ManifestVisualizerDescription.Text.Length * 0.15d) : 12d;
     }
+    
+    private void OnTogglePopup(object sender, RoutedEventArgs e) => AddModPopup.IsOpen = !AddModPopup.IsOpen;
+    
 
     private void ModsScrollViewerOnSizeChanged(object? _, SizeChangedEventArgs e)
     {

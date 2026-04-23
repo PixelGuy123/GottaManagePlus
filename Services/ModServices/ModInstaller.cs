@@ -42,7 +42,7 @@ public sealed class ModInstaller(
     /// <param name="progress">The progress report.</param>
     /// <param name="cancellationToken">The token to cancel this entire operation.</param>
     /// <returns>Returns an instance of <see cref="ModInstallationResult"/> with the report of the installation.</returns>
-    public async Task<ModInstallationResult> InstallModAsync(
+    public async Task<ModInstallationResult> InstallModArchiveAsync(
         string archivePath,
         IProgress<ProgressReport>? progress = null,
         CancellationToken cancellationToken = default)

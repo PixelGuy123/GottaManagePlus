@@ -13,6 +13,7 @@
         <entry key="Styles/Controls/ReadonlyTextBox.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/SelectableTextBox.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/TrimmableTextBox.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/HyperlinkButton.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Labels.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/ProfileStyling.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/ProfileVisualization/ProfileResources.axaml" value="GottaManagePlus.csproj" />

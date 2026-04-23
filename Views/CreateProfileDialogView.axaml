@@ -157,7 +157,7 @@
                                     Label="Select a profile package:"
                                     Placeholder="No package selected!"
                                     FilePath="{CompiledBinding ProfileImportPath}"
-                                    OpenFileCommand="{Binding BrowseFile}"/>
+                                    SelectFileCommand="{Binding BrowseFile}"/>
                             </Border>
                             <!-- TODO: Add a display for the metadata of the profile (such as what configs, patchers or mods it has) -->
                         </TabItem>

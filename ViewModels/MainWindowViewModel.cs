@@ -323,7 +323,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             {
                 await _dialogService.GenerateLoadingProcess(
                     "Failed to create the profile!",
-                    $"Created {creatingPfDialog.ProfileName} successfully!",
+                    $"Created \'{creatingPfDialog.ProfileName}\' successfully!",
                     "Creating new profile...", null, (Delegate)_profileCreator.CreateProfile,
                     new ProfileMetadata { Name = creatingPfDialog.ProfileName ?? "New Profile" }, true);
                 break;
@@ -341,7 +341,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 // Clone profile.
                 await _dialogService.GenerateLoadingProcess(
                     "Failed to clone the profile!",
-                    $"Cloned to {creatingPfDialog.CloneProfileName} successfully!",
+                    $"Cloned to \'{creatingPfDialog.CloneProfileName}\' successfully!",
                     "Cloning profile...", "Selecting profile and cloning it...",
                     (Delegate)_profileCloner.CloneProfile, sourceProfile, creatingPfDialog.CloneProfileName);
                 break;
@@ -350,7 +350,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             {
                 await _dialogService.GenerateLoadingProcess(
                     "Failed to import the profile!",
-                    $"Imported {Path.GetFileName(creatingPfDialog.ProfileImportPath)} successfully!",
+                    $"Imported \'{Path.GetFileName(creatingPfDialog.ProfileImportPath)}\' successfully!",
                     "Importing profile...", "Selecting profile and importing it...",
                     (Delegate)_profileExportController.ExtractExportedProfile, creatingPfDialog.ProfileImportPath);
                 break;
@@ -366,14 +366,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         if (_profileManager.ActiveProfile == profile) return;
 
         if (!await _dialogService.PromptUserQuestion(
-                $"Switch to {profile.Name}?",
+                $"Switch to \'{profile.Name}\'?",
                 "Are you sure you want to switch to this profile?"))
             return;
 
         // Loading process
         await _dialogService.GenerateLoadingProcess(
-            $"Failed to switch the profile ({profile.Name}) due to an unknown reason.\nIf this issue persists, you can try:\n{Constants.CommonIssuesSolution}",
-            $"Successfully switched to {profile.Name}!",
+            $"Failed to switch the profile \'{profile.Name}\' due to an unknown reason.\nIf this issue persists, you can try:\n{Constants.CommonIssuesSolution}",
+            $"Successfully switched to \'{profile.Name}\'.",
             null, null, (Delegate)_profileManager.SetActiveProfile, profile
         );
     }

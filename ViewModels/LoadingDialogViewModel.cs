@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
@@ -25,7 +24,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
     // Observable properties
     [ObservableProperty] private string _title = "Loading...";
     [ObservableProperty] private string? _status = "Loading...";
-    [ObservableProperty] private string? _progressPercentageText;
     [ObservableProperty] private int _progressMax = 1;
     [ObservableProperty] private int _progressValue;
     [ObservableProperty] private string _cancelText = "Cancel";
@@ -113,7 +111,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
     private void OnProgressChanged(object? sender, ProgressReport e)
     {
-        ProgressPercentageText = $"{e.TasksCompleted}/{e.TasksTotal} ";
         ProgressMax = e.TasksTotal;
         ProgressValue = e.TasksCompleted;
         Status = e.CurrentStatus;
@@ -143,7 +140,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
         _hasAlreadyInitiated = false;
         _cts = new CancellationTokenSource();
         Progress = null;
-        ProgressPercentageText = null;
         ProgressValue = 0;
         ProgressMax = 1;
 

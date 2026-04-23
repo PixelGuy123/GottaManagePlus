@@ -16,7 +16,7 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
 {
     // Constants
     private static readonly char[] InvalidPathChars = [.. Path.GetInvalidFileNameChars(), '_'];
-    private const int profileNameLengthLimit = 20;
+    private const int profileNameLengthLimit = 48;
     
     // Observables
     [ObservableProperty]

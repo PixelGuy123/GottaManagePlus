@@ -110,6 +110,7 @@ public partial class App
         collection.AddTransient<ModInstaller>();
         collection.AddTransient<ModUnInstaller>();
         collection.AddTransient<ModRepositoryScanner>();
+        collection.AddTransient<ModArchiveGenerator>();
     }
 
     private static void SetupScopedServices(ServiceCollection collection)

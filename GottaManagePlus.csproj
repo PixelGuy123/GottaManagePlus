@@ -6,17 +6,13 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+    <Authors>PixelGuy</Authors>
+    <AppVersion>0.1.0.2</AppVersion>
     <Version>$(AppVersion)</Version>
     <FileVersion>$(AppVersion)</FileVersion>
     <LangVersion>13.0</LangVersion>
   </PropertyGroup>
   
-  <!-- Global Version Display -->
-  <PropertyGroup>
-    <AppVersion>
-      0.1.0.2
-    </AppVersion>
-  </PropertyGroup>
 
   <!--APP Bundle description for dotnet-bundler (macOS)-->
   <PropertyGroup>

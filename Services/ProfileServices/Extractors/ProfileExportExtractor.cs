@@ -28,7 +28,7 @@ public sealed class ProfileExportExtractor(ILogger logger)
             _logger.Warning("Exported profile path is invalid or file does not exist: {path}", exportedProfilePath);
             return false;
         }
-
+        
         try
         {
             // Ensure the target directory exists prior to extraction.
@@ -42,10 +42,12 @@ public sealed class ProfileExportExtractor(ILogger logger)
                 // Skip directory entries; file extraction handles folder structure automatically.
                 if (entry.IsDirectory) continue;
                 
+                // Attempt to write and overwrite
                 entry.WriteToDirectory(destinationPath, new ExtractionOptions
                 {
                     ExtractFullPath = true,
-                    Overwrite = true
+                    Overwrite = true,
+                    PreserveAttributes = true
                 });
             }
 

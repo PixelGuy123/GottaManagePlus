@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -39,12 +40,11 @@ public class ModMetadata
     public bool Activated { get; set; } // Whether the mod is active or not.
     
     // ---- Access Getters for UI ----
-    [JsonIgnore] public List<string> StringifiedSupportedPlusVersions => new(
-        SupportedPlusVersions
-        .Select(p => p.ToString()));
+    [JsonIgnore] public List<string> StringifiedSupportedPlusVersions =>
+    [..SupportedPlusVersions.Select(p => p.ToString())];
 }
 
-public struct DestinedAsset
+public struct DestinedAsset : IEquatable<DestinedAsset>
 {
     [JsonRequired]
     public required string LocalPath { get; set; }
@@ -59,4 +59,18 @@ public struct DestinedAsset
         !string.IsNullOrEmpty(Destination)
             ? $"LocalPath: \'{LocalPath}\' — Destination: \'{Destination}\'"
             : $"LocalPath: \'{LocalPath}\'";
+
+    public override bool Equals([NotNullWhen(true)] object? obj) =>
+        obj is DestinedAsset destinedAsset &&
+        destinedAsset.LocalPath.Equals(LocalPath,
+            StringComparison.OrdinalIgnoreCase) && // If the destined asset has equal local path
+        (string.IsNullOrEmpty(destinedAsset.Destination) ||
+         string.IsNullOrEmpty(
+             Destination) || // And both destinations are valid and equal (or if one of them is invalid)
+         Destination.Equals(destinedAsset.Destination, StringComparison.OrdinalIgnoreCase)); // return true
+    public bool Equals(DestinedAsset other) => LocalPath == other.LocalPath && Destination == other.Destination;
+    public override int GetHashCode() => HashCode.Combine(LocalPath, Destination);
+    public static bool operator ==(DestinedAsset left, DestinedAsset right) => left.Equals(right);
+    public static bool operator !=(DestinedAsset left, DestinedAsset right) => !(left == right);
+    
 }

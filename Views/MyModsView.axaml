@@ -127,13 +127,61 @@
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
                         <!--TODO: USE LANGUAGE HERE-->
-                        <!--Scroll viewer search box-->
+                        <!-- Add Mod Button Sequence -->
                         <Button
-                            Command="{Binding AddModRequest}"
+                            Name="AddModButton"
                             Margin="10 0"
+                            Click="OnTogglePopup"
                             Classes="ModViewerHeader YCTPButton Miniature">
                             <Svg Path="/Assets/UI/add.svg" />
                         </Button>
+                        <Popup
+                            Name="AddModPopup"
+                            PlacementTarget="{CompiledBinding #AddModButton}"
+                            Placement="Bottom">
+                            <Border Classes="YCTP"
+                                    Padding="12" 
+                                    CornerRadius="4">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Choose an option:" FontWeight="SemiBold" />
+                                    <Button 
+                                        Classes="YCTPButton"
+                                        Command="{Binding AddModLocally}"
+                                        CommandParameter="False"
+                                        Width="256"
+                                        Height="48"
+                                        HorizontalAlignment="Stretch">
+                                        <TextBlock
+                                            FontSize="16"
+                                            Text="Add an archive..." 
+                                            TextWrapping="WrapWithOverflow"/>
+                                    </Button>
+                                    <Button 
+                                        Classes="YCTPButton"
+                                        Command="{Binding AddModLocally}"
+                                        CommandParameter="True"
+                                        Width="256"
+                                        Height="48"
+                                        HorizontalAlignment="Stretch">
+                                        <TextBlock Text="Add a plugin manually..." 
+                                                   TextWrapping="WrapWithOverflow"/>
+                                    </Button>
+                                    
+                                    <Button 
+                                        Classes="YCTPButton"
+                                        Width="256"
+                                        Height="48"
+                                        Opacity="0.5"
+                                        IsHitTestVisible="False"
+                                        HorizontalAlignment="Stretch">
+                                        <TextBlock Text="(WIP) Add from Gamebanana..." 
+                                                   TextWrapping="WrapWithOverflow"/>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                        
+                        <!--Scroll viewer search box-->
                         <AutoCompleteBox
                             Classes="ModViewerHeader"
                             Width="250"

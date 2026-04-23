@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -21,13 +22,33 @@ namespace GottaManagePlus.ViewModels;
 
 public partial class MyModsViewModel : PageViewModel, IDisposable
 {
-    // TODO: Make a valid error popup message for every prompt available. 
+    // ---- File Picker Types ----
+    private static readonly FilePickerFileType[] PluginOnlyPick =
+    [
+        new("Plugin Format") 
+        { 
+            Patterns = ["*.dll"], 
+            AppleUniformTypeIdentifiers = ["public.assembly-source"], 
+        }
+    ];
+    
+    private static readonly FilePickerFileType[] ArchiveTypesPick =
+    [
+        new("Archive Files")
+        {
+            Patterns = ["*.zip", "*.gzip", "*.gz", "*.7z", "*.7zip", "*.rar", "*.tar", "*.tar.gz", "*.tar.bz2", "*.bz2", "*.xz", "*.wim"],
+            AppleUniformTypeIdentifiers = ["public.zip-archive", "org.gnu.gnu-zip-archive", "public.bzip2-archive"],
+        }
+    ]; 
     
     // ---- Dependencies ----
     private readonly DialogService _dialogService = null!;
     private readonly ProfileManager _profileManager = null!;
     private readonly DirectoryLauncher _directoryLauncher = null!;
+    private readonly DirectoryPicker _directoryPicker = null!;
+    private readonly FilePicker _filePicker = null!;
     private readonly ModUnInstaller _modUninstaller = null!;
+    private readonly ModArchiveGenerator _archiveGenerator = null!;
     private readonly ModInstaller _modInstaller = null!;
     private readonly GameEnvironmentController _gameEnvironmentController = null!;
 
@@ -53,7 +74,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     [RelayCommand] public void ResetSearch() => SearchText = null;
     [RelayCommand] public async Task DeleteModManifest(ModManifest mod) => await DeleteModManifestUiAsync(mod);
-    [RelayCommand] public async Task AddModRequest() => await AddModUiAsync();
+    [RelayCommand] public async Task AddModLocally(bool lookForDllFile) => await AddModUiAsync(lookForDllFile);
     [RelayCommand] public async Task OpenModPath(ModManifest mod) => await OpenPathUiAsync(mod.GetPluginDirectoryFromManifest(_gameEnvironmentController));
     [RelayCommand] public async Task OpenModAssetsPath(ModManifest mod) => await OpenModAssetsPathUiAsync(mod);
     [RelayCommand] public async Task OpenGamePath(ModManifest mod) => await OpenPathUiAsync(_gameEnvironmentController.CurrentEnvironment!.RootPath);
@@ -105,16 +126,22 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         DialogService dialogService, 
         ProfileManager profileManager, 
         GameEnvironmentController controller, 
-        DirectoryLauncher directoryLauncher, 
+        DirectoryLauncher directoryLauncher,
+        DirectoryPicker directoryPicker,
+        FilePicker filePicker,
         SettingsService settingsService,
         ModUnInstaller modUninstaller,
+        ModArchiveGenerator archiveGenerator,
         ModInstaller modInstaller) : base(PageNames.Home)
     {
         _dialogService = dialogService;
         _profileManager = profileManager;
         _gameEnvironmentController = controller;
         _directoryLauncher = directoryLauncher;
+        _directoryPicker = directoryPicker;
+        _filePicker = filePicker;
         _modUninstaller = modUninstaller;
+        _archiveGenerator = archiveGenerator;
         _modInstaller = modInstaller;
         NumberOfModsPerRow = settingsService.CurrentSettings.NumberOfRowsPerMod;
 
@@ -161,9 +188,107 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         ResetSearch();
     }
 
-    private async Task AddModUiAsync()
+    private async Task AddModUiAsync(bool lookForDllFileOnly)
     {
-        // TODO: Implement mod addition logic via a dedicated ModService when available
+        DirectoryInfo? tempDir = null;
+        try
+        {
+            // If looking for DLL only, we're expecting a plugin and a single asset folder.
+            string? archiveToInstall;
+            if (lookForDllFileOnly)
+            {
+                // Retrieve the dll file from the picker.
+                var dllFile =
+                    (await _filePicker.OpenSingleFileAsync("Open a Plugin file to be imported.",
+                        filterChoices: PluginOnlyPick))?.TryGetLocalPath();
+
+                // No dll file, no continuation.
+                if (dllFile == null)
+                {
+                    await _dialogService.NotifyUser(Constants.FailDialog,
+                        "No .dll file has been provided. Please, select a plugin to be imported.");
+                    return;
+                }
+
+                // Let user select multiple asset folders.
+                var assetDirectories = await _directoryPicker.OpenMultipleFoldersAsync("Open asset folders to import.");
+                IStorageFolder? destinationForAssets = null;
+
+                // If there are assets selected, set a destination for them inside the root environment.
+                if (assetDirectories.Count != 0)
+                {
+                    destinationForAssets = await _directoryPicker.OpenFolderAsync(
+                        "Set a destination folder for the assets.",
+                        new DirectoryInfo(_gameEnvironmentController.CurrentEnvironment!.RootPath));
+                }
+
+                // Generate destination assets from the asset directories.
+                var destinedAssets = assetDirectories.Select(folder => new DestinedAsset
+                    {
+                        LocalPath = folder.TryGetLocalPath()!, Destination = destinationForAssets?.TryGetLocalPath()
+                    })
+                    .ToArray();
+
+
+                // Get a temporary location for the to-be-generated archive.
+                tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger);
+                archiveToInstall = Path.Combine(tempDir.FullName, Path.GetFileNameWithoutExtension(dllFile) + ".gzip");
+
+                // Now, actually wrap the files in a temporary zip file.
+                if (!await _dialogService.GenerateLoadingProcess(
+                        "Failed to generate an archive for the mod!",
+                        null,
+                        "Generating Archive for Plugin",
+                        null,
+                        (Delegate)_archiveGenerator.GenerateArchive,
+                        new[] { dllFile },
+                        destinedAssets,
+                        archiveToInstall
+                    ))
+                {
+                    // If it fails, just return back
+                    return;
+                }
+            }
+            else
+            {
+                // Retrieve the archive itself.
+                var archiveFile =
+                    (await _filePicker.OpenSingleFileAsync("Open a mod archive to be imported.",
+                        filterChoices: ArchiveTypesPick))?.TryGetLocalPath();
+                
+                archiveToInstall = archiveFile;
+            }
+
+            // If no archive was set, stop here.
+            if (string.IsNullOrEmpty(archiveToInstall))
+            {
+                await _dialogService.NotifyUser(Constants.FailDialog, "No archive has been selected!");
+                return;
+            }
+
+            // Install archive generated here.
+            await _dialogService.GenerateLoadingProcess(
+                "Failed to install the mod!",
+                null,
+                "Installing Mod",
+                null,
+                (Delegate)_modInstaller.InstallModArchiveAsync,
+                archiveToInstall
+            );
+        }
+        catch (Exception e)
+        {
+            Log.Logger.Error("Error during generation of archive for installation!\n{e}", e);
+        }
+        finally
+        {
+            try
+            {
+                if (tempDir?.Exists == true) tempDir.Delete();
+            }
+            catch { /* Suppress */ }
+        }
     }
 
     private async Task DeleteModManifestUiAsync(ModManifest modToDelete)

@@ -28,6 +28,7 @@
     <!-- Styles to define -->
     <Window.Styles>
         <StyleInclude Source="/Styles/style.axaml"/>
+        <StyleInclude Source="/Styles/HyperlinkButton.axaml"/>
         
         <!-- App Info Style -->
         <Style Selector="TextBlock.AppInfo">
@@ -226,16 +227,35 @@
                                         Margin="0 5"
                                         VerticalAlignment="Bottom" 
                                         Orientation="Vertical">
+                                <!-- Links -->
+                                <HyperlinkButton 
+                                    HorizontalAlignment="Left" 
+                                    NavigateUri="{x:Static app:HyperLinks.DiscordLink}">
+                                    <Image 
+                                        Source="/Assets/UI/Button_DiscordCommunity_YCTP.png"
+                                        Stretch="Uniform"
+                                    />
+                                </HyperlinkButton>
+                                <HyperlinkButton 
+                                    HorizontalAlignment="Left" 
+                                    NavigateUri="{x:Static app:HyperLinks.KofiLink}">
+                                    <Image 
+                                        Source="/Assets/UI/Button_Kofi_YCTP.webp"
+                                        Stretch="Uniform"
+                                    />
+                                </HyperlinkButton>
+                                
                                 <!-- App Author -->
                                 <TextBlock
+                                    Margin="0 10 0 0"
                                     Classes="AppInfo"
                                     Text="Made by: PixelGuy"/>
                                 <TextBlock
                                     Classes="AppInfo"
-                                    FontStyle="Italic"
                                     Opacity="0.75"
-                                    FontSize="11"
-                                    Text="{CompiledBinding ., Source={x:Static app:AppInfo.AppVersion}}"/>
+                                    FontSize="11">
+                                    Build <Run Text="{x:Static app:AppInfo.AppVersion}"/>
+                                </TextBlock>
                             </StackPanel>
                         </Grid>
                     </ContentControl>

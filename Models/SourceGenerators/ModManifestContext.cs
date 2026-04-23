@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using GottaManagePlus.Utils.Collections;
 
 namespace GottaManagePlus.Models.SourceGenerators;
 
@@ -6,4 +7,5 @@ namespace GottaManagePlus.Models.SourceGenerators;
 [JsonSerializable(typeof(ModManifest))]
 [JsonSerializable(typeof(ModMetadata))]
 [JsonSerializable(typeof(DestinedAsset))]
+[JsonSerializable(typeof(AutoSortedList<WrappedGameVersion>))]
 internal partial class ModManifestContext : JsonSerializerContext;

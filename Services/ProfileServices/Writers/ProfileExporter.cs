@@ -16,7 +16,7 @@ namespace GottaManagePlus.Services.ProfileServices.Writers;
 public sealed class ProfileExporter(ILogger logger)
 {
     public const string FileExtension = Constants.ExportedProfileExtension;
-    public const ArchiveType ArchiveType = SharpCompress.Common.ArchiveType.GZip;
+    public const ArchiveType ArchiveType = SharpCompress.Common.ArchiveType.Zip;
     
     // ----- Private API -----
     private readonly ILogger _logger = logger;

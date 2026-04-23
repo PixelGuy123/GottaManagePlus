@@ -29,6 +29,15 @@ public static class DialogServiceUtils
     /// <param name="successDialogDescription">A descriptive message to be presented if the loading operation succeeds.</param>
     /// <param name="args">The arguments for the <see cref="LoadingDialogViewModel"/> setup.</param>
     /// <returns><see langword="true"/> if the loading process was a success operation; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// Set up the dialog with the following parameters:
+    /// <list type="number">
+    ///     <item><description><see cref="string"/> Title (optional)</description></item>
+    ///     <item><description><see cref="string"/> Status (optional)</description></item>
+    ///     <item><description><see cref="Delegate"/> loadingFunc</description></item>
+    ///     <item><description><see cref="object"/>[] args (Optional)</description></item>
+    /// </list>
+    /// </remarks>
     public static async Task<bool> GenerateLoadingProcess(
         this DialogService dialogService,
         string? failDialogDescription,

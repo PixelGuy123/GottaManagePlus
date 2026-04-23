@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             xmlns:app="using:GottaManagePlus"
              x:DataType="vm:AppInfoDialogViewModel"
              x:Class="GottaManagePlus.Views.AppInfoDialogView"
              
@@ -15,34 +16,7 @@
     
     <UserControl.Styles>
         <StyleInclude Source="/Styles/Buttons.axaml"/>
-        
-        <Style Selector="HyperlinkButton">
-            <Setter Property="MaxWidth" Value="156"/>
-            <Setter Property="Padding" Value="0"/> <!-- Remove default padding -->
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <TransformOperationsTransition
-                        Property="RenderTransform"
-                        Duration="0:0:0.25"
-                        Easing="QuadraticEaseOut"
-                    />
-                </Transitions>
-            </Setter>
-            <Style Selector="^:pointerover">
-                <Setter Property="RenderTransform" Value="scale(1.1)"/>
-            </Style>
-            <Style Selector="^:pressed">
-                <Setter Property="RenderTransform" Value="scale(1.06)"/>
-            </Style>
-            <!-- Background Changes -->
-            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background" Value="Transparent"/>
-            </Style>
-            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background" Value="Transparent"/>
-            </Style>
-        </Style>
+        <StyleInclude Source="/Styles/HyperlinkButton.axaml"/>
     </UserControl.Styles>
     
     <Border
@@ -58,7 +32,7 @@
                 <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" >
                     <TextBlock 
                         Foreground="{DynamicResource BlackColor}"
-                        Text="{CompiledBinding Title, Mode=OneWay}"
+                        Text="About"
                         MaxWidth="650"
                         HorizontalAlignment="Center"
                         Padding="10"
@@ -84,7 +58,7 @@
                         >
                             <Run Foreground="Yellow" FontStyle="Italic" Text="Gotta Manage Plus"/>
                             <Run Text="was carefully created by"/>
-                            <Run Text="PixelGuy123" FontWeight="Bold"/>
+                            <Run Text="PixelGuy" FontWeight="Bold"/>
                             <Run Text="and designed by its community in Discord."/>
                             <LineBreak/>
                             <Run Text="The initial development of this tool started at November, 2025."/>
@@ -100,11 +74,9 @@
                             FontSize="16"
                             FontStyle="Italic"
                             FontFamily="{StaticResource ComicRelief}">
-                            <Run Text="Build:"/>
-                            <Run Text="{CompiledBinding AppVersion, Mode=OneWay}"/>
+                            Build <Run Text="{x:Static app:AppInfo.AppVersion}"/>
                             <LineBreak/>
-                            <Run Text="Avalonia UI Build:"/>
-                            <Run Text="{CompiledBinding AvaloniaVersion, Mode=OneWay}"/>
+                            Avalonia UI Build: <Run Text="{x:Static app:AppInfo.AvaloniaVersion}"/>
                         </TextBlock>
                     </StackPanel>
                 </Border>
@@ -114,19 +86,19 @@
                     ColumnDefinitions="*, Auto, *"
                     Grid.Row="2"
                     Margin="10">
-                    <HyperlinkButton Grid.Column="0" HorizontalAlignment="Left" NavigateUri="{CompiledBinding KofiLink, Mode=OneWay}">
+                    <HyperlinkButton Grid.Column="0" HorizontalAlignment="Left" NavigateUri="{x:Static app:HyperLinks.KofiLink}">
                             <!-- Negative margin for correcting alignment -->
                             <Image 
                                 Source="/Assets/UI/Button_Kofi.webp"
                                 Stretch="Uniform"
                                 />
-                        </HyperlinkButton>
+                    </HyperlinkButton>
                     <Button
                         Grid.Column="1"
                         Command="{Binding Ok}"
-                        Content="{Binding ConfirmText}"
+                        Content="Ok"
                         Classes="DialogBtn GenericDialogBtn"/>
-                    <HyperlinkButton Grid.Column="2" HorizontalAlignment="Right" NavigateUri="{CompiledBinding DiscordLink, Mode=OneWay}">
+                    <HyperlinkButton Grid.Column="2" HorizontalAlignment="Right" NavigateUri="{x:Static app:HyperLinks.DiscordLink}">
                         <!-- Negative margin for correcting alignment -->
                         <Image 
                             Source="/Assets/UI/Button_DiscordCommunity.png"

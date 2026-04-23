@@ -70,6 +70,7 @@
                     <!-- Other Menu Resources -->
                     <SolidColorBrush x:Key="Menu-Header-Bg" Color="#2f6441"/>
                     <SolidColorBrush x:Key="Generic-Border" Color="#1E443A"/>
+                    <SolidColorBrush x:Key="Generic-Border-Shadow" Color="#1C272B"/>
                     
                     <!-- Buttons -->
                     <SolidColorBrush x:Key="Generic-Button" Color="#1A7B23"/>

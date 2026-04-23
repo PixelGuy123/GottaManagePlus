@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Avalonia;
 using Avalonia.Platform.Storage;
 
 namespace GottaManagePlus;
@@ -15,13 +16,20 @@ public enum PageNames
 public static class AppInfo
 {
     // ---- Public API ----
-    public static readonly string AppVersion = 'v' + AssemblyName.GetAssemblyName(Assembly.GetExecutingAssembly().Location).Version!.ToString();
+    public static readonly string AppVersion = AssemblyName.GetAssemblyName(AppContext.BaseDirectory).Version!.ToString();
+    public static readonly string AvaloniaVersion = typeof(AvaloniaObject).Assembly.GetName().Version!.ToString();
+}
+
+public static class HyperLinks
+{
+    // App's Advertisement Links
+    public static readonly Uri
+        KofiLink = new("https://ko-fi.com/pixelguy"),
+        DiscordLink = new("https://discord.gg/p2mpGsKAfG");
 }
 
 public static class Constants
 {
-    // Current APP Version
-    
     // Common paths for Steam to store its games
     public static readonly string BaldiPlusFolderSteamPath =
         // IF Windows, use the following path
