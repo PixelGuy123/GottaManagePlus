@@ -33,10 +33,17 @@ public partial class ProfilesViewModel : PageViewModel, IDisposable
     private readonly DirectoryLauncher _directoryLauncher = null!;
 
     // ---- Observable Properties ----
-    [ObservableProperty] private ObservableCollection<ProfileMetadata> _observableProfiles = [];
-    [ObservableProperty] private ObservableCollection<ProfileMetadata> _observableUnchangedProfiles = [];
-    [ObservableProperty] private ProfileMetadata? _currentProfileMetadata;
-    [ObservableProperty] private string? _text;
+    [ObservableProperty]
+    public partial ObservableCollection<ProfileMetadata> ObservableProfiles { get; set; } = [];
+
+    [ObservableProperty]
+    public partial ObservableCollection<ProfileMetadata> ObservableUnchangedProfiles { get; set; } = [];
+
+    [ObservableProperty]
+    public partial ProfileMetadata? CurrentProfileMetadata { get; set; }
+
+    [ObservableProperty]
+    public partial string? Text { get; set; }
 
     // ---- Event Handlers & Commands ----
     partial void OnCurrentProfileMetadataChanged(ProfileMetadata? value) => UpdateProfilesUiList(value);

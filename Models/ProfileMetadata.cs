@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Tomlyn.Serialization;
 
@@ -9,8 +8,6 @@ namespace GottaManagePlus.Models;
 /// </summary>
 public class ProfileMetadata()
 {
-    // Constant value for version support
-    [TomlIgnore] public const int CurrentVersion = 1;
     [TomlIgnore] public const string DefaultName = "Default";
     
     // Default instance
@@ -31,7 +28,6 @@ public class ProfileMetadata()
     public ProfileMetadata(ProfileMetadata toCopy, bool excludeProfileContent) : this()
     {
         Name = toCopy.Name;
-        Version = toCopy.Version;
 
         // If true, exclude the lists
         if (excludeProfileContent) return;
@@ -43,7 +39,6 @@ public class ProfileMetadata()
     
     // [Basic Info]
     [TomlRequired] public string Name { get; set; } = DefaultName;
-    [TomlRequired] public int Version { get; set; } = CurrentVersion;
     
     // [Profile Content]
     /*

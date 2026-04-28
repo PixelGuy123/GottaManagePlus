@@ -24,17 +24,17 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         _errorText = $"This name must be unique (not duplicate), below or equal to {profileNameLengthLimit} characters and shall not contain one of these invalid symbols ({string.Join(", ", InvalidPathChars
             .Where(c => !char.IsControl(c))
             .Select(c => $"'{c}'"))}).";
-    
+
     [ObservableProperty]
-    private bool _confirmed;
+    public partial bool Confirmed { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-    private bool _canCreateProfile;
+    public partial bool CanCreateProfile { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
-    private int _selectedTabIndex; // This field will help know what mode the user is on for the data provided
+    public partial int SelectedTabIndex { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
@@ -42,17 +42,18 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
-    private string? _profileImportPath;
+    public partial string? ProfileImportPath { get; set; }
 
     [ObservableProperty]
-    private int? _profileIndexToClone = 0;
+    public partial int? ProfileIndexToClone { get; set; } = 0;
 
-    [ObservableProperty] private ObservableCollection<string> _existingProfiles = [];
+    [ObservableProperty]
+    public partial ObservableCollection<string> ExistingProfiles { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
-    private string? _selectedExistingProfile;
-    
+    public partial string? SelectedExistingProfile { get; set; }
+
     // private members
     private FilePicker _filesService = null!;
     

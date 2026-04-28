@@ -62,7 +62,7 @@ public sealed class ModArchiveExtractor(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error("Extractor - An error occurred during the extraction: {ToString}", e.ToString());
+            _logger.Error(e, "Extractor - An error occurred during the extraction.");
             return null;
         }
     }

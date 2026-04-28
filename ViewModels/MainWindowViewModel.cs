@@ -37,21 +37,24 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 
 
     // Observable Properties
-    [ObservableProperty] private PageViewModel? _currentPage;
+    [ObservableProperty]
+    public partial PageViewModel? CurrentPage { get; set; }
 
-    [ObservableProperty] private DialogViewModel? _dialog;
+    [ObservableProperty]
+    public partial DialogViewModel? Dialog { get; set; }
 
     [ObservableProperty] private bool _sideMenuOpen = Design.IsDesignMode,
         _executablePathSet = Design.IsDesignMode;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteProfileUiCommand))]
-    private int _profileCount;
+    public partial int ProfileCount { get; set; }
 
-    [ObservableProperty] private ProfileMetadata? _selectedProfile;
+    [ObservableProperty]
+    public partial ProfileMetadata? SelectedProfile { get; set; }
 
-    [ObservableProperty] 
-    private ObservableCollection<ProfileMetadata>? _profileMetadataCollection;
+    [ObservableProperty]
+    public partial ObservableCollection<ProfileMetadata>? ProfileMetadataCollection { get; set; }
 
     // Update Value
     partial void OnProfileMetadataCollectionChanged(ObservableCollection<ProfileMetadata>? value) =>
@@ -137,11 +140,16 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         gameEnvironmentController.OnEnvironmentUpdate += (newEnvironment, _) =>
         {
             // Update Executable Path flag.
+            var previouslyPathSet = ExecutablePathSet;
             ExecutablePathSet = newEnvironment != null && !string.IsNullOrEmpty(newEnvironment.ExecutablePath);
 
             // If a new environment was set, update the repository.
             if (ExecutablePathSet)
-                Dispatcher.UIThread.Invoke(UpdateProfileRepository);
+            {
+                Dispatcher.UIThread.Invoke(async () => 
+                    await UpdateProfileRepository(
+                        await UpdateEnvironmentSnapshot(!previouslyPathSet && ExecutablePathSet)));
+            }
         };
 
         // If the executable is all set, then the manager should visualize the mods
@@ -174,12 +182,18 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 // Update settings
                 _settingsService.Update(settings =>
                     settings.CurrentProfileSet = newProfile?.Name ?? ProfileMetadata.DefaultName);
+                
+                // Update Snapshot
+                Dispatcher.UIThread.Invoke(async () => await UpdateEnvironmentSnapshot(false));
             };
     }
 
     // ---- Public API ----
     public async Task<bool> HandleSettingsSave(bool promptCancelOption)
     {
+        // Update snapshot
+        await UpdateEnvironmentSnapshot(false);
+        
         // Loading dialog for saving active profile
         if (!(_profileRepository.IsEmpty || // Or, if there are no profiles to save, skip this dialog
               await _dialogService.GenerateLoadingProcess(
@@ -228,7 +242,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     /// <summary>
     /// Checks whether there's a default profile available or not. If not, one is created automatically.
     /// </summary>
-    private async Task UpdateProfileRepository()
+    private async Task UpdateProfileRepository(bool updateProfileDataBeforeSwitch)
     {
         // Messages Setup
         const string firstAttemptFail =
@@ -248,7 +262,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                     null,
                     "Profile Repository Update", "Updating Profile Repository...",
                     (Delegate)_profileManager.UpdateProfileRepository,
-                    _settingsService.CurrentSettings.CurrentProfileSet
+                    _settingsService.CurrentSettings.CurrentProfileSet,
+                    updateProfileDataBeforeSwitch   
                 ))
             {
                 // If the user chooses "No", close the application.
@@ -266,6 +281,27 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 
             break;
         }
+    }
+
+    // False means no changes needed; True means user wants to overwrite profile.
+    private async Task<bool> UpdateEnvironmentSnapshot(bool raiseQuestionIfDifferencesDetected)
+    {
+        var question = """
+                       Looks like the directory GMP has access to is different according to the settings!
+                       Before loading a new profile into the game's folder, would you like to adapt the profile to the current mods set in place OR overwrite them with the profile's data?
+                       """;
+        
+        // If the snapshot returns true, there's a difference to be solved.
+        if (await _dialogService.GenerateLoadingProcess(
+                null,
+                null,
+                "Updating Environment", "Checking for snapshot differences...",
+                (Delegate)_gameEnvironmentController.UpdateEnvironmentSnapshot
+            ) && raiseQuestionIfDifferencesDetected)
+            return !await _dialogService.PromptUserQuestion(Constants.WarningDialog, question,
+                DialogServiceUtils.QuestionAnswerType.AdaptOrOverwrite);
+        
+        return true;
     }
 
     #endregion
@@ -325,7 +361,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                     "Failed to create the profile!",
                     $"Created \'{creatingPfDialog.ProfileName}\' successfully!",
                     "Creating new profile...", null, (Delegate)_profileCreator.CreateProfile,
-                    new ProfileMetadata { Name = creatingPfDialog.ProfileName ?? "New Profile" }, true);
+                    new ProfileMetadata { Name = creatingPfDialog.ProfileName ?? "New Profile" });
                 break;
             }
             case 1: // Clone
@@ -358,7 +394,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         }
         
         // Update profile list.
-        await UpdateProfileRepository();
+        await UpdateProfileRepository(false);
     }
 
     private async Task SwitchProfileUiAsync(ProfileMetadata profile)

@@ -6,20 +6,25 @@ namespace GottaManagePlus.ViewModels;
 
 public partial class ConfirmDialogViewModel : DialogViewModel
 {
-    
+
     [ObservableProperty]
-    private string _title = "Confirm?";
+    public partial string Title { get; set; } = "Confirm?";
+
     [ObservableProperty]
-    private string _message = "Are you sure?";
+    public partial string Message { get; set; } = "Are you sure?";
+
     [ObservableProperty]
-    private string _confirmText = "Confirm";
+    public partial string ConfirmText { get; set; } = "Confirm";
+
     [ObservableProperty]
-    private string _cancelText = "Cancel";
-    [ObservableProperty] 
-    private bool _onlyConfirmButton;
-    [ObservableProperty] 
-    private TextAlignment _descriptionAlignment = TextAlignment.Center;
-    
+    public partial string CancelText { get; set; } = "Cancel";
+
+    [ObservableProperty]
+    public partial bool OnlyConfirmButton { get; set; }
+
+    [ObservableProperty]
+    public partial TextAlignment DescriptionAlignment { get; set; } = TextAlignment.Center;
+
     [ObservableProperty] 
     private bool _confirmed;
     

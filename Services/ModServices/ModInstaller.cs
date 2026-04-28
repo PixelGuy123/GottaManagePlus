@@ -110,7 +110,7 @@ public sealed class ModInstaller(
         }
         catch (Exception e)
         {
-            _logger.Error("Unknown error broke the installation!\n{exception}", e);
+            _logger.Error(e, "Unknown error broke the installation!");
         }
         finally // On the end, always delete the temporary directory
         {

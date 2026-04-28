@@ -10,12 +10,15 @@ namespace GottaManagePlus.Services.ExplorerServices;
 /// <summary>
 /// A class responsible for handling any type of folder picking request.
 /// </summary>
-public class DirectoryPicker(ILogger logger)
+public class DirectoryPicker(ILogger logger, ApplicationBridge applicationBridge)
 {
+    // ----- Private API -----
     private readonly ILogger _logger = logger;
+    private readonly ApplicationBridge _applicationBridge = applicationBridge;
     private IStorageProvider? _storageProvider;
     public void RegisterProvider(IStorageProvider provider) => _storageProvider = provider;
     
+    // ----- Public API -----
     /// <summary>
     /// Opens a Folder picker through Avalonia's API to select multiple directories.
     /// </summary>
@@ -47,13 +50,19 @@ public class DirectoryPicker(ILogger logger)
         {
             var suggestedLocation = startingLocation == null ? 
                 null : await _storageProvider.TryGetFolderFromPathAsync(startingLocation.FullName);
-            
-            return await _storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+
+            IReadOnlyList<IStorageFolder> storageFolders = [];
+            await _applicationBridge.FreezeWindowAsync(async () =>
             {
-                AllowMultiple = allowMultiple,
-                Title = title,
-                SuggestedStartLocation = suggestedLocation
+                storageFolders = await _storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    AllowMultiple = allowMultiple,
+                    Title = title,
+                    SuggestedStartLocation = suggestedLocation
+                });
             });
+            
+            return storageFolders;
         }
 
         _logger.Error("{Name}\'s StorageProvider is null!", GetType().Name);

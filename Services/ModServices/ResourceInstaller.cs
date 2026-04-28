@@ -88,7 +88,7 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
         }
         catch (Exception e)
         {
-            _logger.Error("Error during mod installation.\n{exception}", e);
+            _logger.Error(e, "Error during mod installation.");
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -31,180 +32,207 @@ public sealed class ProfileZipExtractor(ILogger logger)
     /// <exception cref="ArgumentException"></exception>
     public async Task<bool> ExtractProfile(ProfileMetadata metadata, string profilePath, string extractToPath, GameEnvironmentController controller, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
-        const string fileExtension = ".zip";
         _logger.Information("Starting profile extraction for '{ProfileName}' from '{ProfilePath}' to '{ExtractToPath}'", metadata.Name, profilePath, extractToPath);
-        // Profile Structure:
-        // [ProfileName]
-        //      [MetadataFile]
-        //      [Profile.zip]
-        
-        // Where it extracts:
-        // root
-        //     BALDI_Data
-        //            StreamingAssets
-        //                  Modded/...
-        // BepInEx
-        //      Configs/
-        //      Patches/
-        //      Plugins/
 
-        // Assuming we're on [ProfileName], we get a temporary directory to extract Profile.zip
         if (!File.GetAttributes(profilePath).HasFlag(FileAttributes.Directory))
             throw new ArgumentException("Given profile path is not a directory.");
         _logger.Information("Profile path is a directory: {ProfilePath}", profilePath);
 
-        // Create the file info for this purpose
         var zipFile = new FileInfo(controller.SearchAbsolutePath(
-            profilePath, $"{metadata.Name}{fileExtension}"));
-        
-        // The zip file must exist first, obviously.
+            profilePath, $"{metadata.Name}{Constants.ProfileDefaultExtension}"));
+
         if (!zipFile.Exists)
         {
             _logger.Warning("Zip file does not exist: {ZipFilePath}", zipFile.FullName);
             return false;
         }
-        
-        // Make temporary directory
-        DirectoryInfo? temporaryDirectory = null; // for extracting content
-        var backupDir = controller.CreateTempSubdirectory(_logger); // for saving previous content just in case
+
+        DirectoryInfo? temporaryDirectory = null;
+        var backupDir = controller.CreateTempSubdirectory(_logger);
         _logger.Information("Created backup directory: {BackupDir}", backupDir.FullName);
+
+        // ---------- Store info about every backed‑up item ----------
+        var backedUpItems = new List<(string OriginalPath, string BackupPath, bool IsDirectory)>();
 
         try
         {
             temporaryDirectory = controller.CreateTempSubdirectory(_logger);
             _logger.Information("Created temporary directory: {TempDir}", temporaryDirectory.FullName);
-            
-            // Make an extraction from the zip file to the temporary directory.
-            // Create stream
+
+            // Extract the zip content into the temporary directory.
             await using var file = zipFile.OpenRead();
-            
-            // Create zip reader
             using var reader = ArchiveFactory.OpenArchive(file);
 
-            // Count the entries
             var entryCount = reader.Entries.Count();
             var entriesSeen = 0;
             _logger.Information("Starting extraction of {EntryCount} entries from zip to temp dir", entryCount);
-            
-            // Read the entries and extract them to the temporary directory (expected directories only)
+
             foreach (var archiveEntry in reader.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 progress?.Report(
-                    new ProgressReport(entriesSeen, entryCount, 
+                    new ProgressReport(entriesSeen, entryCount,
                         "Extracting", $"\'{Path.GetFileName(archiveEntry.Key)}\'..."));
-                _logger.Information("Extracting \'{ArchiveEntryKey}\' to \'{Combine}\'", archiveEntry.Key, Path.Combine(temporaryDirectory.FullName, Path.GetFileName(archiveEntry.Key!)));
+                _logger.Information("Extracting \'{ArchiveEntryKey}\' to \'{Combine}\'", archiveEntry.Key, Path.Combine(temporaryDirectory.FullName, archiveEntry.Key!));
                 await archiveEntry.WriteToDirectoryAsync(temporaryDirectory.FullName, cancellationToken: cancellationToken);
                 entriesSeen++;
             }
             _logger.Information("Extraction to temp dir completed");
-            
-            // ---- EXTRACTION TIME ----
-            // Backup and delete known directories
+
+            // ----- Backup known directories (Plugins, Config, Patchers) -----
             _logger.Information("Starting backup and delete of known directories");
-            BackupAndDelete(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder), backupDir.FullName);
-            BackupAndDelete(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder), backupDir.FullName);
-            BackupAndDelete(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder), backupDir.FullName);
-            // Backup and delete asset directories
+            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder), backupDir.FullName);
+            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder), backupDir.FullName);
+            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder), backupDir.FullName);
+
+            // ----- Backup asset directories/files -----
             _logger.Information("Starting backup of asset directories");
             foreach (var asset in metadata.ModDataFiles.SelectMany(mod => mod.Assets))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 _logger.Information("Backing up asset: {Asset}", asset.MovedAsset);
-                BackupAndDelete(controller.SearchAbsolutePath(asset.MovedAsset), backupDir.FullName);
+                BackupItem(controller.SearchAbsolutePath(asset.MovedAsset), backupDir.FullName);
             }
 
-            // Now, select the stuff inside the temporary directory and move it to the game's folder.
-            // Get the directories inside only.
+            // ----- Move the extracted profile content into the game folder -----
             var directories = temporaryDirectory.GetDirectories("*", SearchOption.TopDirectoryOnly);
             _logger.Information("Starting to move {DirCount} directories from temp to extract path", directories.Length);
-            // Then, move all the profile folders to the path selected.
+
             for (var i = 0; i < directories.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var entry = directories[i];
-                // Report progress
-                progress?.Report(new ProgressReport(i, directories.Length, 
+                progress?.Report(new ProgressReport(i, directories.Length,
                     "Extracting", $"Moving \'{entry.Name}\'."));
 
-                // Move the entry to the right place.
                 var destinationPath = Path.Combine(extractToPath, entry.Name);
                 _logger.Information("Moving \'{EntryFullName}\' to \'{ExtractToPath}\'", entry.FullName, destinationPath);
                 entry.AtomicallyMoveTo(destinationPath);
             }
             _logger.Information("Moving completed");
 
+            // ----- Restore any backed‑up item that was NOT replaced by the profile -----
+            _logger.Information("Checking for missing items to restore from backup");
+            foreach (var (originalPath, backupPath, isDirectory) in backedUpItems)
+            {
+                // If the original path already exists (because the profile provided a replacement), skip.
+                if (Directory.Exists(originalPath) || File.Exists(originalPath))
+                    continue;
+
+                _logger.Information("Restoring missing item: {OriginalPath} from {BackupPath}", originalPath, backupPath);
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(originalPath)!);
+                    if (isDirectory)
+                    {
+                        // Ensure parent exists (should already, but just in case)
+                        Directory.Move(backupPath, originalPath);
+                    }
+                    else
+                    {
+                        File.Move(backupPath, originalPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning(ex, "Failed to restore {OriginalPath} from backup", originalPath);
+                }
+            }
+
             return true;
         }
         catch (Exception e)
         {
-            _logger.Error("Failed to extract the profile content.\n{exception}", e);
-            // Restore from backup
-            RestoreFromBackup(backupDir.FullName, controller.CurrentEnvironment!.RootPath);
-            _logger.Information("Restored from backup due to error");
+            _logger.Error(e, "Failed to extract the profile content.");
+            // Full restore from backup (all items)
+            RestoreAllFromBackup(backupDir.FullName, controller.CurrentEnvironment!.RootPath);
+            _logger.Information("Restored from backup due to error.");
             return false;
         }
         finally
         {
-            _logger.Information("Cleaning up temporary and backup directories");
+            _logger.Information("Cleaning up temporary and backup directories.");
             try
             {
                 if (temporaryDirectory is { Exists: true })
                     temporaryDirectory.Delete(recursive: true);
-                // Clean up backup after successful extraction or after restore
                 if (backupDir is { Exists: true })
                     backupDir.Delete(recursive: true);
             }
-            catch 
-            { 
+            catch
+            {
                 // suppress
             }
         }
-        // Local Functions
-        void BackupAndDelete(string dirPath, string backupRoot)
+
+        // ---------- Local functions ----------
+
+        void BackupItem(string originalPath, string backupRoot)
         {
-            _logger.Information("Attempt to backup \'{DirPath}\'.'", dirPath);
-            // If the directory does not exist, return then
-            if (!Directory.Exists(dirPath))
+            _logger.Information("Attempt to backup '{OriginalPath}'", originalPath);
+
+            var isDirectory = Directory.Exists(originalPath);
+            var isFile = File.Exists(originalPath);
+
+            if (!isDirectory && !isFile)
             {
-                _logger.Information("Directory to backup not found.");
+                _logger.Information("Item to backup not found: {OriginalPath}", originalPath);
                 return;
             }
-            
-            // Backup path to go.
-            var backupPath = Path.Combine(backupRoot, Path.GetFileName(dirPath));
-            _logger.Information("Backing up into \'{DirPath}\'.'", backupPath);
-            
-            // If the backup path already exists, delete it.
+
+            var backupPath = Path.Combine(backupRoot, Path.GetFileName(originalPath));
+            _logger.Information("Backing up into '{BackupPath}'", backupPath);
+
+            // Delete any previous backup with the same name (should not happen normally)
             if (Directory.Exists(backupPath))
                 Directory.Delete(backupPath, true);
-            
-            // Then, move the directory to this backup path.
-            Directory.Move(dirPath, backupPath);
+            if (File.Exists(backupPath))
+                File.Delete(backupPath);
+
+            if (isDirectory)
+            {
+                Directory.Move(originalPath, backupPath);
+            }
+            else // it's a file
+            {
+                // Ensure the backup directory exists
+                Directory.CreateDirectory(backupRoot);
+                File.Move(originalPath, backupPath);
+            }
+
+            backedUpItems.Add((originalPath, backupPath, isDirectory));
         }
 
-        void RestoreFromBackup(string backupRoot, string rootPath)
+        void RestoreAllFromBackup(string backupRoot, string rootPath)
         {
-            _logger.Information("Attempt to restore from backup folder \'{backup}\'!", backupRoot);
+            _logger.Information("Attempt to restore from backup folder '{BackupRoot}'", backupRoot);
             if (!Directory.Exists(backupRoot))
             {
                 _logger.Information("Backup root does not exist.");
                 return;
             }
-            
-            // Attempt to go into each directory and move it to the right place.
+
             foreach (var dir in Directory.EnumerateDirectories(backupRoot))
             {
-                // Generate the right path.
                 var originalPath = Path.Combine(rootPath, Path.GetFileName(dir));
-                _logger.Information("Restoring directory \'{Dir}\' to \'{OriginalPath}\'...", dir, originalPath);
-                
-                // If the path exists, delete beforehand
+                _logger.Information("Restoring directory '{Dir}' to '{OriginalPath}'...", dir, originalPath);
+
                 if (Directory.Exists(originalPath))
                     Directory.Delete(originalPath, true);
-                
-                // Then, move the directory to the destination.
+
                 Directory.Move(dir, originalPath);
+            }
+
+            // Also handle any files that might have been backed up directly (e.g., asset files)
+            foreach (var file in Directory.EnumerateFiles(backupRoot))
+            {
+                var originalPath = Path.Combine(rootPath, Path.GetFileName(file));
+                _logger.Information("Restoring file '{File}' to '{OriginalPath}'...", file, originalPath);
+
+                if (File.Exists(originalPath))
+                    File.Delete(originalPath);
+
+                File.Move(file, originalPath);
             }
         }
     }

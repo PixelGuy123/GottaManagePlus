@@ -42,6 +42,6 @@ public sealed class LocalProfileDestructor(
         _logger.Information("Profile deleted successfully.");
         
         // Afterward, reload the profiles.
-        await _manager.UpdateProfileRepository(null, progress);
+        await _manager.UpdateProfileRepository(null, false, progress);
     }
 }

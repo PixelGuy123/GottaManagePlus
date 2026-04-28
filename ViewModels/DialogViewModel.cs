@@ -1,21 +1,15 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Threading.Tasks;
-using Avalonia;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
 public abstract partial class DialogViewModel : ViewModelBase
 {
-    // To display app version if required (static to be run once)
-    private static readonly Version ConstAppVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version("0.0.0.0"),
-        ConstAvaloniaVersion = typeof(AvaloniaObject).Assembly.GetName().Version ?? new Version("0.0.0.0");
-    
     [ObservableProperty]
-    private bool _isDialogOpen;
+    public partial bool IsDialogOpen { get; set; }
 
     private TaskCompletionSource _closeTask = new();
     private bool _isDialogPrepared;
@@ -52,9 +46,8 @@ public abstract partial class DialogViewModel : ViewModelBase
     {
         if (_isDialogPrepared)
         {
-            var e = new InvalidOperationException("Dialog is already prepared.");
-            Log.Logger.Error("Failed to open dialog (\'{dialogType}\').\n{e}", GetType().Name, e);
-            throw e;
+            Log.Logger.Warning("Dialog (\'{dialog}\') is already prepared!", this);
+            return;
         }
 
         // Setup abstraction
@@ -64,7 +57,7 @@ public abstract partial class DialogViewModel : ViewModelBase
         }
         catch (Exception e)
         {
-            Log.Logger.Error("Failed to open dialog (\'{dialogType}\').\n{e}", GetType().Name, e);
+            Log.Logger.Error(e, "Failed to open dialog (\'{dialogType}\').", this);
             throw;
         }
 

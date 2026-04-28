@@ -15,7 +15,6 @@ namespace GottaManagePlus.Services.ProfileServices.Writers;
 /// </summary>
 public sealed class ProfileExporter(ILogger logger)
 {
-    public const string FileExtension = Constants.ExportedProfileExtension;
     public const ArchiveType ArchiveType = SharpCompress.Common.ArchiveType.Zip;
     
     // ----- Private API -----
@@ -42,11 +41,11 @@ public sealed class ProfileExporter(ILogger logger)
             
             // If the profile's directory exists, then zip it up in a custom extension.
             using var fileStream = File.OpenWrite(
-                             Path.Combine(exportPath, $"{profile.Name}{FileExtension}"));
+                             Path.Combine(exportPath, $"{profile.Name}{Constants.ExportedProfileExtension}"));
             
             // Make the writer, then write the content to it.
             using var writer = WriterFactory.OpenWriter(fileStream, ArchiveType,
-                new WriterOptions(CompressionType.LZMA));
+                WriterOptions.ForZip());
             
             _logger.Information("Exporting profile to \'{dir}\'...", profileDir.FullName);
             // Write the directory to the zip file.
@@ -55,8 +54,7 @@ public sealed class ProfileExporter(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error("Failed to export profile \'{profName}\' to \'{path}\'.\n{exception}", profile.Name, exportPath,
-                e);
+            _logger.Error(e, "Failed to export profile \'{profName}\' to \'{path}\'.", profile.Name, exportPath);
         }
     }
 }

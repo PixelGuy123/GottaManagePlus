@@ -78,11 +78,14 @@ public sealed class ProfileZipWriter(ILogger logger)
     private async Task<bool> WriteProfileInternalAsync(string path, ProfileMetadata profile, GameEnvironmentController controller, 
         string startMessage, Action<IWriter> contentWriter)
     {
+        var deletionSuffix = string.Concat("_ToDeletion_", Guid.NewGuid().ToString().AsSpan(0, 6));
+        
         if (!File.GetAttributes(path).HasFlag(FileAttributes.Directory))
             throw new ArgumentException("Given path is not a directory.");
 
         _logger.Information("{startMessage}", startMessage);
         DirectoryInfo? temporaryDirectory = null;
+        string desiredPath = Path.Combine(path, profile.Name), desiredDeletionPath = desiredPath + deletionSuffix;
 
         try
         {
@@ -97,7 +100,7 @@ public sealed class ProfileZipWriter(ILogger logger)
             await using (var fileStream = File.OpenWrite(zipPathToWrite))
             {
                 using var writer = WriterFactory.OpenWriter(fileStream, CompressedExtension,
-                    new WriterOptions(CompressionType.LZMA));
+                    WriterOptions.ForZip());
 
                 // Does the content writing here
                 contentWriter(writer);
@@ -109,8 +112,13 @@ public sealed class ProfileZipWriter(ILogger logger)
             File.WriteAllText(metadataPath, profile.Serialize());
 
             // Move final directory to target location
-            var desiredPath = Path.Combine(path, profile.Name);
             _logger.Information("Moving base directory \'{ogPath}\' to \'{destPath}\'...", profileRootDirectory.FullName, desiredPath);
+            
+            // If the directory exists, rename to something temporary.
+            if (Directory.Exists(desiredPath))
+                Directory.Move(desiredPath, desiredDeletionPath);
+            
+            // Move the new directory to the path.
             profileRootDirectory.MoveTo(desiredPath);
             
             _logger.Information("Successfully written profile!");
@@ -118,7 +126,11 @@ public sealed class ProfileZipWriter(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error("Failed to create the profile content.\n{exception}", e);
+            _logger.Error(e, "Failed to create the profile content.");
+            
+            // If the path exists, rename to original name.
+            if (Directory.Exists(desiredDeletionPath))
+                Directory.Move(desiredDeletionPath, desiredPath);
             return false;
         }
         finally
@@ -127,6 +139,8 @@ public sealed class ProfileZipWriter(ILogger logger)
             {
                 if (temporaryDirectory is { Exists: true })
                     temporaryDirectory.Delete(recursive: true);
+                if (Directory.Exists(desiredDeletionPath))
+                    Directory.Delete(desiredDeletionPath, true);
             }
             catch 
             { 
@@ -138,20 +152,21 @@ public sealed class ProfileZipWriter(ILogger logger)
     /// <summary>
     /// Writes the content for a full profile with mods, configs, and patchers.
     /// </summary>
-    private void WriteLiveProfileContent(IWriter writer, ProfileMetadata profile, GameEnvironmentController controller, 
+    private void WriteLiveProfileContent(IWriter writer, ProfileMetadata profile, GameEnvironmentController controller,
         IProgress<ProgressReport>? progress, CancellationToken cancellationToken)
     {
-        // --- Pre‑calculate total number of write operations ---
+        _logger.Information("Writing live profile content for profile {ProfileName}", profile.Name);
+
+        // Pre‑calculate total number of write operations
         int totalOps = 0, completed = 0;
-        
+
+        // Count asset files and plugin directories
         foreach (var modData in profile.ModDataFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // Count existing asset files
             totalOps += modData.Assets.Select(asset => controller.SearchAbsolutePath(asset.LocalPath)).Count(File.Exists);
 
             var pluginFolder = Path.GetDirectoryName(modData.Metadata.Path);
-            // Count plugin directory (if it exists and is valid)
             if (string.IsNullOrEmpty(pluginFolder)) continue;
             
             var pluginPath = controller.SearchAbsolutePath(pluginFolder);
@@ -160,75 +175,95 @@ public sealed class ProfileZipWriter(ILogger logger)
                 totalOps++;
             }
         }
-        
+
         // Count configs directory
         var configsDir = controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder);
         if (!string.IsNullOrEmpty(configsDir))
         {
             configsDir = controller.SearchAbsolutePath(configsDir);
-            if (Directory.Exists(configsDir))
-            {
-                totalOps++;
-            }
+            if (Directory.Exists(configsDir)) totalOps++;
         }
-        
+
         // Count patchers directory
         var patchersDir = controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder);
         if (!string.IsNullOrEmpty(patchersDir))
         {
             patchersDir = controller.SearchAbsolutePath(patchersDir);
-            if (Directory.Exists(patchersDir))
-            {
-                totalOps++;
-            }
+            if (Directory.Exists(patchersDir)) totalOps++;
         }
 
-        foreach (var modItem in profile.ModDataFiles)
+        _logger.Information("Total write operations counted: {TotalOps}", totalOps);
+
+        // Get the game root path once to compute correct relative paths inside the archive.
+        var gameRoot = controller.CurrentEnvironment!.RootPath;
+
+        // Write assets
+        foreach (var modData in profile.ModDataFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // Write assets
-            foreach (var resourcePath in modItem.Assets // If the asset exists in its local path, write it to the zip file following the same path.
-                         .Select(asset => 
-                             controller.SearchAbsolutePath(asset.LocalPath))
+            foreach (var resourcePath in modData.Assets
+                         .Select(asset => controller.SearchAbsolutePath(asset.LocalPath))
                          .Where(Directory.Exists))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 writer.WriteDirectory(resourcePath);
                 completed++;
-                _logger.Information("Compressed {completed} out of {totalOps} assets.", completed, totalOps);
+                _logger.Information("Compressed asset directory {Directory} ({Completed}/{TotalOps})",
+                    resourcePath, completed, totalOps);
                 progress?.Report(new ProgressReport(completed, totalOps, "Writing asset", Path.GetFileName(resourcePath)));
             }
+        }
 
-            // Write plugin directory (as a single operation)
-            TryToWriteDirectoryIfValid(writer, Path.GetDirectoryName(modItem.Metadata.Path), ref completed, totalOps, null, controller, progress);
+        // Write plugin directories
+        foreach (var modItem in profile.ModDataFiles)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            TryToWriteDirectoryIfValid(writer, Path.GetDirectoryName(modItem.Metadata.Path), gameRoot,
+                ref completed, totalOps, null, controller, progress);
         }
 
         // Write configs and patchers directories
         profile.ConfigurationFiles.Clear();
-        TryToWriteDirectoryIfValid(writer, configsDir, ref completed, totalOps, profile.ConfigurationFiles, controller, progress);
+        TryToWriteDirectoryIfValid(writer, configsDir, gameRoot,
+            ref completed, totalOps, profile.ConfigurationFiles, controller, progress);
 
         profile.PatcherFiles.Clear();
-        TryToWriteDirectoryIfValid(writer, patchersDir, ref completed, totalOps, profile.PatcherFiles, controller, progress);
+        TryToWriteDirectoryIfValid(writer, patchersDir, gameRoot,
+            ref completed, totalOps, profile.PatcherFiles, controller, progress);
+
+        _logger.Information("Finished writing live profile content. Total operations completed: {Completed}", completed);
         return;
 
         // Local helper that writes a directory and reports progress.
-        static void TryToWriteDirectoryIfValid(IWriter compressWriter, string? directoryPath, ref int completed, int totalOps, 
-            List<string>? fileCollectionToAdd, GameEnvironmentController controller, IProgress<ProgressReport>? progress)
+        void TryToWriteDirectoryIfValid(IWriter compressWriter, string? directoryPath, string gameRootPath,
+            ref int completedItems, int totalOperations, List<string>? fileCollectionToAdd,
+            GameEnvironmentController gameEnvironmentController, IProgress<ProgressReport>? progressReport)
         {
             if (string.IsNullOrEmpty(directoryPath)) return;
-                
-            directoryPath = controller.SearchAbsolutePath(directoryPath);
-            if (!Directory.Exists(directoryPath)) return;
-        
-            // Get all the files from every collection and write it down
+
+            directoryPath = gameEnvironmentController.SearchAbsolutePath(directoryPath);
+            if (!Directory.Exists(directoryPath))
+            {
+                _logger.Warning("Directory does not exist, skipping: {DirectoryPath}", directoryPath);
+                return;
+            }
+
+            _logger.Information("Writing directory contents: {DirectoryPath}", directoryPath);
+
+            // Enumerate all files and write each one preserving the full relative path from the game root.
             foreach (var file in Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories))
             {
-                compressWriter.Write(file.Substring(directoryPath.Length), file);
+                // Compute the relative path from the game root (e.g. "BepInEx/Plugins/MyPlugin/file.txt").
+                var relativePath = Path.GetRelativePath(gameRootPath, file);
+
+                compressWriter.Write(relativePath, file);
                 fileCollectionToAdd?.Add(file);
             }
-            compressWriter.WriteAll(directoryPath, "*", SearchOption.AllDirectories);
-            completed++;
-            progress?.Report(new ProgressReport(completed, totalOps, "Writing directory", Path.GetFileName(directoryPath)));
+
+            completedItems++;
+            _logger.Information("Compressed directory {Directory} ({Completed}/{TotalOps})",
+                directoryPath, completedItems, totalOperations);
+            progressReport?.Report(new ProgressReport(completedItems, totalOperations, "Writing directory", Path.GetFileName(directoryPath)));
         }
     }
 

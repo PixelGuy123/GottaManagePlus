@@ -54,14 +54,20 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     // ---- Observable Properties ----
     [ObservableProperty]
-    private ObservableCollection<ModManifest> _observableUnchangedMods = [];
+    public partial ObservableCollection<ModManifest> ObservableUnchangedMods { get; set; } = [];
 
-    [ObservableProperty] private ObservableCollection<ModManifest> _observableMods = [];
-    [ObservableProperty] private ModManifest? _currentModManifest;
-    [ObservableProperty] private string? _searchText;
-    
+    [ObservableProperty]
+    public partial ObservableCollection<ModManifest> ObservableMods { get; set; } = [];
+
+    [ObservableProperty]
+    public partial ModManifest? CurrentModManifest { get; set; }
+
+    [ObservableProperty]
+    public partial string? SearchText { get; set; }
+
     // ---- Mod Preview ----
-    [ObservableProperty] private ModManifest? _manifestInPreview;
+    [ObservableProperty]
+    public partial ModManifest? ManifestInPreview { get; set; }
 
     // ---- Public Getters ----
     public int ModsEnabledCount => ObservableMods.Count(mod => mod.Metadata.Activated);

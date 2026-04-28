@@ -75,8 +75,9 @@ public sealed class ProfileManager(
     /// Updates the repository of profiles by checking the local storage.
     /// </summary>
     /// <param name="preferredProfile">The preferred profile to be chosen after the process if possible.</param>
+    /// <param name="updateProfileDataBeforeSwitch">If <see langword="true"/>, the switched profile will be updated before being loaded-in</param>
     /// <param name="progress">The progress to be reported.</param>
-    public async Task<bool> UpdateProfileRepository(string? preferredProfile, IProgress<ProgressReport>? progress)
+    public async Task<bool> UpdateProfileRepository(string? preferredProfile, bool updateProfileDataBeforeSwitch, IProgress<ProgressReport>? progress)
     {
         // Progress report.
         progress?.Report(new ProgressReport("Updating Profiles", "Scanning local storage..."));
@@ -93,7 +94,7 @@ public sealed class ProfileManager(
             if (_repository.IsEmpty)
             {
                 ActiveProfile = null;
-                var profile = await _creator.CreateProfile(ProfileMetadata.Default);
+                var profile = await _creator.CreateProfileFromCurrentEnvironment(ProfileMetadata.DefaultName, progress);
                 if (profile != null) // Reminder that SetActiveProfile automatically saves the profile too.
                     await SetActiveProfile(profile, null);
                 else
@@ -104,18 +105,35 @@ public sealed class ProfileManager(
             if (!string.IsNullOrEmpty(preferredProfile) &&
                 _repository.TryGet(preferredProfile, out var profileMetadata))
             {
+                // If this is true, the profile receives the new environment before loading in.
+                if (updateProfileDataBeforeSwitch)
+                {
+                    _logger.Information("Updating profile\'s data before switch...");
+                    await _environmentSaver.SaveEnvironmentToProfileAsync(profileMetadata, progress);
+                }
+
                 // Switch to that profile.
                 await SetActiveProfile(profileMetadata, progress);
                 return true;
             }
+
+            // Get the current profile.
+            var currentProfile = _repository.GetAll()[0];
             
+            // If this is true, the profile receives the new environment before loading in.
+            if (updateProfileDataBeforeSwitch)
+            {
+                _logger.Information("Updating profile\'s data before switch...");
+                await _environmentSaver.SaveEnvironmentToProfileAsync(currentProfile, progress);
+            }
+
             // If the repository isn't empty, pick the first profile available.
-            await SetActiveProfile(_repository.GetAll()[0], null);
+            await SetActiveProfile(currentProfile, null);
             return true;
         }
         catch (Exception e)
         {
-            _logger.Error("Error while updating profile list. {exception}", e);
+            _logger.Error(e, "Error while updating profile list.");
             
             // Roll back on the repository's profiles.
             _repository.Clear();

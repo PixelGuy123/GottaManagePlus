@@ -148,8 +148,8 @@
                     <!-- Dialog Element -->
                     <Border
                         Background="#7D000000"
-                        IsVisible="{CompiledBinding !!Opacity, Mode=OneWay, RelativeSource={RelativeSource Self}}"
-                        Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0, Mode=OneWay}">
+                        Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0, Mode=OneWay}"
+                        IsVisible="{CompiledBinding !!Opacity, Mode=OneWay, RelativeSource={RelativeSource Self}}">
                         <Border.Transitions>
                             <Transitions>
                                 <DoubleTransition
@@ -159,7 +159,8 @@
                                     />
                             </Transitions>
                         </Border.Transitions>
-                        <ContentControl 
+                        <ContentControl
+                            IsVisible="{CompiledBinding Dialog, Converter={x:Static ObjectConverters.IsNotNull}}"
                             Content="{CompiledBinding Dialog, Mode=OneWay}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"/>

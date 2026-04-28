@@ -45,12 +45,6 @@ public partial class App
         collection.AddSingleton<ProfileManager>();
         collection.AddSingleton<ProfileRepository>();
         
-        // Mod Services
-        collection.AddSingleton<ResourceInstaller>();
-        collection.AddSingleton<SecurityScanner>();
-        collection.AddSingleton<ModArchiveExtractor>();
-        collection.AddSingleton<ManifestLoader>();
-        
         // Game Environment Setup
         collection.AddSingleton<IGameEnvironmentFactory, PlusEnvironmentFactory>();
         collection.AddSingleton<GameEnvironmentController>();
@@ -81,38 +75,6 @@ public partial class App
                     (PageViewModel)serviceProvider.GetRequiredService(type));
     }
 
-    private static void SetupTransientServices(ServiceCollection collection)
-    {
-        // Transient Services
-        collection.AddTransient<GamebananaApiService>();
-        
-        // Profile Management
-        // * Essential Manager Services
-        collection.AddTransient<IEnvironmentToLocalParser, EnvironmentToProfileSaver>();
-        collection.AddTransient<ILocalToEnvironmentParser, ProfileToEnvironmentExtractor>();
-        collection.AddTransient<IProfileStorageScanner, LocalProfileStorageScanner>();
-        collection.AddTransient<IProfileCreator, LocalProfileCreator>();
-        collection.AddTransient<IProfileExportController, ProfileExportController>();
-        collection.AddTransient<IProfileDestructor, LocalProfileDestructor>();
-        collection.AddTransient<IProfileCloner, LocalProfileCloner>();
-        
-        // * Sub-Services utilized by the other interfaces
-        // ** Default Profile Services
-        collection.AddTransient<ProfileZipWriter>();
-        collection.AddTransient<ProfileZipReader>();
-        collection.AddTransient<ProfileZipExtractor>();
-        // ** Export Profile Services
-        collection.AddTransient<ProfileExporter>();
-        collection.AddTransient<ProfileExportReader>();
-        collection.AddTransient<ProfileExportExtractor>();
-        
-        // Mod Services
-        collection.AddTransient<ModInstaller>();
-        collection.AddTransient<ModUnInstaller>();
-        collection.AddTransient<ModRepositoryScanner>();
-        collection.AddTransient<ModArchiveGenerator>();
-    }
-
     private static void SetupScopedServices(ServiceCollection collection)
     {
         // Setup Gamebanana Client
@@ -123,6 +85,43 @@ public partial class App
             client.DefaultRequestHeaders.Accept.Add(
                 new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
         });
+        
+        collection.AddScoped<GamebananaApiService>();
+        
+        // Game Environment Management
+        collection.AddScoped<IGameEnvironmentSnapshotWriter, GameEnvironmentSnapshotWriter>();
+        collection.AddScoped<IGameEnvironmentSnapshotReader, GameEnvironmentSnapshotReader>();
+        collection.AddScoped<IGameEnvironmentSnapshotComparer, GameEnvironmentSnapshotComparer>();
+        
+        // Profile Management
+        // * Essential Manager Services
+        collection.AddScoped<IEnvironmentToLocalParser, EnvironmentToProfileSaver>();
+        collection.AddScoped<ILocalToEnvironmentParser, ProfileToEnvironmentExtractor>();
+        collection.AddScoped<IProfileStorageScanner, LocalProfileStorageScanner>();
+        collection.AddScoped<IProfileCreator, LocalProfileCreator>();
+        collection.AddScoped<IProfileExportController, ProfileExportController>();
+        collection.AddScoped<IProfileDestructor, LocalProfileDestructor>();
+        collection.AddScoped<IProfileCloner, LocalProfileCloner>();
+        
+        // * Sub-Services utilized by the other interfaces
+        // ** Default Profile Services
+        collection.AddScoped<ProfileZipWriter>();
+        collection.AddScoped<ProfileZipReader>();
+        collection.AddScoped<ProfileZipExtractor>();
+        // ** Export Profile Services
+        collection.AddScoped<ProfileExporter>();
+        collection.AddScoped<ProfileExportReader>();
+        collection.AddScoped<ProfileExportExtractor>();
+        
+        // Mod Services
+        collection.AddScoped<ModInstaller>();
+        collection.AddScoped<ModUnInstaller>();
+        collection.AddScoped<ModRepositoryScanner>();
+        collection.AddScoped<ModArchiveGenerator>();
+        collection.AddScoped<ResourceInstaller>();
+        collection.AddScoped<SecurityScanner>();
+        collection.AddScoped<ModArchiveExtractor>();
+        collection.AddScoped<ManifestLoader>();
     }
 
     private static void SetupServicesForWindowAttributes(ServiceProvider services, IClassicDesktopStyleApplicationLifetime desktop, TopLevel window)

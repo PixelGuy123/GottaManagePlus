@@ -46,8 +46,7 @@ public sealed class ProfileExportExtractor(ILogger logger)
                 entry.WriteToDirectory(destinationPath, new ExtractionOptions
                 {
                     ExtractFullPath = true,
-                    Overwrite = true,
-                    PreserveAttributes = true
+                    Overwrite = true
                 });
             }
 
@@ -55,8 +54,8 @@ public sealed class ProfileExportExtractor(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error("Failed to extract exported profile \'{profName}\' to \'{destPath}\'.\n{exception}", 
-                Path.GetFileName(exportedProfilePath), destinationPath, e);
+            _logger.Error(e, "Failed to extract exported profile \'{profName}\' to \'{destPath}\'.", 
+                Path.GetFileName(exportedProfilePath), destinationPath);
             return false;
         }
     }

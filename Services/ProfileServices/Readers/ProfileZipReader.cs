@@ -50,7 +50,7 @@ public sealed class ProfileZipReader(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error("Failed to read the profile content.\n{exception}", e);
+            _logger.Error(e, "Failed to read the profile content.");
             return null;
         }
     }

@@ -5,5 +5,5 @@ namespace GottaManagePlus.ViewModels;
 public abstract partial class PageViewModel(PageNames pageName) : ViewModelBase
 {
     [ObservableProperty]
-    private PageNames _pageName = pageName;
+    public partial PageNames PageName { get; set; } = pageName;
 }

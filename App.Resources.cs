@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Platform.Storage;
 
@@ -15,68 +14,76 @@ public enum PageNames
 
 public static class AppInfo
 {
-    // ---- Public API ----
-    public static readonly string AppVersion = AssemblyName.GetAssemblyName(AppContext.BaseDirectory).Version!.ToString();
+    // Application Version Information
+    public static readonly string AppVersion = typeof(AppInfo).Assembly.GetName().Version!.ToString();
     public static readonly string AvaloniaVersion = typeof(AvaloniaObject).Assembly.GetName().Version!.ToString();
 }
 
 public static class HyperLinks
 {
-    // App's Advertisement Links
-    public static readonly Uri
-        KofiLink = new("https://ko-fi.com/pixelguy"),
-        DiscordLink = new("https://discord.gg/p2mpGsKAfG");
+    // App's Advertisement & Community Links
+    public static readonly Uri KofiLink = new("https://ko-fi.com/pixelguy");
+    public static readonly Uri DiscordLink = new("https://discord.gg/p2mpGsKAfG");
 }
 
 public static class Constants
 {
-    // Common paths for Steam to store its games
-    public static readonly string BaldiPlusFolderSteamPath =
-        // IF Windows, use the following path
-        OperatingSystem.IsWindows() ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory) ?? "C:",
-            "Program Files (86x)", "Steam", "steamapps",
-            "common", "Baldi's Basics Plus") :
-        // IF macOS, use following path
-        OperatingSystem.IsMacOS() ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory) ?? "~", "Library",
-            "Application Support", "Steam",
-            "steamapps", "common", "Baldi's Basics Plus") :
-        // IF Linux, use following path
-        OperatingSystem.IsLinux() ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".steam", "steam", "steamapps", "common", "Baldi's Basics Plus") :
-            string.Empty;
-
+    // ==================== APPLICATION PATHS ====================
+    
     // The path to this GMP instance
     public static readonly string ApplicationLocation = AppContext.BaseDirectory;
     
-    // Extensions and names that the app uses
-    public const string
-        App_RootFolder = ".gmp",
-        App_SpecialFolderForMods_Name = "_gmp",
-        App_ProfileExportFolder = "exports",
-        App_ProfilesFolder = "profiles",
-        App_TemporaryFolder = "temp";
-    public const string
-        ProfileMetadataFileName = ".metadata", ExportedProfileExtension = ".gmpProfile", ProfileDefaultExtension = ".zip", 
-        ModSupportForGameVersionPreviewFilePrefixName = "supVer_", BepInExFolderName = "BepInEx";
+    // Baldi's Basics Plus Steam installation path (platform-specific)
+    public static readonly string BaldiPlusFolderSteamPath = 
+        OperatingSystem.IsWindows() ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory) ?? "C:",
+            "Program Files (86x)", "Steam", "steamapps",
+            "common", "Baldi's Basics Plus") :
+        OperatingSystem.IsMacOS() ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory) ?? "~", "Library",
+            "Application Support", "Steam",
+            "steamapps", "common", "Baldi's Basics Plus") :
+        OperatingSystem.IsLinux() ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), 
+            ".steam", "steam", "steamapps", "common", "Baldi's Basics Plus") :
+        string.Empty;
+
+    // ==================== FOLDER & FILE NAMES ====================
     
-    // File Picker Filters
+    // Root and special folders
+    public static readonly string App_RootFolder = ".gmp";
+    public static readonly string App_SpecialFolderForMods_Name = "_gmp";
+    public static readonly string App_ProfileExportFolder = "exports";
+    public static readonly string App_ProfilesFolder = "profiles";
+    public static readonly string App_TemporaryFolder = "temp";
+    public static readonly string App_IndexFile = "index";
+    
+    // File names and extensions
+    public static readonly string ProfileMetadataFileName = ".metadata";
+    public static readonly string ExportedProfileExtension = ".gmpProfile";
+    public static readonly string ProfileDefaultExtension = ".zip";
+    public static readonly string ModSupportForGameVersionPreviewFilePrefixName = "supVer_";
+    public static readonly string BepInExFolderName = "BepInEx";
+    
+    // BepInEx subdirectories
+    public static readonly string ConfigFolder = "config";
+    public static readonly string PatchersFolder = "patchers";
+    public static readonly string PluginsFolder = "plugins";
+
+    // ==================== UI DIALOGS ====================
+    
+    // Dialog titles
+    public static readonly string FailDialog = "Something went wrong...";
+    public static readonly string SuccessDialog = "Success!";
+    public static readonly string WarningDialog = "Just so you know...";
+    
+    // File picker filters
     public static readonly FilePickerFileType ExportedProfileFilter = new($"Exported Profile (*{ExportedProfileExtension})")
     {
         Patterns = [$"*{ExportedProfileExtension}"]
     };
+
+    // ==================== TROUBLESHOOTING ====================
     
-    // Dialog titles
-    public const string FailDialog = "Something went wrong...", 
-        SuccessDialog = "Success!", 
-        WarningDialog = "Just so you know...";
-    
-    // BepInEx Directory Names
-    public const string ConfigFolder = "config",
-        PatchersFolder = "patchers",
-        PluginsFolder = "plugins";
-    
-   
     // Common issues solutions for each platform
-    public static string CommonIssuesSolution =>
+    public static readonly string? CommonIssuesSolution = 
         OperatingSystem.IsWindows() ? SolutionCommonIssuesWindows :
         OperatingSystem.IsMacOS() ? SolutionCommonIssuesMacOS :
         OperatingSystem.IsLinux() ? SolutionCommonIssuesLinux :

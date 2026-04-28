@@ -53,8 +53,8 @@ public sealed class ProfileExportReader(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error("Failed to read exported profile \'{profName}\'.\n{exception}", 
-                Path.GetFileName(compressedProfilePath), e);
+            _logger.Error(e, "Failed to read exported profile \'{profName}\'.", 
+                Path.GetFileName(compressedProfilePath));
             return null;
         }
     }

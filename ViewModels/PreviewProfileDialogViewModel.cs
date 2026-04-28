@@ -18,16 +18,17 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
     private DirectoryLauncher _directoryLauncher = null!;
     private GameEnvironmentController _gameEnvironmentController = null!;
     private DialogService _dialogService = null!;
-    
+
     // Observables
     [ObservableProperty]
-    private ProfileMetadata _profile = null!;
+    public partial ProfileMetadata Profile { get; set; } = null!;
+
     [ObservableProperty]
     private string _closeText = "Close", _deleteText = "Delete", _exportText = "Export as package";
 
     [ObservableProperty]
-    private bool _allowProfileDeletion;
-    
+    public partial bool AllowProfileDeletion { get; set; }
+
     // Public getters
     public bool ShouldDeleteProfile { get; private set; }
     public bool ShouldExportProfile { get; private set; }

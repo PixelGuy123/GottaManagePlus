@@ -22,13 +22,24 @@ public partial class LoadingDialogViewModel : DialogViewModel
     private bool _hasAlreadyInitiated;
 
     // Observable properties
-    [ObservableProperty] private string _title = "Loading...";
-    [ObservableProperty] private string? _status = "Loading...";
-    [ObservableProperty] private int _progressMax = 1;
-    [ObservableProperty] private int _progressValue;
-    [ObservableProperty] private string _cancelText = "Cancel";
+    [ObservableProperty]
+    public partial string Title { get; set; } = "Loading...";
+
+    [ObservableProperty]
+    public partial string? Status { get; set; } = "Loading...";
+
+    [ObservableProperty]
+    public partial int ProgressMax { get; set; } = 1;
+
+    [ObservableProperty]
+    public partial int ProgressValue { get; set; }
+
+    [ObservableProperty]
+    public partial string CancelText { get; set; } = "Cancel";
+
     [ObservableProperty] private bool _allowCancellation, _hideProgressBar;
-    [ObservableProperty] private Progress<ProgressReport>? _progress;
+    [ObservableProperty]
+    public partial Progress<ProgressReport>? Progress { get; set; }
 
     public async Task<bool> StartTask()
     {

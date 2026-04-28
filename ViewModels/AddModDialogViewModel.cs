@@ -8,17 +8,21 @@ public partial class AddModDialogViewModel : DialogViewModel
 {
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-    private bool _canAddMod;
+    public partial bool CanAddMod { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanAddMod))]
-    private string? _modImportPath; // The path to the mod
+    public partial string? ModImportPath { get; set; }
+
     [ObservableProperty]
-    private string _title = "Add new Mod";
+    public partial string Title { get; set; } = "Add new Mod";
+
     [ObservableProperty]
-    private string _confirmText = "Add";
+    public partial string ConfirmText { get; set; } = "Add";
+
     [ObservableProperty]
-    private string _cancelText = "Cancel";
-    
+    public partial string CancelText { get; set; } = "Cancel";
+
     [ObservableProperty] 
     private bool _addModConfirmed;
     

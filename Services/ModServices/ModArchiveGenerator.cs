@@ -181,7 +181,7 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
         }
         catch (Exception ex)
         {
-            _logger.Error("Failed to generate archive.\n{exception}", ex);
+            _logger.Error(ex, "Failed to generate archive.");
             // Delete the partially created archive if it exists
             if (!File.Exists(archiveDestination)) return false;
             

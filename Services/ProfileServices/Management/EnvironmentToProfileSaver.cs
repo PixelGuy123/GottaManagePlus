@@ -43,12 +43,14 @@ public sealed class EnvironmentToProfileSaver(
             // Collect configuration and patcher files
             metadata.ConfigurationFiles.Clear();
             var configPath = _controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder);
-            foreach (var config in Directory.EnumerateFiles(configPath, "*.cfg", SearchOption.AllDirectories))
-                metadata.ConfigurationFiles.Add(config);
+            if (Directory.Exists(configPath))
+                foreach (var config in Directory.EnumerateFiles(configPath, "*.cfg", SearchOption.AllDirectories))
+                    metadata.ConfigurationFiles.Add(config);
 
             var patcherPath = _controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder);
-            foreach (var patcher in Directory.EnumerateFiles(patcherPath, "*.dll", SearchOption.AllDirectories))
-                metadata.PatcherFiles.Add(patcher);
+            if (Directory.Exists(patcherPath))
+                foreach (var patcher in Directory.EnumerateFiles(patcherPath, "*.dll", SearchOption.AllDirectories))
+                    metadata.PatcherFiles.Add(patcher);
             
             // Add mods too through the scanner
             await _modRepositoryScanner.ScanRepository(metadata, progress, cancellationToken);

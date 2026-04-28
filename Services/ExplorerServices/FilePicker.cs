@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Serilog;
 
@@ -8,12 +10,15 @@ namespace GottaManagePlus.Services.ExplorerServices;
 /// <summary>
 /// A class responsible for handling any type of file picking request.
 /// </summary>
-public class FilePicker(ILogger logger)
+public class FilePicker(ILogger logger, ApplicationBridge applicationBridge)
 {
+    // ----- Private API -----
     private readonly ILogger _logger = logger;
+    private readonly ApplicationBridge _applicationBridge = applicationBridge;
     private IStorageProvider? _storageProvider;
     public void RegisterProvider(IStorageProvider provider) => _storageProvider = provider;
     
+    // ----- Public API -----
     /// <summary>
     /// Opens a file picker using Avalonia's API for selecting a file.
     /// </summary>
@@ -34,17 +39,21 @@ public class FilePicker(ILogger logger)
         IStorageFolder? folder = null;
         if (!string.IsNullOrEmpty(preselectedPath))
             folder = await _storageProvider.TryGetFolderFromPathAsync(preselectedPath);
-        
-        var files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = title,
-            AllowMultiple = false,
-            SuggestedStartLocation = folder,
-            FileTypeFilter = filterChoices,
-            SuggestedFileName = suggestedFileName
+
+        IReadOnlyList<IStorageFile>? files = null;
+        await _applicationBridge.FreezeWindowAsync(async () =>
+        { 
+            files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false,
+                SuggestedStartLocation = folder,
+                FileTypeFilter = filterChoices,
+                SuggestedFileName = suggestedFileName
+            });
         });
 
-        return files.Count >= 1 ? files[0] : null;
+        return files?.Count >= 1 ? files[0] : null;
     }
 
     /// <summary>
@@ -63,13 +72,19 @@ public class FilePicker(ILogger logger)
         IStorageFolder? folder = null;
         if (!string.IsNullOrEmpty(preselectedPath))
             folder = await _storageProvider.TryGetFolderFromPathAsync(preselectedPath);
-        
-        return await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions()
+
+        IStorageFile? fileSaved = null;
+        await _applicationBridge.FreezeWindowAsync(async () =>
         {
-            Title = title,
-            SuggestedStartLocation = folder,
-            FileTypeChoices = filterChoices,
-            SuggestedFileName = suggestedFileName
+            fileSaved = await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions()
+            {
+                Title = title,
+                SuggestedStartLocation = folder,
+                FileTypeChoices = filterChoices,
+                SuggestedFileName = suggestedFileName
+            });
         });
+
+        return fileSaved;
     }
 }

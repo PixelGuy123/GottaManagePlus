@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
@@ -50,5 +51,32 @@ public sealed class LocalProfileCreator(
         _logger.Information("ProfileMetadata already exists. Returning copy from repository...");
         // Retrieves copy inside the repository.
         return _repository.Get(clearedMetadata.Name);
+    }
+    
+    /// <summary>
+    /// Creates a new profile by using the current environment's data.
+    /// </summary>
+    /// <param name="name">The name of the new profile.</param>
+    /// <param name="progress">The progress report.</param>
+    /// <returns>A new instance of <see cref="ProfileMetadata"/> if it is successfully written; otherwise <see langword="null"/>.</returns>
+    public async Task<ProfileMetadata?> CreateProfileFromCurrentEnvironment(string name, IProgress<ProgressReport>? progress)
+    {
+        _logger.Information("Creating new profile '{Name}' from current environment", name);
+    
+        var profilesFolder = _controller.GetOrCreateProfilesFolderPath(_logger);
+        var metadata = new ProfileMetadata { Name = name };
+    
+        // Add to repository first so that WriteProfileToAsync can find it if needed.
+        if (!_repository.Add(metadata))
+        {
+            _logger.Warning("Failed to add profile '{Name}' to repository", name);
+            return null;
+        }
+    
+        // Write the current game state into the profile.
+        await _zipWriter.WriteProfileToAsync(profilesFolder, metadata, _controller, progress);
+    
+        // Re-fetch from repository to get the fully populated metadata (mods, configs, etc.).
+        return _repository.Get(name);
     }
 }

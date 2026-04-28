@@ -31,7 +31,6 @@ public partial class App : Application
         
         // Services to set up
         SetupSingletonServices(collection);
-        SetupTransientServices(collection);
         SetupScopedServices(collection);
         SetupViewModels(collection);
 

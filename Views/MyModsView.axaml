@@ -146,6 +146,7 @@
                                     <TextBlock Text="Choose an option:" FontWeight="SemiBold" />
                                     <Button 
                                         Classes="YCTPButton"
+                                        Click="OnTogglePopup"
                                         Command="{Binding AddModLocally}"
                                         CommandParameter="False"
                                         Width="256"
@@ -158,6 +159,7 @@
                                     </Button>
                                     <Button 
                                         Classes="YCTPButton"
+                                        Click="OnTogglePopup"
                                         Command="{Binding AddModLocally}"
                                         CommandParameter="True"
                                         Width="256"
@@ -169,6 +171,7 @@
                                     
                                     <Button 
                                         Classes="YCTPButton"
+                                        Click="OnTogglePopup"
                                         Width="256"
                                         Height="48"
                                         Opacity="0.5"

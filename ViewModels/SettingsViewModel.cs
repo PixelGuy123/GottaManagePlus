@@ -47,8 +47,8 @@ public partial class SettingsViewModel : PageViewModel
         Dispatcher.UIThread.InvokeAsync(async () =>
         {
             await _dialogService.NotifyUser(Constants.WarningDialog, """
-                      Looks like the BB+ folder is not set or is not valid.
-                      If this is your first time using the tool, just select the executable of Baldi's Basics Plus inside Settings.
+                      Looks like the Baldi's Basics Plus (BB+) folder is not set or is not valid.
+                      If this is your first time using the tool, just select the executable of BB+ inside Settings.
                       You cannot go to the Home Page while under this condition.
                       """);
         });
@@ -64,15 +64,17 @@ public partial class SettingsViewModel : PageViewModel
 
     // Readonly collections
     public int[] PossibleRowsPerModStates { get; } = [4, 5, 6];
-    
+
     // Observable Members
-    [ObservableProperty] 
-    private SaveState _currentSaveState = null!;
-    [ObservableProperty] 
-    private int _numberOfRowsPerModIndex;
-    [ObservableProperty] 
-    private string? _executablePath;
-    
+    [ObservableProperty]
+    public partial SaveState CurrentSaveState { get; set; } = null!;
+
+    [ObservableProperty]
+    public partial int NumberOfRowsPerModIndex { get; set; }
+
+    [ObservableProperty]
+    public partial string? ExecutablePath { get; set; }
+
     // Property changes
     partial void OnNumberOfRowsPerModIndexChanged(int value) => CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
     

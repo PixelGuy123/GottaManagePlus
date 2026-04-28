@@ -111,10 +111,11 @@ publish_for_rid() {
 # ------------------------------------------------------------
 publish_for_rid "$WIN_RID"
 echo "Creating Windows zip..."
-cd "$BUILD_TEMP/$WIN_RID"
+cd "$BUILD_TEMP/$WIN_RID" || exit
+find . -type f -name "*.pdb" -delete
 zip -r "$BUILD_TEMP/${PROJECT_NAME}_Windows.zip" .
 mv "$BUILD_TEMP/${PROJECT_NAME}_Windows.zip" "$OUTPUT_DIR/${PROJECT_NAME}_Windows.zip"
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT" || exit
 
 # ------------------------------------------------------------
 # 2. Linux build
@@ -125,10 +126,11 @@ chmod 666 "$BUILD_TEMP/$LINUX_RID/AppSettings.json" 2>/dev/null || true
 chmod 777 "$BUILD_TEMP/$LINUX_RID/$PROJECT_NAME" 2>/dev/null || true
 
 echo "Creating Linux tarball..."
-cd "$BUILD_TEMP/$LINUX_RID"
+cd "$BUILD_TEMP/$LINUX_RID" || exit
+find . -type f -name "*.pdb" -delete
 tar -czvf "$BUILD_TEMP/${PROJECT_NAME}_Linux.tar.gz" .
 mv "$BUILD_TEMP/${PROJECT_NAME}_Linux.tar.gz" "$OUTPUT_DIR/${PROJECT_NAME}_Linux.tar.gz"
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT" || exit
 
 # ------------------------------------------------------------
 # 3. Debian package (optional, only if Linux publish succeeded)
@@ -194,7 +196,6 @@ echo "Build complete. Files located in $OUTPUT_DIR"
          -p:PublishTrimmed="$PUBLISH_TRIMMED" \
          -p:PublishSingleFile="$PUBLISH_SINGLE_FILE" \
          -p:SelfContained="$SELF_CONTAINED" \
-         -p:PublishReadyToRun=true \
          -p:CopyOutputSymbolsToPublishDirectory=false \
          -p:SkipCopyingSymbolsToOutputDirectory=true
  fi
@@ -202,7 +203,7 @@ echo "Build complete. Files located in $OUTPUT_DIR"
 # ** Bundle Fix
 # Relative path to the Info.plist
 # The beginning is basically a way to get full path
-TARGET_FILE="bin/Debug/$PROJECT_DOTNET_VERSION/osx-x64/publish/Gotta Manage Plus.app/Contents/Info.plist"
+TARGET_FILE="bin/Release/$PROJECT_DOTNET_VERSION/osx-x64/publish/Gotta Manage Plus.app/Contents/Info.plist"
 
 # 1. Check if the file exists before anything
 if [ ! -f "$TARGET_FILE" ]; then
@@ -251,7 +252,7 @@ png2icns "${ICNS_FILE_NAME}" \
     "$TEMP_DIR/icon_1024.png"
     
 # 7. Move the app image to the build
-mv "bin/Debug/$PROJECT_DOTNET_VERSION/osx-x64/publish/Gotta Manage Plus.app" "$OUTPUT_DIR/Gotta Manage Plus.app"
+mv "bin/Release/$PROJECT_DOTNET_VERSION/osx-x64/publish/Gotta Manage Plus.app" "$OUTPUT_DIR/Gotta Manage Plus.app"
 
 # Cleanup
 rm -rf "$TEMP_DIR"

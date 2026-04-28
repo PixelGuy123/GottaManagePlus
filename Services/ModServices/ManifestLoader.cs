@@ -88,7 +88,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
         }
         catch (Exception ex)
         {
-            _logger.Error("Error loading manifest.\n{Exception}", ex);
+            _logger.Error(ex, "Error loading manifest.");
             return null;
         }
     }
