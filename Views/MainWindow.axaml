@@ -237,14 +237,6 @@
                                         Stretch="Uniform"
                                     />
                                 </HyperlinkButton>
-                                <HyperlinkButton 
-                                    HorizontalAlignment="Left" 
-                                    NavigateUri="{x:Static app:HyperLinks.KofiLink}">
-                                    <Image 
-                                        Source="/Assets/UI/Button_Kofi_YCTP.webp"
-                                        Stretch="Uniform"
-                                    />
-                                </HyperlinkButton>
                                 
                                 <!-- App Author -->
                                 <TextBlock

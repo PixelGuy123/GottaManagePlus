@@ -1,7 +1,3 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -45,12 +41,12 @@ public sealed class EnvironmentToProfileSaver(
             var configPath = _controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder);
             if (Directory.Exists(configPath))
                 foreach (var config in Directory.EnumerateFiles(configPath, "*.cfg", SearchOption.AllDirectories))
-                    metadata.ConfigurationFiles.Add(config);
+                    metadata.ConfigurationFiles.Add(_controller.SearchRelativePath(config));
 
             var patcherPath = _controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder);
             if (Directory.Exists(patcherPath))
                 foreach (var patcher in Directory.EnumerateFiles(patcherPath, "*.dll", SearchOption.AllDirectories))
-                    metadata.PatcherFiles.Add(patcher);
+                    metadata.PatcherFiles.Add(_controller.SearchRelativePath(patcher));
             
             // Add mods too through the scanner
             await _modRepositoryScanner.ScanRepository(metadata, progress, cancellationToken);

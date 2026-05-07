@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Avalonia.Data.Converters;
 
 namespace GottaManagePlus.Styles.Converters;

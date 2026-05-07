@@ -1,10 +1,14 @@
-using System;
+using System.Text.Json.Serialization;
 
 namespace GottaManagePlus.Models;
 
 public class WrappedGameVersion : IComparable, IComparable<WrappedGameVersion>
 {
-    public Version WrappedVersion { get; }
+    public Version WrappedVersion { get; set; } = new();
+    
+    // Private parameterless constructor used only for deserialization
+    [JsonConstructor]
+    public WrappedGameVersion() { }
 
     public WrappedGameVersion(string version)
     {

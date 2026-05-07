@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
 using GottaManagePlus.Utils;
@@ -59,7 +57,14 @@ public sealed class GameEnvironmentController(
         {
             var env = factory.CreateEnvironment(executablePath);
             if (env == null) continue;
+            
+            // Set the new Current Environment
             CurrentEnvironment = env;
+            
+            // Delete the Temps' content
+            foreach (var dir in Directory.EnumerateDirectories(this.SearchAbsolutePath(Constants.App_RootFolder,
+                Constants.App_TemporaryFolder)))
+                Directory.Delete(dir, true);
             return;
         }
         CurrentEnvironment = null; // No factory could handle this path.
@@ -100,7 +105,8 @@ public sealed class GameEnvironmentController(
     /// Updates the snapshot of the current environment.
     /// </summary>
     /// <returns><see langword="true"/> if the snapshot has any changes; otherwise, <see langword="false"/>.</returns>
-    public async Task<bool> UpdateEnvironmentSnapshot()
+    public async Task<bool> UpdateEnvironmentSnapshot() // TODO: Turn boolean return type into a specialized class with a detailed report of the snapshot changes.
+                                                        // Check this TODO above when the implementation of a "list" dialog is completed.
     {
         // Get the path for the snapshot.
         var pathForSnapshot = this.SearchAbsolutePath(Constants.App_RootFolder, Constants.App_IndexFile);
@@ -121,6 +127,6 @@ public sealed class GameEnvironmentController(
         await _gameEnvironmentSnapshotWriter.WriteSnapshotAsync(CurrentEnvironment!.RootPath, pathForSnapshot);
         CurrentSnapshot = _gameEnvironmentSnapshotReader.ReadSnapshot(pathForSnapshot);
 
-        return _gameEnvironmentSnapshotComparer.Compare(oldSnapshot, CurrentSnapshot!);
+        return _gameEnvironmentSnapshotComparer.Compare(CurrentSnapshot!, oldSnapshot);
     }
 }

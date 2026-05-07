@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using GottaManagePlus.Models;
 using GottaManagePlus.Utils;
 using Serilog;
@@ -53,7 +51,7 @@ public sealed class ProfileExportReader(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error(e, "Failed to read exported profile \'{profName}\'.", 
+            _logger.Error(e, "Failed to read exported profile '{profName}'.", 
                 Path.GetFileName(compressedProfilePath));
             return null;
         }

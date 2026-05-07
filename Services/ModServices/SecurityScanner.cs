@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FileTypeChecker;
 using FileTypeChecker.Extensions;
 using FileTypeChecker.Types;
@@ -37,7 +31,7 @@ public sealed class SecurityScanner(ILogger logger)
     public async Task<bool> ScanAsync(string modRootPath, GameEnvironmentController controller, ModInstallationResult result, IProgress<ProgressReport>? progress,
         ModManifest manifest, CancellationToken cancellationToken = default)
     {
-        _logger.Information("Starting security scan on \'{modRootPath}\'", modRootPath);
+        _logger.Information("Starting security scan on '{modRootPath}'", modRootPath);
         // Get a flatted out array of every asset to be scanned
         var allAssets = manifest.GetAllResources(modRootPath);
         var safeForLoading = true;
@@ -59,7 +53,7 @@ public sealed class SecurityScanner(ILogger logger)
 
             var resourcePath = resource.LocalPath;
             progress?.Report(new ProgressReport(numOfTasks, allAssets.Length, "Scanning files:",
-                $"Checking \'{resource}\'"));
+                $"Checking '{resource}'"));
 
             // Make the file info and check if it exists.
             var file = new FileInfo(resourcePath);
@@ -100,8 +94,8 @@ public sealed class SecurityScanner(ILogger logger)
 
         void WarnSecurityIssue(string resource)
         {
-            result.SecurityIssues.Add($"\'{resource}\' was detected as an executable!");
-            _logger.Warning("\'{resource}\' was detected as an executable!", resource);
+            result.SecurityIssues.Add($"'{resource}' was detected as an executable!");
+            _logger.Warning("'{resource}' was detected as an executable!", resource);
         }
 
         // True if yes; False if no

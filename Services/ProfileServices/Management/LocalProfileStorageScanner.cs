@@ -1,4 +1,3 @@
-using System.IO;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices.Readers;
@@ -35,7 +34,7 @@ public sealed class LocalProfileStorageScanner(
         // Search every directory, read the metadata and register to the repo.
         foreach (var profileDir in Directory.EnumerateDirectories(profilesFolder))
         {
-            _logger.Information("Found profile \'{profileDir}\'", profileDir);
+            _logger.Information("Found profile '{profileDir}'", profileDir);
             var metadata = _zipReader.ReadProfile(profileDir);
             if (metadata == null)
             {

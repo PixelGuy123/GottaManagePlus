@@ -1,6 +1,4 @@
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Serilog;
 
 namespace GottaManagePlus.Services.APIServices;
@@ -12,7 +10,7 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
 
     // ----- PUBLIC API ------
     /// <summary>
-    /// Attempts to retrieve the Gamebanana's submission data.
+    /// Attempts to retrieve the Gamebanana submission data.
     /// </summary>
     /// <param name="subType">The submission type to look for.</param>
     /// <param name="id">The id of the submission.</param>

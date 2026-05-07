@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -35,7 +33,7 @@ public class ProfileExportController(
     /// <param name="profile">The profile to be compressed.</param>
     public void ExportProfile(ProfileMetadata profile)
     {
-        _logger.Information("Exporting profile \'{profile}\'...", profile.Name);
+        _logger.Information("Exporting profile '{profile}'...", profile.Name);
         // Get the path to export the profile to.
         var exportFolder = _controller.GetOrCreateProfilesExportFolderPath();
         
@@ -50,7 +48,7 @@ public class ProfileExportController(
     /// <returns><see cref="ProfileMetadata"/> object if a metadata is found on the archive; otherwise, <see langword="null"/>.</returns>
     public ProfileMetadata? ReadExportedProfile(string path)
     {
-        _logger.Information("Reading exported profile \'{profile}\'...", Path.GetFileName(path));
+        _logger.Information("Reading exported profile '{profile}'...", Path.GetFileName(path));
         return _exportReader.ReadExportedProfile(path);
     }
 
@@ -61,7 +59,7 @@ public class ProfileExportController(
     public void ExtractExportedProfile(string path)
     {
         // Get the ProfileMetadata.
-        _logger.Information("Extracting .gmpProfile from \'{profilePath}\'...", Path.GetFileName(path));
+        _logger.Information("Extracting .gmpProfile from '{profilePath}'...", Path.GetFileName(path));
         var metadata = ReadExportedProfile(path);
         if (metadata == null) 
             throw new InvalidOperationException("Given .gmpProfile file has no metadata.");
@@ -69,7 +67,7 @@ public class ProfileExportController(
         // Add it to the repository.
         if (!_repository.Add(metadata))
         {
-            _logger.Warning("Failed to include \'{profile}\' in repository!", metadata.Name);
+            _logger.Warning("Failed to include '{profile}' in repository!", metadata.Name);
             return;
         }
         

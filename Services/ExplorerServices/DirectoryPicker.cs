@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using Serilog;
 
@@ -65,7 +61,7 @@ public class DirectoryPicker(ILogger logger, ApplicationBridge applicationBridge
             return storageFolders;
         }
 
-        _logger.Error("{Name}\'s StorageProvider is null!", GetType().Name);
+        _logger.Error("{Name}'s StorageProvider is null!", GetType().Name);
         throw new InvalidOperationException("StorageProvider has not been registered yet.");
     }
 }

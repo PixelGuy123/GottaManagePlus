@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Serilog;
 using SharpCompress.Writers;
 using SharpCompress.Common;
-using System.IO;
 using System.Text.Json;
 using GottaManagePlus.Models.SourceGenerators;
 using System.Text;
 using GottaManagePlus.Models;
-using System.Linq;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using ProgressReport = GottaManagePlus.Models.ProgressReport;
-using System.Threading;
 
 namespace GottaManagePlus.Services.ModServices;
 
@@ -54,9 +48,9 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
         {
             // Validate that there are no duplicates.
             if (pluginPaths.HasDuplicate(StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("There is a duplicate element in the array.", nameof(pluginPaths));
+                throw new ArgumentException("There is a duplicate element in the plugins array.", nameof(pluginPaths));
             if (assetPaths.HasDuplicate())
-                throw new ArgumentException("There is a duplicate element in the array.", nameof(assetPaths));
+                throw new ArgumentException("There is a duplicate element in the assets array.", nameof(assetPaths));
             
             // Create a new ModManifest instance.
             var manifest = new ModManifest
@@ -64,7 +58,7 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
                 Name = Path.GetFileNameWithoutExtension(pluginPaths[0]),
                 Version = "0.0.0",
                 Author = "Unknown",
-                Description = "A manually imported plugin! What does it has? We don\'t know!",
+                Description = "A manually imported plugin! What does it has? We don't know!",
                 Plugins = [.. pluginPaths.Select(p => Path.GetFileName(p))],
                 Assets = []
             };
@@ -74,7 +68,7 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
             {
                 if (!Directory.Exists(assetDir.LocalPath) || !Directory.Exists(assetDir.Destination))
                 {
-                    _logger.Warning("\'{DestinedAsset}\' lacks an existent LocalPath or a Destination.", assetDir);
+                    _logger.Warning("'{DestinedAsset}' lacks an existent LocalPath or a Destination.", assetDir);
                     continue;
                 }
                 
@@ -101,7 +95,7 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
             progress.Report(new ProgressReport(completedTasks, totalTasks, "Archive", "Starting generation"));
 
             await using (var stream = File.OpenWrite(archiveDestination))
-            await using (var writer = await WriterFactory.OpenAsyncWriter(stream, ArchiveType.GZip, new WriterOptions(CompressionType.GZip), cancellationToken))
+            await using (var writer = await WriterFactory.OpenAsyncWriter(stream, ArchiveType.SevenZip, new WriterOptions(CompressionType.LZMA), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -116,11 +110,11 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
                     if (File.Exists(pluginOriginalPath))
                     {
                         await writer.WriteAsync(pluginNewPath, pluginOriginalPath, cancellationToken: cancellationToken);
-                        _logger.Information("Added plugin \'{plugin}\' to archive.", pluginOriginalPath);
+                        _logger.Information("Added plugin '{plugin}' to archive.", pluginOriginalPath);
                     }
                     else
                     {
-                        _logger.Warning("Plugin file \'{plugin}\' does not exist.", pluginOriginalPath);
+                        _logger.Warning("Plugin file '{plugin}' does not exist.", pluginOriginalPath);
                     }
 
                     completedTasks++;
@@ -136,11 +130,11 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
                     {
                         await writer.WriteAsync(newDestinedAsset.Destination!, assetOriginalPath, cancellationToken: cancellationToken);
                         
-                        _logger.Information("Added asset directory \'{dir}\' to archive.", assetOriginalPath);
+                        _logger.Information("Added asset directory '{dir}' to archive.", assetOriginalPath);
                     }
                     else
                     {
-                        _logger.Warning("Asset directory \'{dir}\' does not exist.", assetOriginalPath);
+                        _logger.Warning("Asset directory '{dir}' does not exist.", assetOriginalPath);
                     }
 
                     completedTasks++;
@@ -164,14 +158,14 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
                 using (var emptyStream = new MemoryStream())
                 {
                     await writer.WriteAsync($"{Constants.App_SpecialFolderForMods_Name}/{metadataFileName}", emptyStream, cancellationToken: cancellationToken);
-                    _logger.Information("Writing version metadata \'{meta}\'", metadataFileName);
+                    _logger.Information("Writing version metadata '{meta}'", metadataFileName);
                 }
 
                 completedTasks++;
                 progress.Report(new ProgressReport(completedTasks, totalTasks, "Archive", "Added manifest"));
             }
 
-            _logger.Information("Archive generated successfully at \'{destination}\'.", archiveDestination);
+            _logger.Information("Archive generated successfully at '{destination}'.", archiveDestination);
             return true;
         }
         catch (OperationCanceledException)
@@ -188,7 +182,7 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
             try
             {
                 File.Delete(archiveDestination);
-                _logger.Information("Deleted partially created archive at \'{destination}\'.", archiveDestination);
+                _logger.Information("Deleted partially created archive at '{destination}'.", archiveDestination);
             }
             catch { /* Suppress */}
             return false;

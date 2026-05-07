@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using Serilog;
@@ -43,7 +40,7 @@ public sealed class ProfileManager(
     /// <returns><see langword="true"/> if the exchanging is a success; otherwise, <see langword="false"/>.</returns>
     public async Task<bool> SetActiveProfile(ProfileMetadata newProfile, IProgress<ProgressReport>? progress)
     {
-        _logger.Information("Switching from profile \'{oldProfile}\' to \'{newProfile}\'...", ActiveProfile?.Name, newProfile.Name);
+        _logger.Information("Switching from profile '{oldProfile}' to '{newProfile}'...", ActiveProfile?.Name, newProfile.Name);
         // Saves the current profile.
         await SaveActiveProfile(progress);
 
@@ -55,8 +52,13 @@ public sealed class ProfileManager(
             return false;
         }
 
+        // Set new profile as active.
         ActiveProfile = newProfile;
         OnActiveProfileUpdate?.Invoke(newProfile);
+        
+        // Important Post-Update.
+        await _environmentSaver.SaveEnvironmentToProfileAsync(newProfile, progress);
+        
         _logger.Information("Profile switch done successfully!");
         return true;
     }
@@ -96,7 +98,7 @@ public sealed class ProfileManager(
                 ActiveProfile = null;
                 var profile = await _creator.CreateProfileFromCurrentEnvironment(ProfileMetadata.DefaultName, progress);
                 if (profile != null) // Reminder that SetActiveProfile automatically saves the profile too.
-                    await SetActiveProfile(profile, null);
+                    await SetActiveProfile(profile, progress);
                 else
                     throw new InvalidOperationException("No profile has been selected!");
             }
@@ -108,7 +110,7 @@ public sealed class ProfileManager(
                 // If this is true, the profile receives the new environment before loading in.
                 if (updateProfileDataBeforeSwitch)
                 {
-                    _logger.Information("Updating profile\'s data before switch...");
+                    _logger.Information("Updating profile's data before switch...");
                     await _environmentSaver.SaveEnvironmentToProfileAsync(profileMetadata, progress);
                 }
 
@@ -123,12 +125,12 @@ public sealed class ProfileManager(
             // If this is true, the profile receives the new environment before loading in.
             if (updateProfileDataBeforeSwitch)
             {
-                _logger.Information("Updating profile\'s data before switch...");
+                _logger.Information("Updating profile's data before switch...");
                 await _environmentSaver.SaveEnvironmentToProfileAsync(currentProfile, progress);
             }
 
             // If the repository isn't empty, pick the first profile available.
-            await SetActiveProfile(currentProfile, null);
+            await SetActiveProfile(currentProfile, progress);
             return true;
         }
         catch (Exception e)

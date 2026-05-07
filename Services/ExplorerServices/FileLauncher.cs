@@ -1,7 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using Serilog;
 
@@ -23,7 +20,7 @@ public class FileLauncher(ILogger logger)
     {
         if (_launcher == null)
         {
-            _logger.Error("{Name}\'s Launcher is null!", GetType().Name);
+            _logger.Error("{Name}'s Launcher is null!", GetType().Name);
             throw new InvalidOperationException("Launcher has not been registered yet.");
         }
         

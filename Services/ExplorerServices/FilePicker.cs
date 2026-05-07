@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Serilog;
@@ -32,7 +29,7 @@ public class FilePicker(ILogger logger, ApplicationBridge applicationBridge)
     {
         if (_storageProvider == null)
         {
-            _logger.Error("{Name}\'s StorageProvider is null!", GetType().Name);
+            _logger.Error("{Name}'s StorageProvider is null!", GetType().Name);
             throw new InvalidOperationException("StorageProvider has not been registered yet.");
         }
 

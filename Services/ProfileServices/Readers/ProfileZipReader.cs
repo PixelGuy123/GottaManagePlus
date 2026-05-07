@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using GottaManagePlus.Models;
 using GottaManagePlus.Utils;
 using Serilog;
@@ -41,12 +39,9 @@ public sealed class ProfileZipReader(ILogger logger)
             var metadataFile = new FileInfo(Path.Combine(profileRootDirectory, Constants.ProfileMetadataFileName));
 
             // If the file is missing, throw an error
-            if (!metadataFile.Exists)
-                return null;
-
-            // Try to read metadata
-            // Create and return metadata
-            return ProfileMetadataUtils.ReadMetadata(File.ReadAllText(metadataFile.FullName));
+            return !metadataFile.Exists ? null :
+                // Try to read metadata
+                ProfileMetadataUtils.ReadMetadata(File.ReadAllText(metadataFile.FullName));
         }
         catch (Exception e)
         {

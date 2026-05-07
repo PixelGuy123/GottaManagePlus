@@ -86,13 +86,6 @@
                     ColumnDefinitions="*, Auto, *"
                     Grid.Row="2"
                     Margin="10">
-                    <HyperlinkButton Grid.Column="0" HorizontalAlignment="Left" NavigateUri="{x:Static app:HyperLinks.KofiLink}">
-                            <!-- Negative margin for correcting alignment -->
-                            <Image 
-                                Source="/Assets/UI/Button_Kofi.webp"
-                                Stretch="Uniform"
-                                />
-                    </HyperlinkButton>
                     <Button
                         Grid.Column="1"
                         Command="{Binding Ok}"

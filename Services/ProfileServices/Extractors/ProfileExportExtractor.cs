@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Serilog;
 using SharpCompress.Archives;
 using SharpCompress.Common;
@@ -54,7 +52,7 @@ public sealed class ProfileExportExtractor(ILogger logger)
         }
         catch (Exception e)
         {
-            _logger.Error(e, "Failed to extract exported profile \'{profName}\' to \'{destPath}\'.", 
+            _logger.Error(e, "Failed to extract exported profile '{profName}' to '{destPath}'.", 
                 Path.GetFileName(exportedProfilePath), destinationPath);
             return false;
         }

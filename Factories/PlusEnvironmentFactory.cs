@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.IO;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Utils;
@@ -38,7 +36,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
         }
 
         // Make it a long path and full if possible
-        executablePath = FileUtils.GetLongPath(Path.GetFullPath(executablePath));
+        executablePath = PathUtils.GetLongPath(Path.GetFullPath(executablePath));
         
         // If the executable path is false, attempt to remove it from the register
         if (!File.Exists(executablePath))
@@ -51,7 +49,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
         // If the executable path exists, retrieve it
         if (_uniquePlusEnvironments.TryGetValue(executablePath, out var plusEnvironment))
         {
-            _logger.Information("Retrieved existent PlusEnvironment from path: \'{envPath}\'", executablePath);
+            _logger.Information("Retrieved existent PlusEnvironment from path: '{envPath}'", executablePath);
             return plusEnvironment;
         }
 
@@ -63,7 +61,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
         }
         
         // Convert to long path if possible
-        rootPath = FileUtils.GetLongPath(rootPath);
+        rootPath = PathUtils.GetLongPath(rootPath);
      
         // OS Checks
         if (OperatingSystem.IsWindows())

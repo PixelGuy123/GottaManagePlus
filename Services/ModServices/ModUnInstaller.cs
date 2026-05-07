@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
@@ -30,7 +28,7 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
         profile.ModDataFiles.Remove(manifest);
         
         // Delete the mod file.
-        Directory.Delete(manifest.GetPluginDirectoryFromManifest(_controller));
+        Directory.Delete(manifest.GetPluginDirectoryFromManifest(_controller), true);
         
         // Callback if possible.
         afterRemovalCallback?.Invoke(profile);

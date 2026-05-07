@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Serialization;
+using GottaManagePlus.Utils;
 using GottaManagePlus.Utils.Collections;
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace GottaManagePlus.Models;
 
@@ -12,6 +12,7 @@ namespace GottaManagePlus.Models;
 public class ModManifest
 {
     // General Information
+    [JsonRequired] public string Guid { get; set; } = "plus.myDeveloperName.myMod";
     [JsonRequired] public string Name { get; set; } = "Mod";
     [JsonRequired] public string Author { get; set; } = "Developer";
     [JsonRequired] public string Version { get; set; } = "0.0.0"; 
@@ -24,12 +25,23 @@ public class ModManifest
 
     [JsonIgnore] public ModMetadata Metadata { get; set; } = new();
     [JsonIgnore] public bool SupportsCurrentVersion { get; set; }
+
+    public override int GetHashCode() => HashCode.Combine(Guid, Name, Author);
+    public override string ToString() => $"{Name}_{GetStableHash()}";
+    public string GetStableHash() // For getting a stable hash for the directory
+    {
+        var input = $"{Guid}:{Name}:{Author}";
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(hash).Substring(0, 8); // First 8 chars only
+    }
 }
 
 public class ModMetadata
 {
     // ---- Internal -----
+    [JsonIgnore]
     public string? Path = null;
+    [JsonIgnore]
     public string? Thumbnail = null;
     public string? InstallationUrl { get; set; } // Supports Gamebanana and GitHub for now
     public List<string> DependenciesUrls { get; set; } = [];
@@ -57,8 +69,8 @@ public struct DestinedAsset : IEquatable<DestinedAsset>
 
     public override string ToString() =>
         !string.IsNullOrEmpty(Destination)
-            ? $"LocalPath: \'{LocalPath}\' — Destination: \'{Destination}\'"
-            : $"LocalPath: \'{LocalPath}\'";
+            ? $"LocalPath: '{LocalPath}' — Destination: '{Destination}'"
+            : $"LocalPath: '{LocalPath}'";
 
     public override bool Equals([NotNullWhen(true)] object? obj) =>
         obj is DestinedAsset destinedAsset &&

@@ -1,7 +1,5 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Threading.Tasks;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
@@ -46,7 +44,7 @@ public abstract partial class DialogViewModel : ViewModelBase
     {
         if (_isDialogPrepared)
         {
-            Log.Logger.Warning("Dialog (\'{dialog}\') is already prepared!", this);
+            Log.Logger.Warning("Dialog ('{dialog}') is already prepared!", this);
             return;
         }
 
@@ -57,7 +55,7 @@ public abstract partial class DialogViewModel : ViewModelBase
         }
         catch (Exception e)
         {
-            Log.Logger.Error(e, "Failed to open dialog (\'{dialogType}\').", this);
+            Log.Logger.Error(e, "Failed to open dialog ('{dialogType}').", this);
             throw;
         }
 

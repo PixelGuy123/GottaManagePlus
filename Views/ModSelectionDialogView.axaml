@@ -1,0 +1,162 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             xmlns:models="clr-namespace:GottaManagePlus.Models.UI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GottaManagePlus.Views.ModSelectionDialogView"
+             x:DataType="vm:ModSelectionDialogViewModel">
+        <Design.DataContext><vm:ModSelectionDialogViewModel/></Design.DataContext>
+    
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/Buttons.axaml"/>
+        <StyleInclude Source="/Styles/Labels.axaml"/>
+    </UserControl.Styles>
+    <UserControl.DataContext><vm:ModSelectionDialogViewModel/></UserControl.DataContext>
+    
+    <Border
+        CornerRadius="10"
+        Margin="10 20"
+        BoxShadow="0 5 25 1.5 Black">
+        <Border
+            Background="{DynamicResource MainMenus-Bg}"
+            CornerRadius="10"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *, Auto">
+                <!-- Title -->
+                <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
+                    <TextBlock 
+                        Foreground="{DynamicResource BlackColor}"
+                        Text="{CompiledBinding Title, Mode=OneWay}"
+                        MaxWidth="650"
+                        HorizontalAlignment="Center"
+                        Padding="10"
+                        FontSize="25"
+                        TextTrimming="CharacterEllipsis"
+                        FontWeight="ExtraLight"
+                        FontFamily="{StaticResource WorkSans}"/>
+                </Border>
+                
+                <!-- Content -->
+                <Grid Grid.Row="1" ColumnDefinitions="1.2*, *">
+                    <!-- Separator -->
+                    <Border Grid.Column="1" 
+                            BorderBrush="{DynamicResource Menu-Header-Bg}"
+                            BorderThickness="1 0 0 0"
+                            Grid.ColumnSpan="1"
+                            Margin="-1 0 0 0"/>
+                    
+                    <!-- Left: List of mods -->
+                    <Border Grid.Column="0" Padding="5" Background="{DynamicResource ListInnerBg}">
+                        <ListBox
+                            ItemsSource="{CompiledBinding Mods, Mode=OneWay}"
+                            SelectedItem="{CompiledBinding SelectedMod, Mode=TwoWay}"
+                            SelectionMode="Single"
+                            BorderThickness="0"
+                            Margin="2">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="models:ModItem">
+                                    <Grid ColumnDefinitions="Auto, *" Margin="2">
+                                        <!-- Thumbnail -->
+                                        <Border Grid.Column="0" 
+                                                Width="64" Height="64" 
+                                                CornerRadius="6"
+                                                Margin="0 0 8 0">
+                                            <Image Source="{CompiledBinding ThumbnailUrl, Mode=OneWay}" 
+                                                   Stretch="UniformToFill"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                        </Border>
+                                        
+                                        <!-- Details -->
+                                        <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto">
+                                            <TextBlock Grid.Row="0" 
+                                                       Text="{CompiledBinding Name, Mode=OneWay}"
+                                                       FontWeight="Bold"
+                                                       FontSize="14"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Row="1" 
+                                                       Text="{CompiledBinding Description, Mode=OneWay}"
+                                                       TextWrapping="Wrap"
+                                                       MaxHeight="40"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       FontSize="12"
+                                                       Opacity="0.8"/>
+                                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{CompiledBinding Author, Mode=OneWay}" FontSize="11"/>
+                                                <TextBlock Text="•" FontSize="11"/>
+                                                <TextBlock Text="{CompiledBinding Version, Mode=OneWay}" FontSize="11"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Row="3" 
+                                                      Content="Install"
+                                                      IsChecked="{CompiledBinding IsSelected, Mode=TwoWay}"
+                                                      FontSize="11"
+                                                      VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                    
+                    <!-- Right: Details panel -->
+                    <Border Grid.Column="1" Padding="10" Background="{DynamicResource Menu-Header-Bg}">
+                        <ScrollViewer>
+                            <StackPanel Spacing="10" 
+                                        IsVisible="{CompiledBinding SelectedMod, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <Image Source="{CompiledBinding SelectedMod.ImageUrl, Mode=OneWay}" 
+                                       Stretch="Uniform"
+                                       MaxHeight="200"
+                                       HorizontalAlignment="Center"/>
+                                
+                                <TextBlock Text="{CompiledBinding SelectedMod.Name, Mode=OneWay}" 
+                                           FontSize="20"
+                                           FontWeight="Bold"
+                                           TextWrapping="Wrap"/>
+                                
+                                <TextBlock Text="{CompiledBinding SelectedMod.Description, Mode=OneWay}" 
+                                           TextWrapping="Wrap"
+                                           FontSize="14"/>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock FontWeight="Bold">Author:</TextBlock>
+                                    <TextBlock Text="{CompiledBinding SelectedMod.Author, Mode=OneWay}"/>
+                                </StackPanel>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock FontWeight="Bold">Version:</TextBlock>
+                                    <TextBlock Text="{CompiledBinding SelectedMod.Version, Mode=OneWay}"/>
+                                </StackPanel>
+                                
+                                <CheckBox Content="Install this mod"
+                                          IsChecked="{CompiledBinding SelectedMod.IsSelected, Mode=TwoWay}"
+                                          FontSize="14"/>
+                                
+                                <!-- TODO: Add download link or open in browser -->
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+                
+                <!-- Buttons -->
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    Spacing="20"
+                    Margin="10">
+                    <Button
+                        Content="Cancel" 
+                        Classes="DialogBtn DangerDialogBtn"
+                        Command="{Binding CancelAsync}"/>
+                    <Button
+                        Content="{CompiledBinding InstallButtonText, Mode=OneWay}" 
+                        Classes="DialogBtn GenericDialogBtn"
+                        Command="{Binding InstallAsync}"
+                        IsEnabled="{CompiledBinding IsInstallEnabled, Mode=OneWay}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

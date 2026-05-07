@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
@@ -49,6 +43,8 @@ public sealed class ProfileZipExtractor(ILogger logger)
 
         DirectoryInfo? temporaryDirectory = null;
         var backupDir = controller.CreateTempSubdirectory(_logger);
+        var invalidBackupDir = Path.Combine(backupDir.FullName, "InvalidModsBackup");
+        Directory.CreateDirectory(invalidBackupDir);
         _logger.Information("Created backup directory: {BackupDir}", backupDir.FullName);
 
         // ---------- Store info about every backed‑up item ----------
@@ -72,8 +68,8 @@ public sealed class ProfileZipExtractor(ILogger logger)
                 cancellationToken.ThrowIfCancellationRequested();
                 progress?.Report(
                     new ProgressReport(entriesSeen, entryCount,
-                        "Extracting", $"\'{Path.GetFileName(archiveEntry.Key)}\'..."));
-                _logger.Information("Extracting \'{ArchiveEntryKey}\' to \'{Combine}\'", archiveEntry.Key, Path.Combine(temporaryDirectory.FullName, archiveEntry.Key!));
+                        "Extracting", $"'{Path.GetFileName(archiveEntry.Key)}'..."));
+                _logger.Information("Extracting '{ArchiveEntryKey}' to '{Combine}'", archiveEntry.Key, Path.Combine(temporaryDirectory.FullName, archiveEntry.Key!));
                 await archiveEntry.WriteToDirectoryAsync(temporaryDirectory.FullName, cancellationToken: cancellationToken);
                 entriesSeen++;
             }
@@ -89,9 +85,9 @@ public sealed class ProfileZipExtractor(ILogger logger)
             _logger.Information("Starting backup of asset directories");
             foreach (var asset in metadata.ModDataFiles.SelectMany(mod => mod.Assets))
             {
+                BackupItem(controller.SearchAbsolutePath(asset.MovedAsset), backupDir.FullName);
                 cancellationToken.ThrowIfCancellationRequested();
                 _logger.Information("Backing up asset: {Asset}", asset.MovedAsset);
-                BackupItem(controller.SearchAbsolutePath(asset.MovedAsset), backupDir.FullName);
             }
 
             // ----- Move the extracted profile content into the game folder -----
@@ -103,10 +99,10 @@ public sealed class ProfileZipExtractor(ILogger logger)
                 cancellationToken.ThrowIfCancellationRequested();
                 var entry = directories[i];
                 progress?.Report(new ProgressReport(i, directories.Length,
-                    "Extracting", $"Moving \'{entry.Name}\'."));
+                    "Extracting", $"Moving '{entry.Name}'."));
 
                 var destinationPath = Path.Combine(extractToPath, entry.Name);
-                _logger.Information("Moving \'{EntryFullName}\' to \'{ExtractToPath}\'", entry.FullName, destinationPath);
+                _logger.Information("Moving '{EntryFullName}' to '{ExtractToPath}'", entry.FullName, destinationPath);
                 entry.AtomicallyMoveTo(destinationPath);
             }
             _logger.Information("Moving completed");

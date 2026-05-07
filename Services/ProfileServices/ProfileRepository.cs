@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using GottaManagePlus.Models;
 using Serilog;
@@ -61,7 +59,7 @@ public sealed class ProfileRepository(ILogger logger)
             return false;
         
         // Register it
-        _logger.Information("Added profile \'{Profile}\' to the repository.", profile.Name);
+        _logger.Information("Added profile '{Profile}' to the repository.", profile.Name);
         _profiles.Add(profile);
         
         // Invoke update
@@ -79,7 +77,7 @@ public sealed class ProfileRepository(ILogger logger)
         var index = _profiles.IndexOf(profile);
         if (index == -1)
         {
-            _logger.Warning("Attempted to remove unexistent profile from repository (\'{profile}\')",profile.Name);
+            _logger.Warning("Attempted to remove unexistent profile from repository ('{profile}')",profile.Name);
             return;
         }
         
@@ -87,7 +85,7 @@ public sealed class ProfileRepository(ILogger logger)
         var profileName = _profiles[index].Name;
         _profiles.RemoveAt(index);
         
-        _logger.Information("Removed profile \'{Profile}\' from repository.", profileName);
+        _logger.Information("Removed profile '{Profile}' from repository.", profileName);
         
         // Invoke update
         OnProfilesUpdate?.Invoke(this);

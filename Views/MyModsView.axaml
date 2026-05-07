@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" d:DesignWidth="1480" d:DesignHeight="720"
     xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
-    xmlns:models="using:GottaManagePlus.Models"
+    xmlns:models="using:GottaManagePlus.Models.UI"
     xmlns:converters="using:GottaManagePlus.Styles.Converters"
     x:Class="GottaManagePlus.Views.MyModsView"
     x:DataType="vm:MyModsViewModel">
@@ -18,7 +18,6 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
-            <converters:ModToYCTPBrushConverter x:Key="ModToYCTPBrush"/>
             <Bitmap x:Key="DefaultThumbnail">/Assets/UI/Image_Mod_NoThumbnail.png</Bitmap>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="/Styles/ProfileVisualization/ProfileResources.axaml" />
@@ -192,7 +191,7 @@
                             ItemsSource="{CompiledBinding ObservableUnchangedMods, Mode=OneWay}"
                             SelectedItem="{CompiledBinding CurrentModManifest}"
                             Text="{CompiledBinding SearchText}"
-                            ValueMemberBinding="{Binding Name, x:DataType=models:ModManifest, Mode=OneWay}"
+                            ValueMemberBinding="{Binding InnerManifest.Name, x:DataType=models:ObservableModManifest, Mode=OneWay}"
                             FilterMode="Contains" />
                         <Button
                             Classes="ModViewerHeader YCTPButton Miniature"
@@ -217,8 +216,8 @@
                 <!-- Actual Mod Scroll Viewer -->
                 <SplitView
                     Name="ManifestVisualizer"
-                    IsPaneOpen="{CompiledBinding ManifestInPreview, Converter={x:Static ObjectConverters.IsNotNull}}"
-                    DisplayMode="Inline"
+                    IsPaneOpen="{CompiledBinding IsManifestPreviewOpen, Mode=TwoWay}"
+                    DisplayMode="Overlay"
                     PanePlacement="Right"
                     OpenPaneLength="300"
                     Grid.Row="1">
@@ -253,7 +252,7 @@
                                 <Border.Background>
                                     <ImageBrush
                                         Stretch="UniformToFill"
-                                        Source="{CompiledBinding  ManifestInPreview.Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}" />
+                                        Source="{CompiledBinding  ManifestInPreview.InnerManifest.Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}" />
                                 </Border.Background>
                             </Border>
 
@@ -268,7 +267,7 @@
                                     <!-- Mod Title -->
                                     <TextBlock
                                         Grid.Row="0"
-                                        Text="{CompiledBinding ManifestInPreview.Name, Mode=OneWay}"
+                                        Text="{CompiledBinding ManifestInPreview.InnerManifest.Name, Mode=OneWay}"
                                         FontSize="24"
                                         FontFamily="{StaticResource ComicRelief}"
                                         Foreground="White"
@@ -283,7 +282,7 @@
                                     <TextBlock
                                         Grid.Row="2"
                                         Name="ManifestVisualizerDescription"
-                                        Text="{CompiledBinding ManifestInPreview.Description, Mode=OneWay, TargetNullValue=[No description found]}"
+                                        Text="{CompiledBinding ManifestInPreview.InnerManifest.Description, Mode=OneWay, TargetNullValue=[No description found]}"
                                         FontSize="12"
                                         TextTrimming="CharacterEllipsis"
                                         MaxLines="10"
@@ -308,16 +307,16 @@
                                         Foreground="White"
                                         HorizontalAlignment="Left">
                                         Made by: 
-                                        <Run Text="{CompiledBinding ManifestInPreview.Author, Mode=OneWay}" />
+                                        <Run Text="{CompiledBinding ManifestInPreview.InnerManifest.Author, Mode=OneWay}" />
                                         <LineBreak />
                                         Last Update Date:
-                                        <Run Text="{CompiledBinding ManifestInPreview.Metadata.LastUpdateDate, TargetNullValue=Unknown, Converter={x:Static converters:DateConverters.ToShortDate}}" />
+                                        <Run Text="{CompiledBinding ManifestInPreview.InnerManifest.Metadata.LastUpdateDate, TargetNullValue=Unknown, Converter={x:Static converters:DateConverters.ToShortDate}}" />
                                         <LineBreak />
                                         Version:
-                                        <Run Text="{CompiledBinding ManifestInPreview.Version, TargetNullValue=Unknown}" />
+                                        <Run Text="{CompiledBinding ManifestInPreview.InnerManifest.Version, TargetNullValue=Unknown}" />
                                         <LineBreak />
                                         Supported Versions:
-                                        <Run Text="{CompiledBinding ManifestInPreview.Metadata.StringifiedSupportedPlusVersions, Converter={x:Static converters:ListStringConverters.ConvertToString}}"/>
+                                        <Run Text="{CompiledBinding ManifestInPreview.InnerManifest.Metadata.StringifiedSupportedPlusVersions, Converter={x:Static converters:ListStringConverters.ConvertToString}}"/>
                                         <!-- TODO: TEMP LANGUAGE UPDATE REMINDER -->
                                     </TextBlock>
                                     
@@ -339,6 +338,8 @@
                                         <Button
                                             Classes="YCTPButton"
                                             Command="{Binding OpenModAssetsPath}"
+                                            IsHitTestVisible="{CompiledBinding !!ManifestInPreview.InnerManifest.Assets.Count, TargetNullValue=False}"
+                                            Opacity="{CompiledBinding !!ManifestInPreview.InnerManifest.Assets.Count, TargetNullValue=False, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
                                             Width="100"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
@@ -373,7 +374,8 @@
                                 
                                 <!-- Actual Mod List -->
                                 <ItemsRepeater IsVisible="{CompiledBinding !!ObservableUnchangedMods.Count, Mode=OneWay}"
-                                               ItemsSource="{CompiledBinding ObservableMods, Mode=OneWay}">
+                                               ItemsSource="{CompiledBinding ObservableMods, Mode=OneWay}"
+                                               Name="ModList">
                                     <ItemsRepeater.Layout>
                                         <UniformGridLayout ItemsStretch="Fill"
                                                            Orientation="Horizontal"
@@ -382,7 +384,7 @@
                                                            MinRowSpacing="10" />
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type models:ModManifest}">
+                                        <DataTemplate DataType="{x:Type models:ObservableModManifest}">
                                             <Grid
                                                 ColumnDefinitions="Auto, *, Auto"
                                                 RowDefinitions="Auto 22.5">
@@ -391,37 +393,30 @@
                                                     Grid.Row="0"
                                                     Grid.Column="0"
                                                     Grid.ColumnSpan="3"
+                                                    ToolTip.Tip="Click to visualize this mod."
                                                     HorizontalAlignment="Stretch"
                                                     MinHeight="150"
-                                                    Classes="YCTP"
+                                                    Command="{Binding #ModList.((vm:MyModsViewModel)DataContext).SelectModToPreview}"
+                                                    CommandParameter="{CompiledBinding .}"
+                                                    Classes="YCTP PreviewBorderButton"
                                                     CornerRadius="5">
                                                     <Button.Background>
                                                         <ImageBrush
-                                                            Stretch="Fill"
-                                                            Source="{CompiledBinding Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}" />
+                                                            Stretch="UniformToFill"
+                                                            Source="{CompiledBinding InnerManifest.Metadata, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay, Converter={x:Static converters:ModMetadataConverters.MetadataToThumbnail}}" />
                                                     </Button.Background>
-                                                    <Button.BorderBrush>
-                                                        <MultiBinding Converter="{StaticResource ModToYCTPBrush}">
-                                                            <Binding Path="."/>
-                                                            <Binding Path="((vm:MyModsViewModel)DataContext).ManifestInPreview" RelativeSource="{RelativeSource FindAncestor, AncestorType=ItemsRepeater}"/>
-                                                        </MultiBinding>
-                                                    </Button.BorderBrush>
-                                                    <Button.Flyout>
-                                                        <Flyout>
-                                                            <TextBlock Text="Open this mod." />
-                                                        </Flyout>
-                                                    </Button.Flyout>
                                                 </Button>
                                                 
                                                 <!-- Disable/Enable Button -->
                                                 <Button
                                                     Grid.Row="1"
                                                     Grid.Column="0"
-                                                    Classes="YCTP"
+                                                    Classes="YCTP ActivationToggleButton"
+                                                    Command="{Binding #ModList.((vm:MyModsViewModel)DataContext).EnableModOrNot}"
+                                                    CommandParameter="{CompiledBinding .}"
                                                     BorderThickness="3"
-                                                    BorderBrush="{CompiledBinding Metadata.Activated, Converter={x:Static converters:BoolConverters.BoolToYCTPError}, Mode=OneWay}"
                                                     CornerRadius="5">
-                                                    <Svg Path="{CompiledBinding Metadata.Activated, Converter={x:Static converters:BoolConverters.BoolToCheckmarkIconPath}, Mode=OneWay}"/>
+                                                    <Svg Path="{CompiledBinding IsActivated, Converter={x:Static converters:BoolConverters.BoolToCheckmarkIconPath}, Mode=OneWay}"/>
                                                     <Button.Transitions>
                                                         <Transitions>
                                                             <BrushTransition
@@ -441,9 +436,8 @@
                                                     BorderBrush="{StaticResource YctpBg-Error}"
                                                     BorderThickness="3"
                                                     CornerRadius="5"
-                                                    
                                                     CommandParameter="{CompiledBinding .}"
-                                                    Command="{Binding ((vm:MyModsViewModel)DataContext).DeleteModManifest, RelativeSource={RelativeSource FindAncestor, AncestorType=ItemsRepeater}}">
+                                                    Command="{Binding #ModList.((vm:MyModsViewModel)DataContext).DeleteModManifest}">
                                                     <Svg Path="/Assets/UI/Trash.svg"/>
                                                 </Button>
                                                 
@@ -452,11 +446,10 @@
                                                     Grid.Row="1"
                                                     Grid.Column="1"
                                                     BorderThickness="3"
-                                                    BorderBrush="{CompiledBinding SupportsCurrentVersion, Converter={x:Static converters:BoolConverters.BoolToYCTPError}, Mode=OneWay}"
                                                     CornerRadius="5"
-                                                    Classes="YCTP">
+                                                    Classes="YCTP ModNameBorder">
                                                     <TextBlock 
-                                                        Text="{CompiledBinding Name}"
+                                                        Text="{CompiledBinding InnerManifest.Name}"
                                                         FontSize="12"
                                                         TextTrimming="CharacterEllipsis"/>
                                                 </Border>

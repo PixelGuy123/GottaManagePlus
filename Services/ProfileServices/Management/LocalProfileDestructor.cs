@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -33,7 +30,7 @@ public sealed class LocalProfileDestructor(
         if (_repository.Count <= 1 || !_repository.TryGet(metadata.Name, out _)) return;
         
         // Delete physically the profile from the profiles' folder.
-        _logger.Information("Deleting \'{profile}\'...", metadata.Name);
+        _logger.Information("Deleting '{profile}'...", metadata.Name);
         var metadataPath = metadata.GetPhysicalPath(_controller);
         Directory.Delete(metadataPath, recursive: true);
         

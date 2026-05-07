@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace GottaManagePlus.Utils;
 
@@ -22,11 +20,8 @@ public static class CollectionUtils
     /// <returns><see langword="true"/> if there is at least one duplicate; otherwise, <see langword="false"/>.</returns>
     public static bool HasDuplicate<T>(this T[] array)
     {
-        for (var i = 0; i < array.Length; i++)
-            for (var z = i; z < array.Length; z++)
-                if (array[i]?.Equals(array[z]) == true)
-                    return true;
-        return false;
+        var seen = new HashSet<T>();
+        return array.Any(item => !seen.Add(item));
     }
     
     /// <summary>
@@ -38,7 +33,7 @@ public static class CollectionUtils
     public static bool HasDuplicate(this string[] array, StringComparison comparison)
     {
         for (var i = 0; i < array.Length; i++)
-        for (var z = i; z < array.Length; z++)
+        for (var z = i + 1; z < array.Length; z++)
             if (array[i].Equals(array[z], comparison))
                 return true;
         return false;

@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace GottaManagePlus.Views;
 
-public partial class AddModDialogView : UserControl
+public partial class ModSelectionDialogView : UserControl
 {
-    public AddModDialogView()
+    public ModSelectionDialogView()
     {
         InitializeComponent();
     }

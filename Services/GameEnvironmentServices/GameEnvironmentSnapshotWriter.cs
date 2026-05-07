@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
@@ -39,6 +35,11 @@ public sealed class GameEnvironmentSnapshotWriter(ILogger logger) : IGameEnviron
             while (directoryQueue.Count > 0)
             {
                 var currentDir = directoryQueue.Dequeue();
+                
+                // If the path is the root folder of the application, ignore it.
+                if (Path.GetFileName(currentDir)
+                        .Equals(Constants.App_RootFolder, StringComparison.OrdinalIgnoreCase)) continue;
+                
                 var relativeDir = Path.GetRelativePath(rootPath, currentDir);
                 if (!string.IsNullOrEmpty(relativeDir) && relativeDir != ".")
                     snapshot.Directories.Add(relativeDir);
@@ -48,6 +49,9 @@ public sealed class GameEnvironmentSnapshotWriter(ILogger logger) : IGameEnviron
 
                 foreach (var filePath in Directory.EnumerateFiles(currentDir))
                 {
+                    // Ignore own write path
+                    if (filePath.Equals(writeToPath, StringComparison.OrdinalIgnoreCase)) continue;
+                    
                     var fileInfo = new FileInfo(filePath);
                     snapshot.Files.Add(new EnvironmentSnapshot.SnapshotFileEntry
                     {

@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
@@ -47,14 +45,14 @@ public sealed class ProfileExporter(ILogger logger)
             using var writer = WriterFactory.OpenWriter(fileStream, ArchiveType,
                 WriterOptions.ForZip());
             
-            _logger.Information("Exporting profile to \'{dir}\'...", profileDir.FullName);
+            _logger.Information("Exporting profile to '{dir}'...", profileDir.FullName);
             // Write the directory to the zip file.
             writer.WriteAll(profileDir.FullName, "*", SearchOption.AllDirectories);
-            _logger.Information("Successfully exported profile to \'{dir}\'", profileDir.FullName);
+            _logger.Information("Successfully exported profile to '{dir}'", profileDir.FullName);
         }
         catch (Exception e)
         {
-            _logger.Error(e, "Failed to export profile \'{profName}\' to \'{path}\'.", profile.Name, exportPath);
+            _logger.Error(e, "Failed to export profile '{profName}' to '{path}'.", profile.Name, exportPath);
         }
     }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using GottaManagePlus.Factories;
@@ -122,6 +120,7 @@ public partial class App
         collection.AddScoped<SecurityScanner>();
         collection.AddScoped<ModArchiveExtractor>();
         collection.AddScoped<ManifestLoader>();
+        collection.AddScoped<ModActivator>();
     }
 
     private static void SetupServicesForWindowAttributes(ServiceProvider services, IClassicDesktopStyleApplicationLifetime desktop, TopLevel window)

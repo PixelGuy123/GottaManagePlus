@@ -1,5 +1,3 @@
-using System.IO;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -64,7 +62,7 @@ public partial class PreviewProfileDialogViewModel : DialogViewModel
             dialog.Prepare(true, Constants.FailDialog, $"The path to the profile is somehow invalid!\n{profileFixSuggestion}");
             SubDialogView = dialog;
             
-            Log.Logger.Error("Failed to open profile path due to invalid path. \'{path}\'", profilePath);
+            Log.Logger.Error("Failed to open profile path due to invalid path. '{path}'", profilePath);
             Close();
             return;
         }

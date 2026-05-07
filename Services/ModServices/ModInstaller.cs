@@ -1,9 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -100,8 +94,10 @@ public sealed class ModInstaller(
             
             // 6. Register the mod to the available profile.
             var currentProfile = _profileManager.ActiveProfile;
-            if (currentProfile != null && results.Metadata != null)
-                currentProfile.ModDataFiles.Add(results.Metadata);
+            currentProfile?.ModDataFiles.Add(manifest);
+
+            results.Metadata = manifest;
+            results.Success = true;
             _logger.Information("Installation done with success!");
         }
         catch (OperationCanceledException)

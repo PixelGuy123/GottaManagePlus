@@ -1,7 +1,3 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -38,7 +34,7 @@ public sealed class ProfileToEnvironmentExtractor(
         
         // Get the profile's physical path.
         var profilePath = metadata.GetPhysicalPath(_controller);
-        _logger.Information("Extracting profile \'{profile}\' from path \'{path}\'...",
+        _logger.Information("Extracting profile '{profile}' from path '{path}'...",
             metadata.Name,
             profilePath);
         

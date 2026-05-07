@@ -1,9 +1,4 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -32,8 +27,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
     public async Task<ModManifest?> LoadMetadataAsync(string modRootPath, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
         // Locate _gmp/metadata.json
-        var manifestPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, "manifest.json"); // TODO: Turn these into constants
-        var metadataPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, ".metadata");
+        var manifestPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, Constants.ModManifestDefaultFileName);
         if (!File.Exists(manifestPath))
         {
             _logger.Warning("Missing _gmp{DirectorySeparatorChar}manifest.json", Path.DirectorySeparatorChar);
@@ -43,7 +37,9 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
         // Extract JSON data into an object
         try
         {
+            // Load the manifest in memory
             progress?.Report(new ProgressReport("Reading manifest file..."));
+            _logger.Information("Reading manifest ('{ManifestPath}')...", manifestPath);
             var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
             var manifest = JsonSerializer.Deserialize(json, ModManifestContext.Default.ModManifest);
             if (manifest == null)
@@ -51,16 +47,17 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
                 _logger.Warning("Failed to deserialize metadata (null result).");
                 return null;
             }
-
-            // Look for .metadata file if it is available
-            if (File.Exists(metadataPath))
+            
+            // Rename the manifest's patcher names to be unique
+            for (var i = 0; i < manifest.Patchers.Count; i++)
             {
-                var newMetadata =
-                    JsonSerializer.Deserialize<ModMetadata>(
-                        await File.ReadAllTextAsync(metadataPath, cancellationToken), ModManifestContext.Default.ModMetadata);
-                if (newMetadata != null)
-                    manifest.Metadata = newMetadata;
+                var patcherName = Path.GetFileName(manifest.Patchers[i]);
+                manifest.Patchers[i] =
+                    $"{PathUtils.TurnFileNameLegal(manifest.ToString())}_{patcherName}";
             }
+
+            // Load the metadata from disk.
+            _ = await manifest.LoadMetadataFromDiskAsync(controller, logger, cancellationToken);
 
             // Look for supported versions file
             var dir = Path.GetDirectoryName(manifestPath);

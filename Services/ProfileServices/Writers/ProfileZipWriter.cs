@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
@@ -96,7 +90,7 @@ public sealed class ProfileZipWriter(ILogger logger)
             
             // --- Write compressed content ---
             var zipPathToWrite = Path.Combine(profileRootDirectory.FullName, $"{profile.Name}{Constants.ProfileDefaultExtension}");
-            _logger.Information("Writing profile\'s content to \'{zipPathToWrite}\'...", zipPathToWrite);
+            _logger.Information("Writing profile's content to '{zipPathToWrite}'...", zipPathToWrite);
             await using (var fileStream = File.OpenWrite(zipPathToWrite))
             {
                 using var writer = WriterFactory.OpenWriter(fileStream, CompressedExtension,
@@ -108,7 +102,7 @@ public sealed class ProfileZipWriter(ILogger logger)
             
             // --- Write metadata file ---
             var metadataPath = Path.Combine(profileRootDirectory.FullName, Constants.ProfileMetadataFileName);
-            _logger.Information("Writing metadata file to \'{metadata}\'...", metadataPath);
+            _logger.Information("Writing metadata file to '{metadata}'...", metadataPath);
             File.WriteAllText(metadataPath, profile.Serialize());
 
             // Move final directory to target location
@@ -160,20 +154,11 @@ public sealed class ProfileZipWriter(ILogger logger)
         // Pre‑calculate total number of write operations
         int totalOps = 0, completed = 0;
 
-        // Count asset files and plugin directories
+        // Count asset directories
         foreach (var modData in profile.ModDataFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            totalOps += modData.Assets.Select(asset => controller.SearchAbsolutePath(asset.LocalPath)).Count(File.Exists);
-
-            var pluginFolder = Path.GetDirectoryName(modData.Metadata.Path);
-            if (string.IsNullOrEmpty(pluginFolder)) continue;
-            
-            var pluginPath = controller.SearchAbsolutePath(pluginFolder);
-            if (Directory.Exists(pluginPath))
-            {
-                totalOps++;
-            }
+            totalOps += modData.Assets.Select(asset => controller.SearchAbsolutePath(asset.LocalPath)).Count(Directory.Exists);
         }
 
         // Count configs directory
@@ -190,6 +175,14 @@ public sealed class ProfileZipWriter(ILogger logger)
         {
             patchersDir = controller.SearchAbsolutePath(patchersDir);
             if (Directory.Exists(patchersDir)) totalOps++;
+        }
+        
+        // Count plugins directory
+        var pluginsDir = controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder);
+        if (!string.IsNullOrEmpty(pluginsDir))
+        {
+            pluginsDir = controller.SearchAbsolutePath(pluginsDir);
+            if (Directory.Exists(pluginsDir)) totalOps++;
         }
 
         _logger.Information("Total write operations counted: {TotalOps}", totalOps);
@@ -213,14 +206,10 @@ public sealed class ProfileZipWriter(ILogger logger)
                 progress?.Report(new ProgressReport(completed, totalOps, "Writing asset", Path.GetFileName(resourcePath)));
             }
         }
-
-        // Write plugin directories
-        foreach (var modItem in profile.ModDataFiles)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            TryToWriteDirectoryIfValid(writer, Path.GetDirectoryName(modItem.Metadata.Path), gameRoot,
-                ref completed, totalOps, null, controller, progress);
-        }
+        
+        // Write the whole Plugins folder
+        TryToWriteDirectoryIfValid(writer, pluginsDir, gameRoot,
+            ref completed, totalOps, null, controller, progress);
 
         // Write configs and patchers directories
         profile.ConfigurationFiles.Clear();

@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.UI;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -37,9 +34,16 @@ public partial class LoadingDialogViewModel : DialogViewModel
     [ObservableProperty]
     public partial string CancelText { get; set; } = "Cancel";
 
-    [ObservableProperty] private bool _allowCancellation, _hideProgressBar;
+    [ObservableProperty] 
+    public partial bool AllowCancellation { get; set; }
+    
+    [ObservableProperty] 
+    public partial bool HideProgressBar { get; set; }
+    
     [ObservableProperty]
     public partial Progress<ProgressReport>? Progress { get; set; }
+    
+    public object? Result { get; private set; }
 
     public async Task<bool> StartTask()
     {
@@ -57,7 +61,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
             var parameters = MethodCache[_loadingDelegate.Method];
             var finalArgs = new object?[parameters.Length];
             var providedArgIndex = 0;
-
             for (var i = 0; i < parameters.Length; i++)
             {
                 // Get the param type
@@ -88,12 +91,22 @@ public partial class LoadingDialogViewModel : DialogViewModel
             
             switch (result)
             {
+                // Installation Result check
+                case Task<ModInstallationResult> installTask:
+                    var installResult = await installTask;
+                    Result = installResult;
+                    cancellationDone = _cts.IsCancellationRequested;
+                    return !cancellationDone;
+                
+                // Check for the boolean result
                 case Task<bool> boolTask:
                 {
                     var success = await boolTask;
                     cancellationDone = _cts.IsCancellationRequested;
                     return success && !cancellationDone;
                 }
+                
+                // Check for a default task
                 case Task task:
                     await task;
                     cancellationDone = _cts.IsCancellationRequested;
@@ -149,6 +162,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
         const int delegateHandlingOffset = 2;
         // Reset state
         _hasAlreadyInitiated = false;
+        Result = null;
         _cts = new CancellationTokenSource();
         Progress = null;
         ProgressValue = 0;

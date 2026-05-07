@@ -1,14 +1,10 @@
-﻿using System.Threading.Tasks;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Services;
-using System;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
 using Avalonia.Threading;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
@@ -311,8 +307,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     private async Task ExportProfileMetadata(ProfileMetadata profile)
     {
         if (!await _dialogService.PromptUserQuestion(
-                $"Export \'{profile.Name}\'?",
-                $"Are you sure you want to export \'{profile.Name}\'?")) return;
+                $"Export '{profile.Name}'?",
+                $"Are you sure you want to export '{profile.Name}'?")) return;
 
         if (!await _dialogService.GenerateLoadingProcess(
                 failDialogDescription:
@@ -330,14 +326,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     {
         // Ensure the user wants to delete the profile.
         if (!await _dialogService.PromptUserQuestion(
-                $"Delete \'{profile.Name}\'?",
-                $"Are you sure you want to delete \'{profile.Name}\'?"))
+                $"Delete '{profile.Name}'?",
+                $"Are you sure you want to delete '{profile.Name}'?"))
             return;
 
         // Attempts to delete the profile.
         await _dialogService.GenerateLoadingProcess(
-            $"Failed to delete the profile \'{profile.Name}\'.",
-            $"Successfully deleted the profile \'{profile.Name}\'.",
+            $"Failed to delete the profile '{profile.Name}'.",
+            $"Successfully deleted the profile '{profile.Name}'.",
             "Deleting profile...", null, (Delegate)_profileDestructor.DeleteProfile, profile
         );
     }
@@ -399,6 +395,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 
     private async Task SwitchProfileUiAsync(ProfileMetadata profile)
     {
+        // TODO: Add a warning in case invalid mods are found, to auto-generate new mods when detected.
         if (_profileManager.ActiveProfile == profile) return;
 
         if (!await _dialogService.PromptUserQuestion(
