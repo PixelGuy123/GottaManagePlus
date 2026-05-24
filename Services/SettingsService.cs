@@ -30,7 +30,7 @@ public sealed class SettingsService
         _logger.Information("Settings loaded from {FilePath}", _filePath);
     }
     
-    // ----- Private API -----
+    // ----- Private -----
 
     /// <summary>
     /// Loads settings from disk, falling back to DI options or default instance.

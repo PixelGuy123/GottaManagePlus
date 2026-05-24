@@ -12,7 +12,7 @@ public sealed class ProfileManager(
     ProfileRepository repository,
     ILogger logger)
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly IEnvironmentToLocalParser _environmentSaver = environmentSaver;
     private readonly ILocalToEnvironmentParser _profileExtractor = profileExtractor;
     private readonly IProfileStorageScanner _profileScanner = profileScanner;
@@ -20,7 +20,7 @@ public sealed class ProfileManager(
     private readonly ProfileRepository _repository = repository;
     private readonly ILogger _logger = logger;
 
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// The currently active <see cref="ProfileMetadata"/>.
     /// </summary>

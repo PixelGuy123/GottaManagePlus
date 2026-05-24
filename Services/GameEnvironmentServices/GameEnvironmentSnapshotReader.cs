@@ -8,10 +8,10 @@ namespace GottaManagePlus.Services.GameEnvironmentServices;
 
 public sealed class GameEnvironmentSnapshotReader(ILogger logger) : IGameEnvironmentSnapshotReader
 {
-    // ----- Private API -----
+    // ----- Private -----
     private readonly ILogger _logger = logger;
 
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Reads the snapshot as a <see cref="EnvironmentSnapshot"/> abstraction.
     /// </summary>

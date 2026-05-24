@@ -15,10 +15,10 @@ public sealed class ProfileExporter(ILogger logger)
 {
     public const ArchiveType ArchiveType = SharpCompress.Common.ArchiveType.Zip;
     
-    // ----- Private API -----
+    // ----- Private -----
     private readonly ILogger _logger = logger;
     
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Exports a profile in the <c>.gmpProfile</c> format.
     /// </summary>

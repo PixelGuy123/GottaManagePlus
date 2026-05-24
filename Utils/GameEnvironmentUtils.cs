@@ -11,7 +11,7 @@ namespace GottaManagePlus.Utils;
 /// </summary>
 public static partial class GameEnvironmentUtils
 {
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Attempts to scan a Unity GlobalGameManagers file to extract and validate a game version string from a specific binary region.
     /// </summary>

@@ -1,5 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+        xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles">
     
     <Design.PreviewWith>
         <Border Background="Black" MinWidth="500" MinHeight="400" Padding="20">
@@ -28,6 +30,14 @@
                     <Border>
                         <StackPanel Orientation="Horizontal">
                             <Button Classes="YCTPButton Miniature">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <Border Background="Yellow"
+                                                Padding="12" 
+                                                CornerRadius="4">
+                                            </Border>
+                                        </Flyout>
+                                </Button.Flyout>
                                 <Svg Path="/Assets/UI/delete-search.svg"/>
                             </Button>
                             <Button Classes="YCTPButton">
@@ -56,6 +66,7 @@
         <Style Selector="^.YCTPButton">
             <Setter Property="Width" Value="64"/>
             <Setter Property="Height" Value="64"/>
+            <Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
                 <Setter Property="Background" Value="#8c0d93"/>
@@ -64,8 +75,17 @@
                 <Setter Property="Padding" Value="6"/>
                 <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #3f043e"/>
             </Style>
+            <Style Selector="^ /template/ Border#PART_RootBorder">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="BoxShadow" Value=","/> <!-- Add an empty BoxShadows collection -->
+            </Style>
+            <Style Selector="^ FlyoutPresenter /template/ controls|Card#LayoutRoot">
+                <Setter Property="Background" Value="Transparent"/>
+            </Style>
             
-            <!-- Icon Definitions -->
+                <!-- Icon Definitions -->
             <Style Selector="^ Svg">
                 <Setter Property="IsHitTestVisible" Value="False"/>
                 <Setter Property="Opacity" Value="{Binding Opacity, RelativeSource={RelativeSource FindAncestor, AncestorType=Button}}"/>
@@ -104,7 +124,7 @@
             <Style Selector="^:pointerover TextBlock">
                 <Setter Property="Foreground" Value="#949794"></Setter>
             </Style>
-                <!-- Default Animation Disable -->
+            <!-- Default Animation Disable -->
             <Setter Property="Transitions" Value="{x:Null}" />
             <Setter Property="RenderTransform" Value="none" />
             <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 

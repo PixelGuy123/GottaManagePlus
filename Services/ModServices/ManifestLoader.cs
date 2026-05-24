@@ -12,11 +12,11 @@ namespace GottaManagePlus.Services.ModServices;
 /// </summary>
 public sealed class ManifestLoader(ILogger logger, GameEnvironmentController controller)
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly ILogger _logger = logger;
     private readonly GameEnvironmentController _controller = controller;
 
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Loads a metadata file based on the path: <c>archiveRoot/_gmp/manifest.json</c>.
     /// </summary>

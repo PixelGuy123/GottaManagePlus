@@ -9,14 +9,19 @@
         </Border>
     </Design.PreviewWith>
     
-    <!-- Header Title Properties-->
-    <Style Selector="TextBlock#HeaderTitle">
-        <Setter Property="Margin" Value="68 5 0 5"/>
-        <Setter Property="FontFamily" Value="{StaticResource Baskerville}" />
-        <Setter Property="FontSize" Value="20" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+    <!-- Default Textblock Color -->
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource BlackColor}"/>
+        
+        <!-- Header Title Properties-->
+        <Style Selector="^#HeaderTitle">
+            <Setter Property="Margin" Value="68 5 0 5"/>
+            <Setter Property="FontFamily" Value="{StaticResource Baskerville}" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
     </Style>
+    
 </Styles>

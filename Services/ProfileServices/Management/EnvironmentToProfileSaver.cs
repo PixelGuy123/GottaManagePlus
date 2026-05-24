@@ -15,13 +15,13 @@ public sealed class EnvironmentToProfileSaver(
     ILogger logger)
     : IEnvironmentToLocalParser
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileZipWriter _zipWriter = zipWriter;
     private readonly ModRepositoryScanner _modRepositoryScanner = modRepositoryScanner;
     private readonly ILogger _logger = logger;
     
-    // ---- Public API -----
+    // ---- Public -----
     /// <summary>
     /// Saves the environment to a given profile.
     /// </summary>

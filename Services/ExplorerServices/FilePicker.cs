@@ -7,15 +7,15 @@ namespace GottaManagePlus.Services.ExplorerServices;
 /// <summary>
 /// A class responsible for handling any type of file picking request.
 /// </summary>
-public class FilePicker(ILogger logger, ApplicationBridge applicationBridge)
+public class FilePicker(ILogger logger, ApplicationManager applicationManager)
 {
-    // ----- Private API -----
+    // ----- Private -----
     private readonly ILogger _logger = logger;
-    private readonly ApplicationBridge _applicationBridge = applicationBridge;
+    private readonly ApplicationManager _applicationManager = applicationManager;
     private IStorageProvider? _storageProvider;
     public void RegisterProvider(IStorageProvider provider) => _storageProvider = provider;
     
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Opens a file picker using Avalonia's API for selecting a file.
     /// </summary>
@@ -38,7 +38,7 @@ public class FilePicker(ILogger logger, ApplicationBridge applicationBridge)
             folder = await _storageProvider.TryGetFolderFromPathAsync(preselectedPath);
 
         IReadOnlyList<IStorageFile>? files = null;
-        await _applicationBridge.FreezeWindowAsync(async () =>
+        await _applicationManager.FreezeWindowAsync(async () =>
         { 
             files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
@@ -71,7 +71,7 @@ public class FilePicker(ILogger logger, ApplicationBridge applicationBridge)
             folder = await _storageProvider.TryGetFolderFromPathAsync(preselectedPath);
 
         IStorageFile? fileSaved = null;
-        await _applicationBridge.FreezeWindowAsync(async () =>
+        await _applicationManager.FreezeWindowAsync(async () =>
         {
             fileSaved = await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions()
             {

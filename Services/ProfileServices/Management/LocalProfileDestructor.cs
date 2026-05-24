@@ -12,13 +12,13 @@ public sealed class LocalProfileDestructor(
     ProfileRepository repository,
     ILogger logger) : IProfileDestructor
 {
-    // ----- Private API -----
+    // ----- Private -----
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileManager _manager = manager;
     private readonly ProfileRepository _repository = repository;
     private readonly ILogger _logger = logger;
 
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Deletes a profile from the repository and physically.
     /// </summary>

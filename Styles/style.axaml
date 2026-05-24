@@ -9,6 +9,8 @@
     <StyleInclude Source="ReusableEffects.axaml"/>
     <StyleInclude Source="TextBlock.axaml"/>
     <StyleInclude Source="Labels.axaml"/>
+    <StyleInclude Source="Separator.axaml"/>
+    <StyleInclude Source="ComboBox.axaml"/>
     
     <!-- MISC styling that's way too specific to get its own .axaml -->
 

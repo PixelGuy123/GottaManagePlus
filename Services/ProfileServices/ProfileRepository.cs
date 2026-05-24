@@ -9,11 +9,11 @@ namespace GottaManagePlus.Services.ProfileServices;
 /// </summary>
 public sealed class ProfileRepository(ILogger logger)
 {
-    // ----- Private API ------
+    // ----- Private ------
     private readonly List<ProfileMetadata> _profiles = new(8);
     private readonly ILogger _logger = logger;
     
-    // ------ Public API ------
+    // ------ Public ------
     /// <summary>
     /// Raised when any action (clear, add, remove) is invoked.
     /// </summary>

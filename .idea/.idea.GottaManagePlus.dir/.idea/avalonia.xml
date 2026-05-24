@@ -7,6 +7,7 @@
         <entry key="Styles/AutoCompleteBox.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Borders.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Buttons.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ComboBox.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/FileBrowser.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/HighlightedTextBlock.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Controls/PseudoTextBox.axaml" value="GottaManagePlus.csproj" />
@@ -21,7 +22,18 @@
         <entry key="Styles/ReusableEffects.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/ScrollBarViewer.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/ScrollViewer.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Separator.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/TextBlock.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/DarkTheme/Backgrounds.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/DarkTheme/Buttons.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/DarkTheme/FluentControls.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/DarkTheme/Menus.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/DarkTheme/MiscColors.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/LightTheme/Backgrounds.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/LightTheme/Buttons.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/LightTheme/FluentControls.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/LightTheme/Menus.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/Themes/LightTheme/MiscColors.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Themes/LightThemeResources.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/style.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/AddModDialogView.axaml" value="GottaManagePlus.csproj" />

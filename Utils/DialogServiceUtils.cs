@@ -16,7 +16,7 @@ public static class DialogServiceUtils
         YesOrNo = 0,
         AllowOrDisallow,
         ProceedOrCancel,
-        AdaptOrOverwrite
+        AdaptOrIgnore
     }
 
     /// <param name="dialogService">The service instance responsible for managing dialog interactions.</param>
@@ -126,7 +126,7 @@ public static class DialogServiceUtils
         }
     }
 
-    // ---- Private API -----
+    // ---- Private -----
     /// <summary>
     /// Converts a <see cref="QuestionAnswerType"/> to its <see langword="string"/> form.
     /// </summary>
@@ -134,10 +134,10 @@ public static class DialogServiceUtils
     /// <returns>A <see cref="Tuple{string, string}"/> for a <c>Yes</c> and a <c>No</c>.</returns>
     private static (string Yes, string No) AnswerToString(this QuestionAnswerType answerType) => answerType switch
     {
-        QuestionAnswerType.YesOrNo => ("Yes", "No"),
+        QuestionAnswerType.YesOrNo => ("Yes", "No"), // TODO: Here needs localization
         QuestionAnswerType.AllowOrDisallow => ("Allow", "Disallow"),
         QuestionAnswerType.ProceedOrCancel => ("Proceed", "Cancel"),
-        QuestionAnswerType.AdaptOrOverwrite => ("Adapt", "Overwrite"),
+        QuestionAnswerType.AdaptOrIgnore => ("Adapt", "Ignore"),
         _ => ("Yes", "No")
     };
 }

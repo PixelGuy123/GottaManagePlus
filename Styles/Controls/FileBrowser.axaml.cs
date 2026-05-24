@@ -80,7 +80,7 @@ public class FileBrowser : TemplatedControl
         set => SetValue(PlaceholderFontFamilyProperty, value);
     }
     
-    // ---- Private API ----
+    // ---- Private ----
     private static FontFamily? GetFontFamily(string fontName)
     {
         if (Application.Current?.TryGetResource(fontName, out var resource) == true)

@@ -13,7 +13,7 @@ public sealed class LocalProfileStorageScanner(
     ILogger logger)
     : IProfileStorageScanner
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileZipReader _zipReader = zipReader;
     private readonly ProfileRepository _profileRepository = repository;

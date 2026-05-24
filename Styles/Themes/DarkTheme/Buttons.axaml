@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Normal Buttons -->
+    <SolidColorBrush x:Key="Generic-Button" Color="#0D4D1A"/>
+    <SolidColorBrush x:Key="Generic-Button-Pointed" Color="#1A6F2E"/>
+    <SolidColorBrush x:Key="Generic-Button-Pressed" Color="#08340F"/>
+
+    <!-- Danger Buttons -->
+    <SolidColorBrush x:Key="Danger-Button" Color="#8B0000"/>
+    <SolidColorBrush x:Key="Danger-Button-Pointed" Color="#C41A1A"/>
+    <SolidColorBrush x:Key="Danger-Button-Pressed" Color="#4A0000"/>
+</ResourceDictionary>

@@ -13,6 +13,7 @@
     <Design.DataContext><vm:ConfirmDialogViewModel/></Design.DataContext>
     
     <UserControl.Styles>
+        <StyleInclude Source="/Styles/TextBlock.axaml"/>
         <StyleInclude Source="/Styles/Buttons.axaml"/>
     </UserControl.Styles>
     
@@ -28,7 +29,6 @@
                 <!-- Title -->
                 <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
                     <TextBlock 
-                        Foreground="{DynamicResource BlackColor}"
                         Text="{CompiledBinding Title, Mode=OneWay}"
                         MaxWidth="650"
                         HorizontalAlignment="Center"
@@ -62,8 +62,10 @@
                         IsVisible="{CompiledBinding !OnlyConfirmButton, Mode=OneWay}"
                         Content="{CompiledBinding CancelText, Mode=OneWay}" 
                         Classes="DialogBtn DangerDialogBtn"
+                        IsCancel="True"
                         Command="{Binding Cancel}"/>
                     <Button
+                        IsDefault="True"
                         Content="{CompiledBinding ConfirmText, Mode=OneWay}" 
                         Classes="DialogBtn GenericDialogBtn"
                         Command="{Binding Confirm}"/>

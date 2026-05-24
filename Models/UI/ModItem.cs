@@ -1,34 +1,100 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using GottaManagePlus.Services.APIServices;
+using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Models.UI;
 
 /// <summary>
-/// Concrete representation of a JSON document from <see cref="GottaManagePlus.Services.APIServices.GamebananaApiService.GetSubmissionDataAsync"/>.
+/// Concrete representation of a JSON document from <see cref="GamebananaApiService.GetSubmissionDataAsync"/>.
 /// </summary>
-public partial class ModItem : ObservableObject
+public partial class ModItem : ObservableObject, IDisposable
 {
-    [JsonPropertyName("_idRow")] public int Id { get; set; }
-
+    // To dispose the Bitmap images stored in.
+    public void Dispose()
+    {
+        ImageUrlAsImage?.Dispose();
+        ThumbnailUrlAsImage?.Dispose();
+    }
+    
+    [JsonPropertyName("_idRow")] public int Id { get; init; }
     [JsonPropertyName("_sName")] public string Name { get; set; } = string.Empty;
-
     [JsonPropertyName("_sDescription")] public string Description { get; set; } = string.Empty;
-
     [JsonPropertyName("_aSubmitter")] public ModSubmitter? Submitter { get; set; }
-
-    [JsonPropertyName("_aAdditionalInfo")] public ModAdditionalInfo? AdditionalInfo { get; set; }
-
+    [JsonPropertyName("_tsDateModified")] public DateTime DateModified { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("_tsDateUpdated")] public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("_tsDateAdded")] public DateTime DateAdded { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("_nDownloadCount")] public int? DownloadCount { get; set; }
+    [JsonPropertyName("_nViewCount")] public int? ViewCount { get; set; }
+    [JsonPropertyName("_nLikeCount")] public int? LikeCount { get; set; }
     [JsonPropertyName("_sDownloadUrl")] public string DownloadUrl { get; set; } = string.Empty;
-
     [JsonPropertyName("_aPreviewMedia")] public ModPreviewMedia? PreviewMedia { get; set; }
+    [JsonPropertyName("_bIsPrivate")] public bool IsPrivate { get; set; }
+    [JsonPropertyName("_bIsTrashed")] public bool IsTrashed { get; set; }
+
+    [JsonPropertyName("_sVersion")] public string Version { get; set; } = string.Empty;
+    [JsonPropertyName("_sCommentsMode")] public string CommentsMode { get; set; } = "open";
+    [JsonPropertyName("_nUpdatesCount")] public int UpdatesCount { get; set; }
+    [JsonPropertyName("_bHasUpdates")] public bool HasUpdates { get; set; }
+    [JsonPropertyName("_nAllTodosCount")] public int AllTodosCount { get; set; }
+    [JsonPropertyName("_bHasTodos")] public bool HasTodos { get; set; }
+    [JsonPropertyName("_nPostCount")] public int PostCount { get; set; }
+    [JsonPropertyName("_aTags")] public List<string> Tags { get; set; } = [];
+
+    [JsonPropertyName("_bCreatedBySubmitter")]
+    public bool CreatedBySubmitter { get; set; }
+
+    [JsonPropertyName("_bIsPorted")] public bool IsPorted { get; set; }
+    [JsonPropertyName("_nThanksCount")] public int ThanksCount { get; set; }
+
+    [JsonPropertyName("_sInitialVisibility")]
+    public string InitialVisibility { get; set; } = "show";
+
+    [JsonPropertyName("_sPayType")] public string PayType { get; set; } = "free";
+
+    [JsonPropertyName("_bGenerateTableOfContents")]
+    public bool GenerateTableOfContents { get; set; }
+
+    [JsonPropertyName("_sText")] public string Text { get; set; } = string.Empty;
+    [JsonPropertyName("_bShowRipePromo")] public bool ShowRipePromo { get; set; }
+    [JsonPropertyName("_bFollowLinks")] public bool FollowLinks { get; set; }
+
+    [JsonPropertyName("_bAccessorHasUnliked")]
+    public bool AccessorHasUnliked { get; set; }
+
+    [JsonPropertyName("_bAccessorHasLiked")]
+    public bool AccessorHasLiked { get; set; }
+
+    [JsonPropertyName("_bAccessorHasThanked")]
+    public bool AccessorHasThanked { get; set; }
+
+    [JsonPropertyName("_bAccessorIsSubscribed")]
+    public bool AccessorIsSubscribed { get; set; }
+
+    [JsonPropertyName("_idAccessorSubscriptionRow")]
+    public int AccessorSubscriptionRowId { get; set; }
+
+    [JsonPropertyName("_bAdvancedRequirementsExist")]
+    public bool AdvancedRequirementsExist { get; set; }
+
+    [JsonPropertyName("_aRequirements")] public List<List<string>> Requirements { get; set; } = [];
+
+    // File collections
+    [JsonPropertyName("_aFiles")] public List<ModFile> Files { get; set; } = [];
+    [JsonPropertyName("_aArchivedFiles")] public List<ModFile> ArchivedFiles { get; set; } = [];
+
+    // Credits (new structured format)
+    [JsonPropertyName("_aCredits")] public List<ModCreditsGroup> Credits { get; set; } = [];
 
     // Helper properties for UI
     [JsonIgnore]
     public string Author
     {
         get => Submitter?.Name ?? "Unknown";
-        set
+        init
         {
             Submitter?.Name = value;
             OnPropertyChanged();
@@ -36,131 +102,438 @@ public partial class ModItem : ObservableObject
     }
 
     [JsonIgnore]
-    public string Version
-    {
-        get => AdditionalInfo?.Version ?? "1.0";
-        set
-        {
-            AdditionalInfo?.Version = value;
-            OnPropertyChanged();
-        }
-    }
-
-    [JsonIgnore]
-    public string? ThumbnailUrl // By default, use the preview media if available; otherwise, whatever is set as field.
+    public string? ThumbnailUrl
     {
         get => PreviewMedia?.GetThumbnailUrl() ?? field;
-        set
+        init
         {
             field = value;
             OnPropertyChanged();
         }
     }
+
     [JsonIgnore]
-    public string? ImageUrl // By default, use the preview media if available; otherwise, whatever is set as field.
+    public string? ImageUrl
     {
         get => PreviewMedia?.GetImageUrl() ?? field;
-        set
+        init
         {
             field = value;
             OnPropertyChanged();
         }
     }
 
-    [ObservableProperty]
-    [JsonIgnore]
-    public partial bool IsSelected { get; set; }
+    [JsonIgnore] public Bitmap? ImageUrlAsImage { get; private set; }
+    [JsonIgnore] public Bitmap? ThumbnailUrlAsImage { get; private set; }
 
-    // Static factory from JsonDocument (for future API integration)
+    [ObservableProperty] [JsonIgnore] public partial bool IsSelected { get; set; }
+
+    [ObservableProperty] [JsonIgnore] public partial bool IsUnselectable { get; set; }
+
+    public override bool Equals(object? obj) =>
+        obj is ModItem item && item.Id == Id;
+    public override int GetHashCode() => Id;
+    public static bool operator ==(ModItem? a, ModItem? b) => a?.Equals(b) == true;
+    public static bool operator !=(ModItem? a, ModItem? b) => !(a == b);
+
+    /// <summary>
+    /// Creates a <see cref="ModItem"/> from a JSON document.
+    /// </summary>
     public static ModItem FromJson(JsonDocument doc)
     {
         var root = doc.RootElement;
-        return new ModItem
+        var item = new ModItem
         {
+            // Basic info
             Id = root.TryGetProperty("_idRow", out var id) ? id.GetInt32() : 0,
             Name = root.TryGetProperty("_sName", out var name) ? name.GetString() ?? string.Empty : string.Empty,
             Description = root.TryGetProperty("_sDescription", out var desc)
                 ? desc.GetString() ?? "No description"
                 : "No description",
-            DownloadUrl = root.TryGetProperty("_sDownloadUrl", out var url)
-                ? url.GetString() ?? string.Empty
+            DownloadUrl = root.TryGetProperty("_sDownloadUrl", out var dl)
+                ? dl.GetString() ?? string.Empty
                 : string.Empty,
-            Submitter = root.TryGetProperty("_aSubmitter", out var submitter) ? ModSubmitter.FromJson(submitter) : null,
-            AdditionalInfo = root.TryGetProperty("_aAdditionalInfo", out var info)
-                ? ModAdditionalInfo.FromJson(info)
-                : null,
-            PreviewMedia = root.TryGetProperty("_aPreviewMedia", out var media) ? ModPreviewMedia.FromJson(media) : null
+
+            // Submitter
+            Submitter = root.TryGetProperty("_aSubmitter", out var sub) ? ModSubmitter.FromJson(sub) : null,
+
+            // Preview media
+            PreviewMedia =
+                root.TryGetProperty("_aPreviewMedia", out var media) ? ModPreviewMedia.FromJson(media) : null,
+
+            // Counts
+            DownloadCount = root.TryGetProperty("_nDownloadCount", out var dlCount) ? dlCount.GetInt32() : 0,
+            ViewCount = root.TryGetProperty("_nViewCount", out var view) ? view.GetInt32() : 0,
+            LikeCount = root.TryGetProperty("_nLikeCount", out var like) ? like.GetInt32() : 0,
+
+            // Booleans
+            IsTrashed = root.TryGetProperty("_bIsTrashed", out var trash) && trash.GetBoolean(),
+            IsPrivate = root.TryGetProperty("_bIsPrivate", out var priv) && priv.GetBoolean(),
+            CreatedBySubmitter = root.TryGetProperty("_bCreatedBySubmitter", out var created) && created.GetBoolean(),
+            IsPorted = root.TryGetProperty("_bIsPorted", out var ported) && ported.GetBoolean(),
+            GenerateTableOfContents = root.TryGetProperty("_bGenerateTableOfContents", out var toc) && toc.GetBoolean(),
+            ShowRipePromo = root.TryGetProperty("_bShowRipePromo", out var ripe) && ripe.GetBoolean(),
+            FollowLinks = root.TryGetProperty("_bFollowLinks", out var follow) && follow.GetBoolean(),
+            AccessorHasUnliked = root.TryGetProperty("_bAccessorHasUnliked", out var unliked) && unliked.GetBoolean(),
+            AccessorHasLiked = root.TryGetProperty("_bAccessorHasLiked", out var liked) && liked.GetBoolean(),
+            AccessorHasThanked = root.TryGetProperty("_bAccessorHasThanked", out var thanked) && thanked.GetBoolean(),
+            AccessorIsSubscribed = root.TryGetProperty("_bAccessorIsSubscribed", out var subbed) && subbed.GetBoolean(),
+            AdvancedRequirementsExist = root.TryGetProperty("_bAdvancedRequirementsExist", out var advReq) &&
+                                        advReq.GetBoolean(),
+
+            // Dates
+            DateModified = root.TryGetProperty("_tsDateModified", out var mod) ? mod.GetUnixDateTime() : default,
+            DateUpdated = root.TryGetProperty("_tsDateUpdated", out var upd) ? upd.GetUnixDateTime() : default,
+            DateAdded = root.TryGetProperty("_tsDateAdded", out var added) ? added.GetUnixDateTime() : default,
+
+            // Strings and simple values
+            Version = root.TryGetProperty("_sVersion", out var ver) ? ver.GetString() ?? string.Empty : string.Empty,
+            CommentsMode = root.TryGetProperty("_sCommentsMode", out var cmtMode)
+                ? cmtMode.GetString() ?? "open"
+                : "open",
+            UpdatesCount = root.TryGetProperty("_nUpdatesCount", out var updates) ? updates.GetInt32() : 0,
+            HasUpdates = root.TryGetProperty("_bHasUpdates", out var hasUpd) && hasUpd.GetBoolean(),
+            AllTodosCount = root.TryGetProperty("_nAllTodosCount", out var todos) ? todos.GetInt32() : 0,
+            HasTodos = root.TryGetProperty("_bHasTodos", out var hasTodos) && hasTodos.GetBoolean(),
+            PostCount = root.TryGetProperty("_nPostCount", out var posts) ? posts.GetInt32() : 0,
+            Tags = root.TryGetProperty("_aTags", out var tags)
+                ? tags.EnumerateArray().Select(t => t.GetString() ?? string.Empty).Where(s => !string.IsNullOrEmpty(s))
+                    .ToList()
+                :
+                [
+                ],
+            ThanksCount = root.TryGetProperty("_nThanksCount", out var thanks) ? thanks.GetInt32() : 0,
+            InitialVisibility = root.TryGetProperty("_sInitialVisibility", out var vis)
+                ? vis.GetString() ?? "show"
+                : "show",
+            PayType = root.TryGetProperty("_sPayType", out var pay) ? pay.GetString() ?? "free" : "free",
+            Text = root.TryGetProperty("_sText", out var text) ? text.GetString() ?? string.Empty : string.Empty,
+            AccessorSubscriptionRowId = root.TryGetProperty("_idAccessorSubscriptionRow", out var subRow)
+                ? subRow.GetInt32()
+                : 0,
         };
+
+        // Files (active, non‑archived)
+        if (root.TryGetProperty("_aFiles", out var files))
+        {
+            foreach (var fileElem in files.EnumerateArray())
+                item.Files.Add(ModFile.FromJson(fileElem));
+        }
+
+        // Archived files
+        if (root.TryGetProperty("_aArchivedFiles", out var archived))
+        {
+            foreach (var archElem in archived.EnumerateArray())
+                item.ArchivedFiles.Add(ModFile.FromJson(archElem));
+        }
+
+        // Credits (new structured format)
+        if (root.TryGetProperty("_aCredits", out var credits))
+        {
+            foreach (var groupElem in credits.EnumerateArray())
+                item.Credits.Add(ModCreditsGroup.FromJson(groupElem));
+        }
+
+        // Requirements
+        if (root.TryGetProperty("_aRequirements", out var reqs))
+        {
+            foreach (var pair in reqs.EnumerateArray().Select(req =>
+                         req.EnumerateArray().Select(part => part.GetString() ?? string.Empty).ToList()))
+            {
+                item.Requirements.Add(pair);
+            }
+        }
+
+        return item;
     }
 
-    // TODO: Add Image loading using AssetLoader when byte[] data is available
-}
-
-public class ModSubmitter
-{
-    [JsonPropertyName("_sName")] public string Name { get; set; } = string.Empty;
-
-    public static ModSubmitter FromJson(JsonElement el) =>
-        new()
-        {
-            Name = el.TryGetProperty("_sName", out var name) ? name.GetString() ?? "Unknown" : "Unknown"
-        };
-}
-
-public class ModAdditionalInfo
-{
-    [JsonPropertyName("_sVersion")] public string Version { get; set; } = string.Empty;
-
-    public static ModAdditionalInfo FromJson(JsonElement el) =>
-        new()
-        {
-            Version = el.TryGetProperty("_sVersion", out var v) ? v.GetString() ?? "1.0" : "1.0"
-        };
-}
-
-public class ModPreviewMedia
-{
-    [JsonPropertyName("_aImages")] public List<ModImage> Images { get; set; } = [];
-
-    public static ModPreviewMedia FromJson(JsonElement el)
+    /// <summary>
+    /// Tries to load the images established in the stored URLs inside this object.
+    /// </summary>
+    public async Task AttemptToLoadImagesFromURLs(GamebananaApiService apiService, bool reloadIfAlreadySet,
+        IProgress<ProgressReport>? progress)
     {
-        var media = new ModPreviewMedia();
-        if (!el.TryGetProperty("_aImages", out var images)) return media;
+        if (ValidateString(ThumbnailUrl, ThumbnailUrlAsImage))
+            ThumbnailUrlAsImage = await apiService.GetImageAsync(ThumbnailUrl, progress);
 
-        foreach (var img in images.EnumerateArray())
-            media.Images.Add(ModImage.FromJson(img));
+        if (ValidateString(ImageUrl, ImageUrlAsImage))
+            ImageUrlAsImage = await apiService.GetImageAsync(ImageUrl, progress);
+        return;
 
-        return media;
+        bool ValidateString([NotNullWhen(true)] string? url, Bitmap? img) =>
+            !string.IsNullOrEmpty(url) && (img == null || reloadIfAlreadySet);
     }
 
-    public string? GetThumbnailUrl() => Images.FirstOrDefault()?.File100Url;
-    public string? GetImageUrl() => Images.FirstOrDefault()?.File530Url;
-}
+// ===== Nested supporting classes =====
 
-public class ModImage
-{
-    [JsonPropertyName("_sBaseUrl")] public string BaseUrl { get; set; } = string.Empty;
+    public class ModSubmitter
+    {
+        [JsonPropertyName("_sName")] public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("_sFile")] // Main File Image
-    public string File { get; set; } = string.Empty;
+        public static ModSubmitter FromJson(JsonElement el) =>
+            new()
+            {
+                Name = el.TryGetProperty("_sName", out var name) ? name.GetString() ?? "Unknown" : "Unknown"
+            };
+    }
 
-    [JsonPropertyName("_sFile100")] // Variation in different sizes
-    public string File100 { get; set; } = string.Empty;
+    public class ModPreviewMedia
+    {
+        [JsonPropertyName("_aImages")] public List<ModImage> Images { get; set; } = [];
 
-    [JsonPropertyName("_sFile530")] public string File530 { get; set; } = string.Empty;
-
-    public string? File100Url =>
-        string.IsNullOrEmpty(BaseUrl) || string.IsNullOrEmpty(File100) ? null : $"{BaseUrl}/{File100}";
-
-    public string? File530Url =>
-        string.IsNullOrEmpty(BaseUrl) || string.IsNullOrEmpty(File530) ? null : $"{BaseUrl}/{File530}";
-
-    public static ModImage FromJson(JsonElement el) =>
-        new()
+        public static ModPreviewMedia FromJson(JsonElement el)
         {
-            BaseUrl = el.TryGetProperty("_sBaseUrl", out var url) ? url.GetString() ?? string.Empty : string.Empty,
-            File = el.TryGetProperty("_sFile", out var file) ? file.GetString() ?? string.Empty : string.Empty,
-            File100 = el.TryGetProperty("_sFile100", out var f100) ? f100.GetString() ?? string.Empty : string.Empty,
-            File530 = el.TryGetProperty("_sFile530", out var f530) ? f530.GetString() ?? string.Empty : string.Empty
-        };
+            var media = new ModPreviewMedia();
+            if (!el.TryGetProperty("_aImages", out var images)) return media;
+
+            foreach (var img in images.EnumerateArray())
+                media.Images.Add(ModImage.FromJson(img));
+
+            return media;
+        }
+
+        public string? GetThumbnailUrl() => Images.FirstOrDefault()?.File100Url;
+        public string? GetImageUrl() => Images.FirstOrDefault()?.File530Url;
+    }
+
+    public class ModImage
+    {
+        [JsonPropertyName("_sBaseUrl")] public string BaseUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sFile")] public string File { get; set; } = string.Empty;
+        [JsonPropertyName("_sFile100")] public string File100 { get; set; } = string.Empty;
+        [JsonPropertyName("_sFile530")] public string File530 { get; set; } = string.Empty;
+
+        public string? File100Url =>
+            string.IsNullOrEmpty(BaseUrl) || string.IsNullOrEmpty(File100) ? null : $"{BaseUrl}/{File100}";
+
+        public string? File530Url =>
+            string.IsNullOrEmpty(BaseUrl) || string.IsNullOrEmpty(File530) ? null : $"{BaseUrl}/{File530}";
+
+        public static ModImage FromJson(JsonElement el) =>
+            new()
+            {
+                BaseUrl = el.TryGetProperty("_sBaseUrl", out var url) ? url.GetString() ?? string.Empty : string.Empty,
+                File = el.TryGetProperty("_sFile", out var file) ? file.GetString() ?? string.Empty : string.Empty,
+                File100 =
+                    el.TryGetProperty("_sFile100", out var f100) ? f100.GetString() ?? string.Empty : string.Empty,
+                File530 = el.TryGetProperty("_sFile530", out var f530) ? f530.GetString() ?? string.Empty : string.Empty
+            };
+    }
+
+    /// <summary>
+    /// Represents a file (either active or archived) inside a mod submission.
+    /// </summary>
+    public class ModFile
+    {
+        [JsonPropertyName("_idRow")] public int Id { get; set; }
+        [JsonPropertyName("_sFile")] public string FileName { get; set; } = string.Empty;
+        [JsonPropertyName("_nFilesize")] public long FileSize { get; set; }
+        [JsonPropertyName("_tsDateAdded")] public DateTime DateAdded { get; set; } = DateTime.UtcNow;
+        [JsonPropertyName("_nDownloadCount")] public int DownloadCount { get; set; }
+        [JsonPropertyName("_sDownloadUrl")] public string DownloadUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sMd5Checksum")] public string Md5Checksum { get; set; } = string.Empty;
+        [JsonPropertyName("_sAnalysisState")] public string AnalysisState { get; set; } = string.Empty;
+        [JsonPropertyName("_sAnalysisResult")] public string AnalysisResult { get; set; } = string.Empty;
+
+        [JsonPropertyName("_sAnalysisResultVerbose")]
+        public string AnalysisResultVerbose { get; set; } = string.Empty;
+
+        [JsonPropertyName("_sAvState")] public string AvState { get; set; } = string.Empty;
+        [JsonPropertyName("_sAvResult")] public string AvResult { get; set; } = string.Empty;
+        [JsonPropertyName("_bIsArchived")] public bool IsArchived { get; set; }
+        [JsonPropertyName("_bHasContents")] public bool HasContents { get; set; }
+
+        [JsonPropertyName("_aAnalysisWarnings")]
+        public Dictionary<string, List<string>> AnalysisWarnings { get; set; } = new();
+
+        [JsonPropertyName("_aModManagerIntegrations")]
+        public List<ModManagerIntegration> ModManagerIntegrations { get; set; } =
+            [];
+
+        public static ModFile FromJson(JsonElement el)
+        {
+            var file = new ModFile
+            {
+                Id = el.TryGetProperty("_idRow", out var id) ? id.GetInt32() : 0,
+                FileName = el.TryGetProperty("_sFile", out var name) ? name.GetString() ?? string.Empty : string.Empty,
+                FileSize = el.TryGetProperty("_nFilesize", out var size) ? size.GetInt64() : 0,
+                DateAdded = el.TryGetProperty("_tsDateAdded", out var added) ? added.GetUnixDateTime() : default,
+                DownloadCount = el.TryGetProperty("_nDownloadCount", out var dl) ? dl.GetInt32() : 0,
+                DownloadUrl = el.TryGetProperty("_sDownloadUrl", out var url)
+                    ? url.GetString() ?? string.Empty
+                    : string.Empty,
+                Md5Checksum = el.TryGetProperty("_sMd5Checksum", out var md5)
+                    ? md5.GetString() ?? string.Empty
+                    : string.Empty,
+                AnalysisState = el.TryGetProperty("_sAnalysisState", out var aState)
+                    ? aState.GetString() ?? string.Empty
+                    : string.Empty,
+                AnalysisResult = el.TryGetProperty("_sAnalysisResult", out var aRes)
+                    ? aRes.GetString() ?? string.Empty
+                    : string.Empty,
+                AnalysisResultVerbose = el.TryGetProperty("_sAnalysisResultVerbose", out var aResVerb)
+                    ? aResVerb.GetString() ?? string.Empty
+                    : string.Empty,
+                AvState = el.TryGetProperty("_sAvState", out var avState)
+                    ? avState.GetString() ?? string.Empty
+                    : string.Empty,
+                AvResult =
+                    el.TryGetProperty("_sAvResult", out var avRes) ? avRes.GetString() ?? string.Empty : string.Empty,
+                IsArchived = el.TryGetProperty("_bIsArchived", out var arch) && arch.GetBoolean(),
+                HasContents = el.TryGetProperty("_bHasContents", out var contents) && contents.GetBoolean()
+            };
+
+            // Parse analysis warnings
+            if (el.TryGetProperty("_aAnalysisWarnings", out var warnings))
+            {
+                foreach (var prop in warnings.EnumerateObject())
+                {
+                    var list = prop.Value.EnumerateArray().Select(item => item.GetString() ?? string.Empty).ToList();
+                    file.AnalysisWarnings[prop.Name] = list;
+                }
+            }
+
+            // Parse mod manager integrations
+            if (!el.TryGetProperty("_aModManagerIntegrations", out var integrations)) return file;
+
+            foreach (var integ in integrations.EnumerateArray())
+                file.ModManagerIntegrations.Add(ModManagerIntegration.FromJson(integ));
+
+            return file;
+        }
+    }
+
+    /// <summary>
+    /// Represents a mod manager integration entry inside a file.
+    /// </summary>
+    public class ModManagerIntegration
+    {
+        [JsonPropertyName("_idToolRow")] public int ToolId { get; set; }
+        [JsonPropertyName("_aGameRowIds")] public List<int> GameIds { get; set; } = [];
+
+        [JsonPropertyName("_sModManagerAlias")]
+        public string ModManagerAlias { get; set; } = string.Empty;
+
+        [JsonPropertyName("_sInstallerName")] public string InstallerName { get; set; } = string.Empty;
+        [JsonPropertyName("_idSubmitterRow")] public int SubmitterId { get; set; }
+        [JsonPropertyName("_sInstallerUrl")] public string InstallerUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sIconUrl")] public string IconUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sDownloadUrl")] public string DownloadUrl { get; set; } = string.Empty;
+
+        public static ModManagerIntegration FromJson(JsonElement el) =>
+            new()
+            {
+                ToolId = el.TryGetProperty("_idToolRow", out var tool) ? tool.GetInt32() : 0,
+                GameIds = el.TryGetProperty("_aGameRowIds", out var gameIds)
+                    ? gameIds.EnumerateArray().Select(g => g.GetInt32()).ToList()
+                    : [],
+                ModManagerAlias = el.TryGetProperty("_sModManagerAlias", out var alias)
+                    ? alias.GetString() ?? string.Empty
+                    : string.Empty,
+                InstallerName = el.TryGetProperty("_sInstallerName", out var instName)
+                    ? instName.GetString() ?? string.Empty
+                    : string.Empty,
+                SubmitterId = el.TryGetProperty("_idSubmitterRow", out var sub) ? sub.GetInt32() : 0,
+                InstallerUrl = el.TryGetProperty("_sInstallerUrl", out var instUrl)
+                    ? instUrl.GetString() ?? string.Empty
+                    : string.Empty,
+                IconUrl =
+                    el.TryGetProperty("_sIconUrl", out var icon) ? icon.GetString() ?? string.Empty : string.Empty,
+                DownloadUrl = el.TryGetProperty("_sDownloadUrl", out var dlUrl)
+                    ? dlUrl.GetString() ?? string.Empty
+                    : string.Empty
+            };
+    }
+
+    /// <summary>
+    /// Represents a credits group (e.g., "Key Authors", "Contributors").
+    /// </summary>
+    public class ModCreditsGroup
+    {
+        [JsonPropertyName("_sGroupName")] public string GroupName { get; set; } = string.Empty;
+        [JsonPropertyName("_aAuthors")] public List<ModCreditAuthor> Authors { get; set; } = [];
+
+        public static ModCreditsGroup FromJson(JsonElement el)
+        {
+            var group = new ModCreditsGroup
+            {
+                GroupName = el.TryGetProperty("_sGroupName", out var name)
+                    ? name.GetString() ?? string.Empty
+                    : string.Empty
+            };
+
+            if (!el.TryGetProperty("_aAuthors", out var authors)) return group;
+
+            foreach (var authElem in authors.EnumerateArray())
+                group.Authors.Add(ModCreditAuthor.FromJson(authElem));
+
+            return group;
+        }
+    }
+
+    /// <summary>
+    /// Represents a single author inside a credits group.
+    /// </summary>
+    public class ModCreditAuthor
+    {
+        [JsonPropertyName("_sRole")] public string Role { get; set; } = string.Empty;
+        [JsonPropertyName("_idRow")] public int Id { get; set; }
+        [JsonPropertyName("_sName")] public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("_sUpicUrl")] public string UpicUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sProfileUrl")] public string ProfileUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sAvatarUrl")] public string AvatarUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_bIsOnline")] public bool IsOnline { get; set; }
+
+        [JsonPropertyName("_aAffiliatedStudio")]
+        public ModAffiliatedStudio? AffiliatedStudio { get; set; }
+
+        public static ModCreditAuthor FromJson(JsonElement el)
+        {
+            var author = new ModCreditAuthor
+            {
+                Role = el.TryGetProperty("_sRole", out var role) ? role.GetString() ?? string.Empty : string.Empty,
+                Id = el.TryGetProperty("_idRow", out var id) ? id.GetInt32() : 0,
+                Name = el.TryGetProperty("_sName", out var name) ? name.GetString() ?? string.Empty : string.Empty,
+                UpicUrl =
+                    el.TryGetProperty("_sUpicUrl", out var upic) ? upic.GetString() ?? string.Empty : string.Empty,
+                ProfileUrl = el.TryGetProperty("_sProfileUrl", out var prof)
+                    ? prof.GetString() ?? string.Empty
+                    : string.Empty,
+                AvatarUrl = el.TryGetProperty("_sAvatarUrl", out var avatar)
+                    ? avatar.GetString() ?? string.Empty
+                    : string.Empty,
+                IsOnline = el.TryGetProperty("_bIsOnline", out var online) && online.GetBoolean()
+            };
+
+            if (el.TryGetProperty("_aAffiliatedStudio", out var studio))
+                author.AffiliatedStudio = ModAffiliatedStudio.FromJson(studio);
+
+            return author;
+        }
+    }
+
+    /// <summary>
+    /// Represents an affiliated studio (used in credits and submitter).
+    /// </summary>
+    public class ModAffiliatedStudio
+    {
+        [JsonPropertyName("_sProfileUrl")] public string ProfileUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sName")] public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("_sFlagUrl")] public string FlagUrl { get; set; } = string.Empty;
+        [JsonPropertyName("_sBannerUrl")] public string BannerUrl { get; set; } = string.Empty;
+
+        public static ModAffiliatedStudio FromJson(JsonElement el) =>
+            new()
+            {
+                ProfileUrl = el.TryGetProperty("_sProfileUrl", out var prof)
+                    ? prof.GetString() ?? string.Empty
+                    : string.Empty,
+                Name = el.TryGetProperty("_sName", out var name) ? name.GetString() ?? string.Empty : string.Empty,
+                FlagUrl =
+                    el.TryGetProperty("_sFlagUrl", out var flag) ? flag.GetString() ?? string.Empty : string.Empty,
+                BannerUrl = el.TryGetProperty("_sBannerUrl", out var banner)
+                    ? banner.GetString() ?? string.Empty
+                    : string.Empty
+            };
+    }
 }

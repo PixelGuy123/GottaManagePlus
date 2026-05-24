@@ -172,6 +172,7 @@
                         <Button
                             Content="{CompiledBinding CancelText, Mode=OneWay}" 
                             Classes="DialogBtn DangerDialogBtn"
+                            IsCancel="True"
                             Command="{Binding Cancel}"/>
                         <Button
                             Name="CreateProfileBtn"
@@ -179,6 +180,7 @@
                             IsHitTestVisible="{Binding CanCreateProfile, Mode=OneWay}"
                             Content="{CompiledBinding CreateText, Mode=OneWay}" 
                             Classes="DialogBtn GenericDialogBtn"
+                            IsDefault="True"
                             Command="{Binding Confirm}">
                             <Button.Transitions>
                                 <Transitions>

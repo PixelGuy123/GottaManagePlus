@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- MISC Colors -->
+    <SolidColorBrush x:Key="TabSelectedBg" Color="#0A3B0E"/>
+    <SolidColorBrush x:Key="ProgressBar-Foreground" Color="#6ABF6A"/>
+
+    <!-- ScrollBar colors -->
+    <Color x:Key="ScrollBar-BgColor">rgba(20, 40, 30, 1)</Color>
+    <Color x:Key="ScrollBar-ThumbColor">rgba(100, 150, 120, 1)</Color>
+
+    <!-- Text / background base color -->
+    <Color x:Key="WhiteColor">#121212</Color>
+    <Color x:Key="BlackColor">LightGray</Color>
+</ResourceDictionary>

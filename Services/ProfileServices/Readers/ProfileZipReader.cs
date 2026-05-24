@@ -6,10 +6,10 @@ namespace GottaManagePlus.Services.ProfileServices.Readers;
 
 public sealed class ProfileZipReader(ILogger logger)
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly ILogger _logger = logger;
     
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Reads a directory of a profile and converts its metadata (if available) into a <see cref="ProfileMetadata"/>.
     /// The path shall never be prompted by a user.

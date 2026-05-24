@@ -13,7 +13,7 @@ namespace GottaManagePlus.Services.ModServices;
 
 public class ModArchiveGenerator(ILogger logger, GameEnvironmentController controller)
 {
-    // ---- Private API ----
+    // ---- Private ----
     private readonly ILogger _logger = logger;
     private readonly GameEnvironmentController _controller = controller;
 

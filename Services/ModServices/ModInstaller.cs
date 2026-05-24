@@ -19,7 +19,7 @@ public sealed class ModInstaller(
     ProfileManager profileManager,
     GameEnvironmentController controller)
 {
-    // ---- Private API ----
+    // ---- Private ----
     private readonly ILogger _logger = logger;
     private readonly ModArchiveExtractor _modArchiveExtractor = modArchiveExtractor;
     private readonly ManifestLoader _manifestLoader = manifestLoader;
@@ -28,7 +28,7 @@ public sealed class ModInstaller(
     private readonly ProfileManager _profileManager = profileManager;
     private readonly GameEnvironmentController _controller = controller;
 
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Installs a mod into the respective environment's mod folder.
     /// </summary>

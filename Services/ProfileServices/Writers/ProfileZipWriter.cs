@@ -17,10 +17,10 @@ public sealed class ProfileZipWriter(ILogger logger)
     // Const Fields
     private const ArchiveType CompressedExtension = ArchiveType.Zip;
     
-    // ----- Private API -----
+    // ----- Private -----
     private readonly ILogger _logger = logger;
     
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Writes a <see cref="ProfileMetadata"/> into a compressed file type.
     /// </summary>
@@ -78,14 +78,13 @@ public sealed class ProfileZipWriter(ILogger logger)
             throw new ArgumentException("Given path is not a directory.");
 
         _logger.Information("{startMessage}", startMessage);
-        DirectoryInfo? temporaryDirectory = null;
         string desiredPath = Path.Combine(path, profile.Name), desiredDeletionPath = desiredPath + deletionSuffix;
 
         try
         {
-            temporaryDirectory = controller.CreateTempSubdirectory(_logger);
+            using var temporaryDirectory = controller.CreateTempSubdirectory(_logger);
             var profileRootDirectory = Directory.CreateDirectory(
-                Path.Combine(temporaryDirectory.FullName, profile.Name)
+                Path.Combine(temporaryDirectory.DirectoryInfo.FullName, profile.Name)
             );
             
             // --- Write compressed content ---
@@ -131,8 +130,6 @@ public sealed class ProfileZipWriter(ILogger logger)
         {
             try
             {
-                if (temporaryDirectory is { Exists: true })
-                    temporaryDirectory.Delete(recursive: true);
                 if (Directory.Exists(desiredDeletionPath))
                     Directory.Delete(desiredDeletionPath, true);
             }

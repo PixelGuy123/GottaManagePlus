@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="GottaManagePlus.App"
              xmlns:local="using:GottaManagePlus"
-             RequestedThemeVariant="Light">
+             xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
+             RequestedThemeVariant="Dark">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
@@ -11,17 +12,44 @@
   
     <Application.Resources>
         <ResourceDictionary>
+            <!-- Font Families -->
             <FontFamily x:Key="Baskerville">/Assets/Fonts/Baskervville/Baskervville-Regular.ttf#Baskervville</FontFamily>
             <FontFamily x:Key="ComicRelief">/Assets/Fonts/Comic_Relief/ComicRelief-Regular.ttf#Comic Relief</FontFamily>
             <FontFamily x:Key="WorkSans">/Assets/Fonts/WorkSans/WorkSans-VariableFont_wght.ttf#Work Sans, Regular</FontFamily>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="/Styles/Themes/LightThemeResources.axaml" />
-            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Resource Themes -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <ResourceDictionary.MergedDictionaries>
+                        <ResourceInclude Source="Styles/Themes/LightTheme/Backgrounds.axaml" />
+                        <ResourceInclude Source="Styles/Themes/LightTheme/Menus.axaml" />
+                        <ResourceInclude Source="Styles/Themes/LightTheme/Buttons.axaml" />
+                        <ResourceInclude Source="Styles/Themes/LightTheme/MiscColors.axaml" />
+                    </ResourceDictionary.MergedDictionaries>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <ResourceDictionary.MergedDictionaries>
+                        <ResourceInclude Source="Styles/Themes/DarkTheme/Backgrounds.axaml" />
+                        <ResourceInclude Source="Styles/Themes/DarkTheme/Menus.axaml" />
+                        <ResourceInclude Source="Styles/Themes/DarkTheme/Buttons.axaml" />
+                        <ResourceInclude Source="Styles/Themes/DarkTheme/MiscColors.axaml" />
+                    </ResourceDictionary.MergedDictionaries>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Application.Resources>
-             
     <Application.Styles>
         <FluentTheme />
+        <themes:CustomMaterialTheme>
+            <themes:CustomMaterialTheme.Palettes>
+                <themes:CustomMaterialThemeResources x:Key="Dark"
+                                                     PrimaryColor="#4BEB59"
+                                                     SecondaryColor="#04C9F0" />
+                <themes:CustomMaterialThemeResources x:Key="Light"
+                                                     PrimaryColor="#29964A"
+                                                     SecondaryColor="#0271A4" />
+            </themes:CustomMaterialTheme.Palettes>
+        </themes:CustomMaterialTheme>
         <StyleInclude Source="/Styles/Controls/TrimmableTextBox.axaml"/>
         <StyleInclude Source="/Styles/Controls/FileBrowser.axaml"/>
     </Application.Styles>

@@ -24,12 +24,15 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
     [ObservableProperty]
     public partial string? Status { get; set; } = "Loading...";
+    
+    [ObservableProperty]
+    public partial string ProgressTextFormat { get; set; } = "{1:0}%";
 
     [ObservableProperty]
-    public partial int ProgressMax { get; set; } = 1;
+    public partial long ProgressMax { get; set; } = 1;
 
     [ObservableProperty]
-    public partial int ProgressValue { get; set; }
+    public partial long ProgressValue { get; set; }
 
     [ObservableProperty]
     public partial string CancelText { get; set; } = "Cancel";
@@ -139,6 +142,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
         ProgressValue = e.TasksCompleted;
         Status = e.CurrentStatus;
         HideProgressBar = !e.HasTaskProgression;
+        ProgressTextFormat = e.UsePercentage ? "{1:0}%" : "{0}/{3}";
     }
 
     [RelayCommand]

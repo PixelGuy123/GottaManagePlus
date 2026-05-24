@@ -11,7 +11,7 @@ namespace GottaManagePlus.Factories;
 /// </summary>
 public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFactory
 {
-    // ---- Private API ----
+    // ---- Private ----
     private readonly ILogger _logger = logger;
     private readonly ConcurrentDictionary<string, PlusEnvironment> _uniquePlusEnvironments = [];
     

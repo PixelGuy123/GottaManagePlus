@@ -1,3 +1,4 @@
+using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using Serilog;
 
@@ -100,8 +101,8 @@ public static class GameEnvironmentControllerUtils
         /// Creates a temporary subdirectory inside the game's .gmp/temp folder with a unique GUID name.
         /// </summary>
         /// <param name="logger">Optional logger to report directory creation.</param>
-        /// <returns>A <see cref="DirectoryInfo"/> instance pointing to the newly created temporary subdirectory.</returns>
-        public DirectoryInfo CreateTempSubdirectory(ILogger? logger = null)
+        /// <returns>A <see cref="TemporaryDirectoryInfo"/> instance pointing to the newly created temporary subdirectory.</returns>
+        public TemporaryDirectoryInfo CreateTempSubdirectory(ILogger? logger = null)
         {
             // Get the base temp folder path: .gmp/temp
             var tempBasePath = controller.SearchAbsolutePath(Constants.App_RootFolder, Constants.App_TemporaryFolder);
@@ -116,7 +117,7 @@ public static class GameEnvironmentControllerUtils
     
             // Create the temporary subdirectory
             logger?.Information("Creating temporary subdirectory '{TempSubDirPath}'.", tempSubDirPath);
-            return Directory.CreateDirectory(tempSubDirPath);
+            return new TemporaryDirectoryInfo(Directory.CreateDirectory(tempSubDirPath), logger);
         }
     }
 }

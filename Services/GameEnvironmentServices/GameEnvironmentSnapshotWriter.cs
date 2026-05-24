@@ -8,10 +8,10 @@ namespace GottaManagePlus.Services.GameEnvironmentServices;
 
 public sealed class GameEnvironmentSnapshotWriter(ILogger logger) : IGameEnvironmentSnapshotWriter
 {
-    // ----- Private API -----
+    // ----- Private -----
     private readonly ILogger _logger = logger;
 
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Writes a snapshot to the expected index file.
     /// </summary>

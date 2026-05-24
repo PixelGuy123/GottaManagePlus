@@ -18,7 +18,7 @@ public class ProfileExportController(
     ILogger logger
     ) : IProfileExportController
 {
-    // ----- Private API -----
+    // ----- Private -----
     private readonly ProfileExporter _exporter = exporter;
     private readonly ProfileExportReader _exportReader = exportReader;
     private readonly ProfileExportExtractor _exportExtractor = exportExtractor;
@@ -26,7 +26,7 @@ public class ProfileExportController(
     private readonly ProfileRepository _repository = repository;
     private readonly ILogger _logger = logger;
 
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Exports a <see cref="ProfileMetadata"/> instance in the format of <c>.gmpProfile</c>.
     /// </summary>

@@ -7,10 +7,10 @@ namespace GottaManagePlus.Services.ProfileServices.Readers;
 
 public sealed class ProfileExportReader(ILogger logger)
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly ILogger _logger = logger;
     
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Reads a <c>.gmpProfile</c> file's metadata compressed in it.
     /// </summary>

@@ -13,12 +13,12 @@ public sealed class ModRepositoryScanner(
     GameEnvironmentController controller,
     ManifestLoader manifestLoader)
 {
-    // ---- Private API ----
+    // ---- Private ----
     private readonly ILogger _logger = logger;
     private readonly GameEnvironmentController _controller = controller;
     private readonly ManifestLoader _manifestLoader = manifestLoader;
 
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Scans <c>BepInEx/Plugins</c> folder and adds all readable mods from the folder.
     /// </summary>

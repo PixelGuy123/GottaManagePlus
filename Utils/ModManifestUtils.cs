@@ -3,7 +3,6 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
-using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using Serilog;
 
@@ -92,10 +91,11 @@ public static class ModManifestUtils
         /// <summary>
         /// Gather all the assets and plugins registered in the manifest in a single array.
         /// </summary>
+        /// <param name="controller">The controller to gather the destination location.</param>
         /// <param name="relativeBasePath">The base path the relative paths from the manifest will address.</param>
         /// <returns>An array filled with paths and whether they
         /// are an asset (<see langword="true"/>) or a plugin (<see langword="false"/>).</returns>
-        public (AssetType assetType, DestinedAsset destinedAsset)[] GetAllResources(string relativeBasePath)
+        public (AssetType assetType, DestinedAsset destinedAsset)[] GetAllResources(GameEnvironmentController controller, string relativeBasePath)
         {
             // Sum up of files to gather (Plugins have the size bigger due to .xml and .pdb files).
             var max = manifest.Plugins.Count * 3 + manifest.Patchers.Count + manifest.Assets.Count;
@@ -146,7 +146,7 @@ public static class ModManifestUtils
                 array[index++] = (AssetType.Asset, new DestinedAsset
                 {
                     LocalPath = Path.Combine(relativeBasePath, asset.LocalPath), 
-                    Destination = string.IsNullOrEmpty(asset.Destination) ? null : asset.Destination
+                    Destination = string.IsNullOrEmpty(asset.Destination) ? null : controller.SearchAbsolutePath(asset.Destination)
                 });
             return array;
         }

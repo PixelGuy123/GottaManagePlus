@@ -29,7 +29,6 @@ public partial class App
         collection.AddSingleton<MainWindowViewModel>(); // Singleton
         collection.AddTransient<MyModsViewModel>(); // Transient means the instance only exists when requested and destroys itself when not used
         collection.AddTransient<SettingsViewModel>();
-        collection.AddTransient<ProfilesViewModel>();
     }
 
     private static void SetupSingletonServices(ServiceCollection collection)
@@ -54,7 +53,7 @@ public partial class App
         collection.AddSingleton<DirectoryLauncher>();
         
         // Application Service
-        collection.AddSingleton<ApplicationBridge>();
+        collection.AddSingleton<ApplicationManager>();
         
         // Logging Setup
         Log.Logger = new LoggerConfiguration()
@@ -78,10 +77,12 @@ public partial class App
         // Setup Gamebanana Client
         collection.AddHttpClient("GameBanana", client =>
         {
-            client.BaseAddress = new Uri("https://gamebanana.com/apiv11");
+            client.BaseAddress = new Uri("https://gamebanana.com/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(
-                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json", 1.0d));
+            client.DefaultRequestHeaders.Accept.Add(
+                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("images/*", 0.9d));
         });
         
         collection.AddScoped<GamebananaApiService>();
@@ -138,7 +139,7 @@ public partial class App
         directoryLauncher.RegisterLauncher(window.Launcher);
         
         // Assign Application bridge
-        var appBridge = services.GetRequiredService<ApplicationBridge>();
+        var appBridge = services.GetRequiredService<ApplicationManager>();
         appBridge.SetDesktopEnvironment(desktop);
     }
 }

@@ -12,7 +12,7 @@ using GottaManagePlus.ViewModels;
 
 namespace GottaManagePlus.Views;
 
-public partial class MyModsView : UserControl
+public partial class MyModsView : DisposableUserControl
 {
     public MyModsView()
     {
@@ -28,7 +28,7 @@ public partial class MyModsView : UserControl
     // --- On Property Change Update ---
     private void OnVmOnPropertyChanged(object? _, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName is nameof(MyModsViewModel.ManifestInPreview) or nameof(MyModsViewModel.ModsEnabledCount))
+        if (args.PropertyName is nameof(MyModsViewModel.ManifestInPreview) or nameof(MyModsViewModel.ObservableMods))
             UpdateAllBrushes();
     }
 
@@ -41,7 +41,7 @@ public partial class MyModsView : UserControl
     }
 
     // --- Popup Toggle ---
-    private void OnTogglePopup(object sender, RoutedEventArgs e) => AddModPopup.IsOpen = !AddModPopup.IsOpen;
+    private void CloseAddModFlyout(object? sender, RoutedEventArgs e) => AddModButton.Dispatcher.Post(AddModButton.Flyout!.Hide); // Waits one frame
 
     // --- Scroll Viewer Font Change ---
     private void ModsScrollViewerOnSizeChanged(object? _, SizeChangedEventArgs e)
@@ -59,13 +59,6 @@ public partial class MyModsView : UserControl
     }
 
     // ===== Mod List Methods =====
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnDetachedFromVisualTree(e);
-        if (DataContext is IDisposable disposable)
-            disposable.Dispose();
-    }
-
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
@@ -136,7 +129,7 @@ public partial class MyModsView : UserControl
 
     private IBrush? GetPreviewButtonBrush(object? dataContext, object? previewManifest) =>
         // If the item is the one currently being previewed, highlight it.
-        previewManifest != null && dataContext == previewManifest
+        previewManifest != null && dataContext != null && dataContext == previewManifest
             ? this.FindResource("YctpBg") as IBrush
             : this.FindResource("YctpBg-Warning") as IBrush;
 

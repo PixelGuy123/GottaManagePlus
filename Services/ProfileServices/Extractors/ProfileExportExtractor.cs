@@ -9,10 +9,10 @@ namespace GottaManagePlus.Services.ProfileServices.Extractors;
 /// </summary>
 public sealed class ProfileExportExtractor(ILogger logger)
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly ILogger _logger = logger;
     
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Extracts all contents from a <c>.gmpProfile</c> file to the specified destination directory.
     /// </summary>

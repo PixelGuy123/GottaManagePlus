@@ -3,13 +3,13 @@ using Avalonia.Controls.ApplicationLifetimes;
 
 namespace GottaManagePlus.Services;
 
-public class ApplicationBridge
+public class ApplicationManager
 {
-    // ---- Private API ----
+    // ---- Private ----
     internal void SetDesktopEnvironment(IClassicDesktopStyleApplicationLifetime desktop) => _desktop = desktop;
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Exits the application forcefully.
     /// </summary>

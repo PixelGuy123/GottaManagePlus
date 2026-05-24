@@ -22,7 +22,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     private readonly GameEnvironmentController _gameEnvironmentController = null!;
     private readonly SettingsService _settingsService = null!;
     private readonly ProfileManager _profileManager = null!;
-    private readonly ApplicationBridge _applicationBridge = null!;
+    private readonly ApplicationManager _applicationManager = null!;
     private readonly IProfileExportController _profileExportController = null!;
     private readonly IProfileDestructor _profileDestructor = null!;
     private readonly IProfileCreator _profileCreator = null!;
@@ -104,7 +104,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         SettingsService settingsService,
         ProfileRepository profileRepository,
         ProfileManager profileManager,
-        ApplicationBridge applicationBridge,
+        ApplicationManager applicationManager,
         IProfileExportController profileExportController,
         IProfileDestructor profileDestructor,
         IProfileCreator profileCreator,
@@ -117,7 +117,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         _gameEnvironmentController = gameEnvironmentController;
         _settingsService = settingsService;
         _profileManager = profileManager;
-        _applicationBridge = applicationBridge;
+        _applicationManager = applicationManager;
         _profileExportController = profileExportController;
         _profileDestructor = profileDestructor;
         _profileCreator = profileCreator;
@@ -184,7 +184,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             };
     }
 
-    // ---- Public API ----
+    // ---- Public ----
     public async Task<bool> HandleSettingsSave(bool promptCancelOption)
     {
         // Update snapshot
@@ -214,7 +214,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         );
     }
 
-    // ----- Private API -----
+    // ----- Private -----
 
     #region Main Window
 
@@ -267,7 +267,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                         firstAttemptDone ? secondAttemptFail : firstAttemptFail))
                 {
                     // Exit application forcefully
-                    _applicationBridge.Exit();
+                    _applicationManager.Exit();
                     return;
                 }
 
@@ -283,8 +283,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     private async Task<bool> UpdateEnvironmentSnapshot(bool raiseQuestionIfDifferencesDetected)
     {
         var question = """
-                       Looks like the directory GMP has access to is different according to the settings!
-                       Before loading a new profile into the game's folder, would you like to adapt the profile to the current mods set in place OR overwrite them with the profile's data?
+                       Conflict detected between GMP's working directory's settings and the current profile's settings. The content inside the loaded profile differs from what the current working directory has stored.
+                       
+                       How would you like to proceed?
+                       ADAPT: Merge the profile's data with the active mods (keep the current mods, adds any missing ones from the profile).
+                       IGNORE: Ignore the working directory's settings and potentially overwrite with the profile's content.
                        """;
         
         // If the snapshot returns true, there's a difference to be solved.
@@ -295,7 +298,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 (Delegate)_gameEnvironmentController.UpdateEnvironmentSnapshot
             ) && raiseQuestionIfDifferencesDetected)
             return !await _dialogService.PromptUserQuestion(Constants.WarningDialog, question,
-                DialogServiceUtils.QuestionAnswerType.AdaptOrOverwrite);
+                DialogServiceUtils.QuestionAnswerType.AdaptOrIgnore);
         
         return true;
     }

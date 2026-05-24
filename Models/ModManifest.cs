@@ -61,15 +61,18 @@ public struct DestinedAsset : IEquatable<DestinedAsset>
     [JsonRequired]
     public required string LocalPath { get; set; }
     public string? Destination { get; set; }
+    
     /// <summary>
     /// Combines the asset's final location with the actual file to go there.
+    /// If Destination appears to be a directory path (no file extension), returns the directory name.
     /// </summary>
     public string MovedAsset => !string.IsNullOrEmpty(Destination) ? 
-        Path.Combine(Destination, Path.GetFileName(LocalPath)) : throw new NullReferenceException("Invalid destination set.");
+            Path.Combine(Destination, Path.GetFileName(LocalPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))) : 
+        throw new NullReferenceException("Invalid destination set.");
 
     public override string ToString() =>
         !string.IsNullOrEmpty(Destination)
-            ? $"LocalPath: '{LocalPath}' — Destination: '{Destination}'"
+            ? $"LocalPath: '{LocalPath}' – Destination: '{Destination}' – Moved Asset: '{MovedAsset}'"
             : $"LocalPath: '{LocalPath}'";
 
     public override bool Equals([NotNullWhen(true)] object? obj) =>
@@ -84,5 +87,4 @@ public struct DestinedAsset : IEquatable<DestinedAsset>
     public override int GetHashCode() => HashCode.Combine(LocalPath, Destination);
     public static bool operator ==(DestinedAsset left, DestinedAsset right) => left.Equals(right);
     public static bool operator !=(DestinedAsset left, DestinedAsset right) => !(left == right);
-    
 }

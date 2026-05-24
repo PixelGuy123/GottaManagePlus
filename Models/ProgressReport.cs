@@ -8,16 +8,18 @@ namespace GottaManagePlus.Models;
 /// <param name="statusPrefix">The prefix that comes before the status to indicate a category.</param>
 /// <param name="currentStatus">The current status of the progress.</param>
 public readonly struct ProgressReport(
-    int numOfTasksCompleted,
-    int totalAmountOfTasks,
+    long numOfTasksCompleted,
+    long totalAmountOfTasks,
     string? statusPrefix = null,
-    string? currentStatus = null)
+    string? currentStatus = null,
+    bool usePercentage = false)
 {
     public ProgressReport(string statusPrefix, string currentStatus) : this(-1, -1, statusPrefix, currentStatus) { }
     public ProgressReport(string currentStatus) : this(-1, -1, null, currentStatus) { }
     
-    public readonly int TasksCompleted = numOfTasksCompleted;
-    public readonly int TasksTotal = totalAmountOfTasks;
+    public readonly long TasksCompleted = numOfTasksCompleted;
+    public readonly long TasksTotal = totalAmountOfTasks;
     public readonly string? CurrentStatus = statusPrefix == null ? currentStatus : $"{statusPrefix}: {currentStatus}";
-    public bool HasTaskProgression => TasksCompleted != -1 && TasksTotal != -1;
+    public readonly bool UsePercentage = usePercentage;
+    public bool HasTaskProgression => TasksTotal > 0 && TasksCompleted <= TasksTotal;
 }

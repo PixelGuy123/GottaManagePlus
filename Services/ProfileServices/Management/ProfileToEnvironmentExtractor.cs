@@ -13,12 +13,12 @@ public sealed class ProfileToEnvironmentExtractor(
     ILogger logger)
     : ILocalToEnvironmentParser
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly GameEnvironmentController _controller = controller;
     private readonly ProfileZipExtractor _zipExtractor = zipExtractor;
     private readonly ILogger _logger = logger;
 
-    // ---- Public API -----
+    // ---- Public -----
     /// <summary>
     /// Extracts a profile to the current environment.
     /// </summary>

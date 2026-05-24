@@ -3,158 +3,505 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             xmlns:converters="clr-namespace:GottaManagePlus.Styles.Converters"
              xmlns:models="clr-namespace:GottaManagePlus.Models.UI"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="550"
              x:Class="GottaManagePlus.Views.ModSelectionDialogView"
              x:DataType="vm:ModSelectionDialogViewModel">
-        <Design.DataContext><vm:ModSelectionDialogViewModel/></Design.DataContext>
-    
+    <Design.DataContext>
+        <vm:ModSelectionDialogViewModel />
+    </Design.DataContext>
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <!--- Default thumbnail for missing thumbnails -->
+            <Bitmap x:Key="DefaultThumbnail">/Assets/UI/Image_Mod_NoThumbnail.png</Bitmap>
+            <!-- GameBanana Dark Theme Resources -->
+            <Color x:Key="GB_Green">#6AB344</Color>
+            <Color x:Key="GB_GreenHover">#7AC44D</Color>
+            <Color x:Key="GB_DarkBg">#1F1F1F</Color>
+            <Color x:Key="GB_DarkSurface">#2A2A2A</Color>
+            <Color x:Key="GB_Border">#3A3A3A</Color>
+            <Color x:Key="GB_TextPrimary">#F0F0F0</Color>
+            <Color x:Key="GB_TextSecondary">#AAAAAA</Color>
+            <Color x:Key="GB_TextMuted">#777777</Color>
+            <SolidColorBrush x:Key="GB_HighlightBrush" Color="#4D5532" />
+            <SolidColorBrush x:Key="GB_GreenBrush" Color="{StaticResource GB_Green}" />
+            <SolidColorBrush x:Key="GB_GreenHoverBrush" Color="{StaticResource GB_GreenHover}" />
+            <SolidColorBrush x:Key="GB_DarkBgBrush" Color="{StaticResource GB_DarkBg}" />
+            <SolidColorBrush x:Key="GB_DarkSurfaceBrush" Color="{StaticResource GB_DarkSurface}" />
+            <SolidColorBrush x:Key="GB_BorderBrush" Color="{StaticResource GB_Border}" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <UserControl.Styles>
-        <StyleInclude Source="/Styles/Buttons.axaml"/>
-        <StyleInclude Source="/Styles/Labels.axaml"/>
+        <StyleInclude Source="/Styles/Buttons.axaml" />
+        <StyleInclude Source="/Styles/Labels.axaml" />
+
+        <!-- ListBoxItem style: GameBanana mod card -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="6"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ Border">
+            <Setter Property="Background" Value="#2E2E2E" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ Border">
+            <Setter Property="BorderBrush" Value="{StaticResource GB_GreenBrush}" />
+            <Setter Property="BorderThickness" Value="2,0,0,0" />
+            <Setter Property="Background" Value="#252525" />
+        </Style>
+
+        <!-- Right Panel: Metadata labels -->
+        <Style Selector="TextBlock.MetaLabel">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource GB_TextMuted}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.MetaValue">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{StaticResource GB_TextSecondary}" />
+        </Style>
+
+        <!-- Badge style for version -->
+        <Style Selector="Border.VersionBadge">
+            <Setter Property="Background" Value="{StaticResource GB_GreenBrush}" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="6,2,6,3" />
+            <Setter Property="Margin" Value="4,0,0,0" />
+        </Style>
+        <Style Selector="Border.VersionBadge TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        
+        <!-- Default TextBox Color -->
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <!-- Action button (Download/Subscribe) -->
+        <Style Selector="Button.GB_ActionBtn, ToggleButton.GB_ActionBtn">
+            <Setter Property="Background" Value="{StaticResource GB_GreenBrush}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style
+            Selector="Button.GB_ActionBtn:pointerover /template/ Border, ToggleButton.GB_ActionBtn:pointerover /template/ Border">
+            <Setter Property="Background" Value="{StaticResource GB_GreenHoverBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.GB_ActionBtn:checked /template/ Border">
+            <Setter Property="Background" Value="{StaticResource GB_HighlightBrush}" />
+        </Style>
+
+
+        <!-- Thumbnail image style -->
+        <Style Selector="Image.ModThumbnail">
+            <Setter Property="Stretch" Value="UniformToFill" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.ThumbnailContainer">
+            <Setter Property="Width" Value="64" />
+            <Setter Property="Height" Value="64" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="#2A2A2A" />
+        </Style>
+
+        <!-- Separator Style -->
+        <Style Selector="Separator">
+            <Setter Property="Background" Value="{StaticResource GB_Border}" />
+        </Style>
     </UserControl.Styles>
-    <UserControl.DataContext><vm:ModSelectionDialogViewModel/></UserControl.DataContext>
-    
-    <Border
-        CornerRadius="10"
-        Margin="10 20"
-        BoxShadow="0 5 25 1.5 Black">
-        <Border
-            Background="{DynamicResource MainMenus-Bg}"
-            CornerRadius="10"
-            ClipToBounds="True">
+
+    <UserControl.DataContext>
+        <vm:ModSelectionDialogViewModel />
+    </UserControl.DataContext>
+
+    <Border CornerRadius="10" Margin="10 20" BoxShadow="0 5 25 1.5 Black">
+        <Border Background="{StaticResource GB_DarkBgBrush}"
+                CornerRadius="10"
+                ClipToBounds="True">
             <Grid RowDefinitions="Auto, *, Auto">
-                <!-- Title -->
+
+                <!-- Header -->
                 <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
-                    <TextBlock 
-                        Foreground="{DynamicResource BlackColor}"
-                        Text="{CompiledBinding Title, Mode=OneWay}"
-                        MaxWidth="650"
-                        HorizontalAlignment="Center"
-                        Padding="10"
-                        FontSize="25"
-                        TextTrimming="CharacterEllipsis"
-                        FontWeight="ExtraLight"
-                        FontFamily="{StaticResource WorkSans}"/>
+                    <TextBlock Text="Select Mods to Install"
+                               MaxWidth="650"
+                               HorizontalAlignment="Center"
+                               Padding="12"
+                               FontSize="22"
+                               TextTrimming="CharacterEllipsis"
+                               FontWeight="ExtraLight"
+                               FontFamily="{StaticResource WorkSans}"
+                               Foreground="{StaticResource GB_TextPrimary}" />
                 </Border>
-                
+
                 <!-- Content -->
-                <Grid Grid.Row="1" ColumnDefinitions="1.2*, *">
-                    <!-- Separator -->
-                    <Border Grid.Column="1" 
-                            BorderBrush="{DynamicResource Menu-Header-Bg}"
-                            BorderThickness="1 0 0 0"
-                            Grid.ColumnSpan="1"
-                            Margin="-1 0 0 0"/>
-                    
-                    <!-- Left: List of mods -->
-                    <Border Grid.Column="0" Padding="5" Background="{DynamicResource ListInnerBg}">
-                        <ListBox
-                            ItemsSource="{CompiledBinding Mods, Mode=OneWay}"
-                            SelectedItem="{CompiledBinding SelectedMod, Mode=TwoWay}"
-                            SelectionMode="Single"
-                            BorderThickness="0"
-                            Margin="2">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate DataType="models:ModItem">
-                                    <Grid ColumnDefinitions="Auto, *" Margin="2">
-                                        <!-- Thumbnail -->
-                                        <Border Grid.Column="0" 
-                                                Width="64" Height="64" 
-                                                CornerRadius="6"
-                                                Margin="0 0 8 0">
-                                            <Image Source="{CompiledBinding ThumbnailUrl, Mode=OneWay}" 
-                                                   Stretch="UniformToFill"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
+                <Grid Grid.Row="1" ColumnDefinitions="350, 500" ClipToBounds="True">
+
+                    <!-- Separator line -->
+                    <Separator Grid.Column="1"
+                               VerticalAlignment="Stretch"
+                               HorizontalAlignment="Center"
+                               BorderBrush="{StaticResource GB_BorderBrush}" />
+
+                    <!-- LEFT: Mods List (GameBanana style) -->
+                    <StackPanel Orientation="Vertical" Grid.Column="0">
+                        <!-- Header -->
+                        <Panel Margin="5">
+                            <StackPanel 
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Spacing="5"
+                                Background="{StaticResource GB_DarkBgBrush}">
+                                <!--Scroll viewer search box-->
+                                    <AutoCompleteBox
+                                        Width="150"
+                                        VerticalAlignment="Center"
+                                        CornerRadius="10"
+                                        PlaceholderText="Search"
+                                        ItemsSource="{CompiledBinding Mods, Mode=OneWay}"
+                                        SelectedItem="{CompiledBinding CurrentSearchedMod}"
+                                        Text="{CompiledBinding SearchModText}"
+                                        ValueMemberBinding="{Binding Name, x:DataType=models:ModItem, Mode=OneWay}"
+                                        FilterMode="Contains" />
+                                    <Button Classes="YCTPButton Miniature">
+                                        <Svg Path="/Assets/UI/delete-search.svg"/>
+                                    </Button>
+                                    <Separator Classes="vertical"/>
+                                    <StackPanel>
+                                        <Label FontSize="12" Padding="0" Content="Filter:" Target="FilterComboBox"/>
+                                        <ComboBox
+                                            Name="FilterComboBox"
+                                            SelectedItem="{CompiledBinding SelectedFilterType}"
+                                            ItemsSource="{CompiledBinding FilterOptions}"/>
+                                    </StackPanel>
+                            </StackPanel>
+                            <!-- Loading Indicator -->
+                            <ProgressBar Classes="circular"
+                                         IsVisible="{CompiledBinding DisplayLoadingIndicator, Mode=OneWay}"
+                                         MaxWidth="16"
+                                         MaxHeight="16"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"
+                                         IsIndeterminate="True" />
+                        </Panel>
+                        <!-- Mod List -->
+                        <ListBox ItemsSource="{CompiledBinding Mods, Mode=OneWay}"
+                                 SelectedItem="{CompiledBinding SelectedMod, Mode=TwoWay}"
+                                 SelectionMode="Single"
+                                 BorderThickness="0"
+                                 Name="ModList"
+                                 Padding="8"
+                                 Background="{StaticResource GB_DarkSurfaceBrush}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="models:ModItem">
+                                <StackPanel
+                                    Opacity="{CompiledBinding !IsUnselectable, Mode=OneWay, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
+                                    IsHitTestVisible="{CompiledBinding !IsUnselectable, Mode=OneWay}"
+                                    Orientation="Horizontal" Margin="2">
+                                        <!-- Thumbnail with border (Baldi style) -->
+                                        <Border Classes="ThumbnailContainer">
+                                            <Image
+                                                Source="{CompiledBinding ThumbnailUrlAsImage, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay}"
+                                                Classes="ModThumbnail" />
                                         </Border>
-                                        
+
                                         <!-- Details -->
-                                        <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto">
-                                            <TextBlock Grid.Row="0" 
-                                                       Text="{CompiledBinding Name, Mode=OneWay}"
-                                                       FontWeight="Bold"
-                                                       FontSize="14"
-                                                       TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Row="1" 
-                                                       Text="{CompiledBinding Description, Mode=OneWay}"
-                                                       TextWrapping="Wrap"
-                                                       MaxHeight="40"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       FontSize="12"
-                                                       Opacity="0.8"/>
-                                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="{CompiledBinding Author, Mode=OneWay}" FontSize="11"/>
-                                                <TextBlock Text="•" FontSize="11"/>
-                                                <TextBlock Text="{CompiledBinding Version, Mode=OneWay}" FontSize="11"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Row="3" 
-                                                      Content="Install"
-                                                      IsChecked="{CompiledBinding IsSelected, Mode=TwoWay}"
-                                                      FontSize="11"
-                                                      VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </Grid>
+                                        <StackPanel Orientation="Vertical" Margin="8,0,4,0">
+                                            <!-- Name -->
+                                            <TextBlock
+                                                Text="{CompiledBinding Name, Mode=OneWay}"
+                                                FontWeight="Bold"
+                                                FontSize="14"
+                                                Foreground="{StaticResource GB_TextPrimary}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <!-- Metadata -->
+                                            <TextBlock Classes="MetaLabel">
+                                                <Run
+                                                    FontWeight="Normal"
+                                                    Foreground="{StaticResource GB_TextSecondary}"
+                                                    Text="{CompiledBinding Author, Mode=OneWay, TargetNullValue=N/A}" />
+                                                •
+                                                <Run Text="{CompiledBinding Version, Mode=OneWay, TargetNullValue=N/A}" />
+                                            </TextBlock>
+                                            <!-- Selected to be installed -->
+                                            <CheckBox
+                                                IsVisible="{CompiledBinding !IsUnselectable, Mode=OneWay}"
+                                                Command="{Binding  #ModList.((vm:ModSelectionDialogViewModel)DataContext).ToggleModToInstallQueue}"
+                                                CommandParameter="{CompiledBinding .}"
+                                                IsChecked="{CompiledBinding IsSelected, Mode=OneWay}" />
+                                            <TextBlock
+                                                Classes="MetaLabel"
+                                                FontSize="14"
+                                                Text="Already Installed!"
+                                                IsVisible="{CompiledBinding IsUnselectable, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                    </Border>
-                    
-                    <!-- Right: Details panel -->
-                    <Border Grid.Column="1" Padding="10" Background="{DynamicResource Menu-Header-Bg}">
-                        <ScrollViewer>
-                            <StackPanel Spacing="10" 
-                                        IsVisible="{CompiledBinding SelectedMod, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                <Image Source="{CompiledBinding SelectedMod.ImageUrl, Mode=OneWay}" 
-                                       Stretch="Uniform"
-                                       MaxHeight="200"
-                                       HorizontalAlignment="Center"/>
-                                
-                                <TextBlock Text="{CompiledBinding SelectedMod.Name, Mode=OneWay}" 
-                                           FontSize="20"
-                                           FontWeight="Bold"
-                                           TextWrapping="Wrap"/>
-                                
-                                <TextBlock Text="{CompiledBinding SelectedMod.Description, Mode=OneWay}" 
-                                           TextWrapping="Wrap"
-                                           FontSize="14"/>
-                                
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock FontWeight="Bold">Author:</TextBlock>
-                                    <TextBlock Text="{CompiledBinding SelectedMod.Author, Mode=OneWay}"/>
+                    </StackPanel>
+
+                    <!-- RIGHT: Details Panel (GameBanana simplified) -->
+                    <Border Grid.Column="1" Background="{StaticResource GB_DarkBgBrush}">
+                        <Panel>
+                        <TextBlock Name="NoModTextIndicator"
+                                   IsVisible="{CompiledBinding SelectedMod, Mode=OneWay, Converter={x:Static ObjectConverters.IsNull}}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.35"
+                                   FontFamily="{StaticResource ComicRelief}"
+                                   Text="No Mod Selected!">
+                            <TextBlock.RenderTransform>
+                                <RotateTransform Angle="12.5" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                            <ScrollViewer IsVisible="{CompiledBinding SelectedMod, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                          Name="ModVisualizer">
+                                <StackPanel Spacing="12">
+
+                                    <!-- Banner Image -->
+                                    <Border>
+                                        <Panel>
+                                            <!-- Banner -->
+                                            <Image
+                                                Source="{CompiledBinding SelectedMod.ImageUrlAsImage, TargetNullValue={StaticResource DefaultThumbnail}, Mode=OneWay}"
+                                                Stretch="UniformToFill"
+                                                MaxHeight="180"
+                                                HorizontalAlignment="Center">
+                                                <Image.OpacityMask>
+                                                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                                        <GradientStop Color="Black" Offset="0" />
+                                                        <GradientStop Color="Transparent" Offset="0.95" />
+                                                    </LinearGradientBrush>
+                                                </Image.OpacityMask>
+                                            </Image>
+
+                                            <!-- Title -->
+                                            <TextBlock
+                                                Margin="5 0 0 20"
+                                                VerticalAlignment="Bottom"
+                                                Text="{CompiledBinding SelectedMod.Name, Mode=OneWay}"
+                                                FontSize="18"
+                                                Padding="5"
+                                                FontWeight="Bold"
+                                                Foreground="{StaticResource GB_TextPrimary}"
+                                                TextTrimming="CharacterEllipsis">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        OffsetX="-3"
+                                                        OffsetY="3"
+                                                        BlurRadius="5" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                        </Panel>
+                                    </Border>
+
+                                    <!-- Version badge & Author -->
+                                    <DockPanel Margin="5 0">
+                                        <Border
+                                            DockPanel.Dock="Right"
+                                            HorizontalAlignment="Right"
+                                            Classes="VersionBadge"
+                                            VerticalAlignment="Center">
+                                            <TextBlock Text="{CompiledBinding SelectedMod.Version, Mode=OneWay}" />
+                                        </Border>
+                                        <!-- Author -->
+                                        <TextBlock Classes="MetaLabel">
+                                            Submitted by:
+                                            <Run
+                                                FontWeight="Normal"
+                                                Foreground="{StaticResource GB_TextSecondary}"
+                                                Text="{CompiledBinding SelectedMod.Author, Mode=OneWay, TargetNullValue=N/A}" />
+                                        </TextBlock>
+                                    </DockPanel>
+
+
+                                    <Separator Margin="-5 0 -5 0" />
+
+                                    <!-- Metadata Row: Likes / Views / Downloads / Dates -->
+                                    <UniformGrid ColumnSpacing="12" RowSpacing="12" Rows="2" Columns="3" Margin="5 0">
+                                        <!-- Likes -->
+                                        <TextBlock Classes="MetaValue">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <Svg Path="/Assets/UI/gb-like.svg"
+                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                     Width="24"
+                                                     Height="24" />
+                                            </InlineUIContainer>
+                                            <Run
+                                                Text="{CompiledBinding SelectedMod.LikeCount, Mode=OneWay, TargetNullValue=N/A}"
+                                                FontWeight="SemiBold"
+                                                BaselineAlignment="Center"
+                                                Foreground="{StaticResource GB_GreenBrush}" />
+                                        </TextBlock>
+                                        <!-- Views -->
+                                        <TextBlock Classes="MetaValue">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <Svg Path="/Assets/UI/gb-views.svg"
+                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                     Width="32"
+                                                     Height="32" />
+                                            </InlineUIContainer>
+                                            <Run
+                                                Text="{CompiledBinding SelectedMod.ViewCount, Mode=OneWay, TargetNullValue=N/A}"
+                                                FontWeight="SemiBold"
+                                                BaselineAlignment="Center"
+                                                Foreground="{StaticResource GB_GreenBrush}" />
+                                        </TextBlock>
+                                        <!-- Downloads -->
+                                        <TextBlock
+                                            Classes="MetaValue">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <Svg Path="/Assets/UI/gb-downloadCount.svg"
+                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                     Width="24"
+                                                     Height="24" />
+                                            </InlineUIContainer>
+                                            <Run
+                                                Text="{CompiledBinding SelectedMod.DownloadCount, Mode=OneWay, TargetNullValue=N/A}"
+                                                FontWeight="SemiBold"
+                                                BaselineAlignment="Center"
+                                                Foreground="{StaticResource GB_GreenBrush}" />
+                                        </TextBlock>
+                                        <!-- Dates -->
+                                        <!-- Add Time -->
+                                        <TextBlock Classes="MetaValue"
+                                                   FontSize="11">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <Svg Path="/Assets/UI/gb-addTime.svg"
+                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                     Width="24"
+                                                     Height="24" />
+                                            </InlineUIContainer>
+                                            <Run Text="{CompiledBinding SelectedMod.DateAdded, Mode=OneWay}"
+                                                 FontWeight="SemiBold"
+                                                 BaselineAlignment="Center"
+                                                 Foreground="{StaticResource GB_GreenBrush}" />
+                                        </TextBlock>
+                                        <!-- Edit Time -->
+                                        <TextBlock Classes="MetaValue" FontSize="11">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <Svg Path="/Assets/UI/gb-edit.svg"
+                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                     Width="24"
+                                                     Height="24" />
+                                            </InlineUIContainer>
+                                            <Run Text="{CompiledBinding SelectedMod.DateModified, Mode=OneWay}"
+                                                 FontWeight="SemiBold"
+                                                 BaselineAlignment="Center"
+                                                 Foreground="{StaticResource GB_GreenBrush}" />
+                                        </TextBlock>
+                                        <!-- Update Time -->
+                                        <TextBlock Classes="MetaValue" FontSize="11">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <Svg Path="/Assets/UI/gb-update.svg"
+                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                     Width="24"
+                                                     Height="24" />
+                                            </InlineUIContainer>
+                                            <Run Text="{CompiledBinding SelectedMod.DateUpdated, Mode=OneWay}"
+                                                 FontWeight="SemiBold"
+                                                 BaselineAlignment="Center"
+                                                 Foreground="{StaticResource GB_GreenBrush}" />
+                                        </TextBlock>
+                                    </UniformGrid>
+
+                                    <Separator Margin="-5 -5 -5 5" />
+
+                                    <!-- Description -->
+                                    <TextBlock Text="{CompiledBinding SelectedMod.Description, Mode=OneWay}"
+                                               TextWrapping="Wrap"
+                                               Foreground="{StaticResource GB_TextSecondary}"
+                                               FontSize="13"
+                                               MaxHeight="120"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="5 0" />
+
+                                    <Separator Margin="-5 0 -5 0" />
+
+                                    <!-- Main action button: Download / Subscribe -->
+                                    <ToggleButton
+                                        IsChecked="{CompiledBinding SelectedMod.IsSelected, Mode=OneWay}"
+                                        Name="SelectInstallModButton"
+                                        Classes="GB_ActionBtn"
+                                        Command="{Binding ToggleModToInstallQueue}"
+                                        CommandParameter="{CompiledBinding SelectedMod}"
+                                        Margin="4 8"
+                                        HorizontalAlignment="Stretch" />
+
+                                    <!-- Fallback if no mod selected -->
+                                    <StackPanel
+                                        IsVisible="{CompiledBinding SelectedMod, Mode=OneWay, Converter={x:Static ObjectConverters.IsNull}}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Margin="0,40,0,0">
+                                        <TextBlock Text="Select a mod to view details"
+                                                   Foreground="{StaticResource GB_TextMuted}"
+                                                   FontSize="16"
+                                                   HorizontalAlignment="Center" />
+                                    </StackPanel>
                                 </StackPanel>
-                                
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock FontWeight="Bold">Version:</TextBlock>
-                                    <TextBlock Text="{CompiledBinding SelectedMod.Version, Mode=OneWay}"/>
-                                </StackPanel>
-                                
-                                <CheckBox Content="Install this mod"
-                                          IsChecked="{CompiledBinding SelectedMod.IsSelected, Mode=TwoWay}"
-                                          FontSize="14"/>
-                                
-                                <!-- TODO: Add download link or open in browser -->
-                            </StackPanel>
-                        </ScrollViewer>
+                            </ScrollViewer>
+                        </Panel>
                     </Border>
                 </Grid>
-                
-                <!-- Buttons -->
-                <StackPanel 
-                    Orientation="Horizontal" 
-                    Grid.Row="2"
-                    HorizontalAlignment="Center"
-                    Spacing="20"
-                    Margin="10">
-                    <Button
-                        Content="Cancel" 
-                        Classes="DialogBtn DangerDialogBtn"
-                        Command="{Binding CancelAsync}"/>
-                    <Button
-                        Content="{CompiledBinding InstallButtonText, Mode=OneWay}" 
-                        Classes="DialogBtn GenericDialogBtn"
-                        Command="{Binding InstallAsync}"
-                        IsEnabled="{CompiledBinding IsInstallEnabled, Mode=OneWay}"/>
+
+                <!-- Footer Buttons (unchanged, just styled) -->
+                <StackPanel Orientation="Horizontal"
+                            Grid.Row="2"
+                            HorizontalAlignment="Center"
+                            Spacing="20"
+                            Margin="10">
+                    <Button Content="Cancel"
+                            Classes="DialogBtn DangerDialogBtn"
+                            Command="{Binding CancelAsync}" />
+                    <Button Name="InstallButton"
+                            Content="Install (0)"
+                            Classes="DialogBtn GenericDialogBtn"
+                            Command="{Binding InstallAsync}"
+                            Opacity="{CompiledBinding !!EnqueuedModsToInstall.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
+                            IsHitTestVisible="{CompiledBinding !!EnqueuedModsToInstall.Count, Mode=OneWay}" />
                 </StackPanel>
             </Grid>
         </Border>

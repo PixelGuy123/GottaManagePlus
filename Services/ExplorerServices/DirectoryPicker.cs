@@ -6,15 +6,15 @@ namespace GottaManagePlus.Services.ExplorerServices;
 /// <summary>
 /// A class responsible for handling any type of folder picking request.
 /// </summary>
-public class DirectoryPicker(ILogger logger, ApplicationBridge applicationBridge)
+public class DirectoryPicker(ILogger logger, ApplicationManager applicationManager)
 {
-    // ----- Private API -----
+    // ----- Private -----
     private readonly ILogger _logger = logger;
-    private readonly ApplicationBridge _applicationBridge = applicationBridge;
+    private readonly ApplicationManager _applicationManager = applicationManager;
     private IStorageProvider? _storageProvider;
     public void RegisterProvider(IStorageProvider provider) => _storageProvider = provider;
     
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// Opens a Folder picker through Avalonia's API to select multiple directories.
     /// </summary>
@@ -48,7 +48,7 @@ public class DirectoryPicker(ILogger logger, ApplicationBridge applicationBridge
                 null : await _storageProvider.TryGetFolderFromPathAsync(startingLocation.FullName);
 
             IReadOnlyList<IStorageFolder> storageFolders = [];
-            await _applicationBridge.FreezeWindowAsync(async () =>
+            await _applicationManager.FreezeWindowAsync(async () =>
             {
                 storageFolders = await _storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
                 {

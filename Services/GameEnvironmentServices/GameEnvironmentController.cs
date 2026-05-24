@@ -14,13 +14,13 @@ public sealed class GameEnvironmentController(
     IGameEnvironmentSnapshotComparer gameEnvironmentSnapshotComparer
     )
 {
-    // ----- Private API -----
+    // ----- Private -----
     private readonly IEnumerable<IGameEnvironmentFactory> _factories = factories;
     private readonly IGameEnvironmentSnapshotWriter _gameEnvironmentSnapshotWriter = gameEnvironmentSnapshotWriter;
     private readonly IGameEnvironmentSnapshotReader _gameEnvironmentSnapshotReader = gameEnvironmentSnapshotReader;
     private readonly IGameEnvironmentSnapshotComparer _gameEnvironmentSnapshotComparer = gameEnvironmentSnapshotComparer;
 
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// The current <see cref="IGameEnvironment"/>.
     /// </summary>

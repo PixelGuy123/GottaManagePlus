@@ -39,19 +39,31 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
             // LastUpdateTime Setup
             var dateTime = DateTime.Now;
             manifest.Metadata.LastUpdateDate = new DateOnly(dateTime.Year, dateTime.Month, dateTime.Day);
+            
+            // Get all resources.
+            var resources = manifest.GetAllResources(_gameEnvironmentController, modRootPath);
 
             // First, get the full paths.
-            foreach (var (assetType, resource) in manifest.GetAllResources(modRootPath))
+            foreach (var (assetType, resource) in resources)
             {
                 switch (assetType)
                 {
                     // Try to move directory asset to the right destination.
                     case ModManifestUtils.AssetType.Asset:
+                        // Check asset locations.
                         if (!Directory.Exists(resource.LocalPath) || string.IsNullOrEmpty(resource.Destination) ||
-                            Directory.Exists(resource.Destination)) continue;
-
-                        _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, resource.Destination);
-                        Directory.Move(resource.LocalPath, resource.Destination!);
+                            !Directory.Exists(resource.Destination))
+                        {
+                            var message = !Path.EndsInDirectorySeparator(resource.LocalPath)
+                                ? "Skipped asset '{res}' due to localPath being a file, not a directory."
+                                : "Skipped asset '{res}' for lacking path.";
+                            _logger.Warning("{msg}", message);
+                            throw new InvalidOperationException("Asset does not contain a proper path. Check logs.");
+                        }
+                        
+                        // Then move the asset.
+                        _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, resource.MovedAsset);
+                        Directory.Move(resource.LocalPath, resource.MovedAsset);
                         break;
                     // Move the plugin to the new directory.
                     case ModManifestUtils.AssetType.Plugin:
@@ -61,7 +73,7 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                                 Path.Combine(pluginDir.FullName, Path.GetFileName(resource.LocalPath));
                             _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath,
                                 pluginDestinationPath);
-                            File.Move(resource.LocalPath, pluginDestinationPath);
+                            File.Move(resource.LocalPath, pluginDestinationPath, true);
                         }
 
                         break;
@@ -75,7 +87,7 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                             
                             _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath,
                                 patcherDestinationPath);
-                            File.Move(resource.LocalPath, patcherDestinationPath);
+                            File.Move(resource.LocalPath, patcherDestinationPath, true);
                         }
 
                         break;

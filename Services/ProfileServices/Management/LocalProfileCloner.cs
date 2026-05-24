@@ -11,11 +11,11 @@ public class LocalProfileCloner(
     GameEnvironmentController controller
 ) : IProfileCloner
 {
-    // ---- Private API ----
+    // ---- Private ----
     private readonly ProfileRepository _repository = repository;
     private readonly GameEnvironmentController _controller = controller;
 
-    // ---- Public API ----
+    // ---- Public ----
     public ProfileMetadata? CloneProfile(ProfileMetadata metadata, string newName)
     {
         // Get Profiles' folder.

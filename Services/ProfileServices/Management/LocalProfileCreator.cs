@@ -14,13 +14,13 @@ public sealed class LocalProfileCreator(
     ILogger logger
     ) : IProfileCreator
 {
-    // ---- Private API ----
+    // ---- Private ----
     private readonly ProfileRepository _repository = repository;
     private readonly ProfileZipWriter _zipWriter = zipWriter;
     private readonly GameEnvironmentController _controller = controller;
     private readonly ILogger _logger = logger;
 
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Creates a new empty profile to the local storage.
     /// </summary>

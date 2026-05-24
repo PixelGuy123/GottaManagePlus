@@ -40,20 +40,19 @@ public sealed class ProfileZipExtractor(ILogger logger)
             _logger.Warning("Zip file does not exist: {ZipFilePath}", zipFile.FullName);
             return false;
         }
-
-        DirectoryInfo? temporaryDirectory = null;
-        var backupDir = controller.CreateTempSubdirectory(_logger);
-        var invalidBackupDir = Path.Combine(backupDir.FullName, "InvalidModsBackup");
+        
+        using var backupDir = controller.CreateTempSubdirectory(_logger);
+        var invalidBackupDir = Path.Combine(backupDir.DirectoryInfo.FullName, "InvalidModsBackup");
         Directory.CreateDirectory(invalidBackupDir);
-        _logger.Information("Created backup directory: {BackupDir}", backupDir.FullName);
+        _logger.Information("Created backup directory: {BackupDir}", backupDir.DirectoryInfo.FullName);
 
         // ---------- Store info about every backed‑up item ----------
         var backedUpItems = new List<(string OriginalPath, string BackupPath, bool IsDirectory)>();
 
         try
         {
-            temporaryDirectory = controller.CreateTempSubdirectory(_logger);
-            _logger.Information("Created temporary directory: {TempDir}", temporaryDirectory.FullName);
+            using var temporaryDirectory = controller.CreateTempSubdirectory(_logger);
+            _logger.Information("Created temporary directory: {TempDir}", temporaryDirectory.DirectoryInfo.FullName);
 
             // Extract the zip content into the temporary directory.
             await using var file = zipFile.OpenRead();
@@ -69,29 +68,29 @@ public sealed class ProfileZipExtractor(ILogger logger)
                 progress?.Report(
                     new ProgressReport(entriesSeen, entryCount,
                         "Extracting", $"'{Path.GetFileName(archiveEntry.Key)}'..."));
-                _logger.Information("Extracting '{ArchiveEntryKey}' to '{Combine}'", archiveEntry.Key, Path.Combine(temporaryDirectory.FullName, archiveEntry.Key!));
-                await archiveEntry.WriteToDirectoryAsync(temporaryDirectory.FullName, cancellationToken: cancellationToken);
+                _logger.Information("Extracting '{ArchiveEntryKey}' to '{Combine}'", archiveEntry.Key, Path.Combine(temporaryDirectory.DirectoryInfo.FullName, archiveEntry.Key!));
+                await archiveEntry.WriteToDirectoryAsync(temporaryDirectory.DirectoryInfo.FullName, cancellationToken: cancellationToken);
                 entriesSeen++;
             }
             _logger.Information("Extraction to temp dir completed");
 
             // ----- Backup known directories (Plugins, Config, Patchers) -----
             _logger.Information("Starting backup and delete of known directories");
-            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder), backupDir.FullName);
-            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder), backupDir.FullName);
-            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder), backupDir.FullName);
+            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PluginsFolder), backupDir.DirectoryInfo.FullName);
+            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.ConfigFolder), backupDir.DirectoryInfo.FullName);
+            BackupItem(controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder), backupDir.DirectoryInfo.FullName);
 
             // ----- Backup asset directories/files -----
             _logger.Information("Starting backup of asset directories");
             foreach (var asset in metadata.ModDataFiles.SelectMany(mod => mod.Assets))
             {
-                BackupItem(controller.SearchAbsolutePath(asset.MovedAsset), backupDir.FullName);
+                BackupItem(controller.SearchAbsolutePath(asset.MovedAsset), backupDir.DirectoryInfo.FullName);
                 cancellationToken.ThrowIfCancellationRequested();
                 _logger.Information("Backing up asset: {Asset}", asset.MovedAsset);
             }
 
             // ----- Move the extracted profile content into the game folder -----
-            var directories = temporaryDirectory.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            var directories = temporaryDirectory.DirectoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
             _logger.Information("Starting to move {DirCount} directories from temp to extract path", directories.Length);
 
             for (var i = 0; i < directories.Length; i++)
@@ -141,24 +140,9 @@ public sealed class ProfileZipExtractor(ILogger logger)
         {
             _logger.Error(e, "Failed to extract the profile content.");
             // Full restore from backup (all items)
-            RestoreAllFromBackup(backupDir.FullName, controller.CurrentEnvironment!.RootPath);
+            RestoreAllFromBackup(backupDir.DirectoryInfo.FullName, controller.CurrentEnvironment!.RootPath);
             _logger.Information("Restored from backup due to error.");
             return false;
-        }
-        finally
-        {
-            _logger.Information("Cleaning up temporary and backup directories.");
-            try
-            {
-                if (temporaryDirectory is { Exists: true })
-                    temporaryDirectory.Delete(recursive: true);
-                if (backupDir is { Exists: true })
-                    backupDir.Delete(recursive: true);
-            }
-            catch
-            {
-                // suppress
-            }
         }
 
         // ---------- Local functions ----------

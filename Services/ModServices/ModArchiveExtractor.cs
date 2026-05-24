@@ -11,10 +11,10 @@ namespace GottaManagePlus.Services.ModServices;
 /// </summary>
 public sealed class ModArchiveExtractor(ILogger logger)
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly ILogger _logger = logger;
     
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Extracts an archive to a uniquely named temporary directory.
     /// </summary>
@@ -29,10 +29,10 @@ public sealed class ModArchiveExtractor(ILogger logger)
         {
             // 1. Get a temporary directory to actually extract the archive.
             _logger.Information("Extractor - Creating sub directory...");
-            var temporaryDirectory =
+            using var temporaryDirectory =
                 controller.CreateTempSubdirectory(_logger);
             _logger.Information("Extractor - Subdirectory created at '{TemporaryDirectoryFullName}'.",
-                temporaryDirectory.FullName);
+                temporaryDirectory.DirectoryInfo.FullName);
 
             // 2. Extract everything to that temporary directory.
             _logger.Information("Extractor - Extracting archive to directory...");
@@ -50,11 +50,11 @@ public sealed class ModArchiveExtractor(ILogger logger)
                 _logger.Information("Extractor - Extracting '{EntryKey}' to directory...", entry.Key);
 
                 // Writes the asset into the storage
-                await entry.WriteToDirectoryAsync(temporaryDirectory.FullName, cancellationToken: cancellationToken);
+                await entry.WriteToDirectoryAsync(temporaryDirectory.DirectoryInfo.FullName, cancellationToken: cancellationToken);
             }
 
             _logger.Information("Extractor - Successfully extracted the assets!");
-            return temporaryDirectory.FullName;
+            return temporaryDirectory.DirectoryInfo.FullName;
         }
         catch (Exception e)
         {

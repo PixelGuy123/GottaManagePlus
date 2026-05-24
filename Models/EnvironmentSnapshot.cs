@@ -9,7 +9,7 @@ namespace GottaManagePlus.Models;
 /// </summary>
 public class EnvironmentSnapshot : IEquatable<EnvironmentSnapshot>
 {
-    // ----- Public API -----
+    // ----- Public -----
     /// <summary>
     /// UTC timestamp when the snapshot was taken.
     /// </summary>

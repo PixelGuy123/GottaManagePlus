@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
+using GottaManagePlus.Services.APIServices;
 using GottaManagePlus.Services.ExplorerServices;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ModServices;
@@ -52,6 +53,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     private readonly ModActivator _modActivator = null!;
     private readonly ModInstaller _modInstaller = null!;
     private readonly GameEnvironmentController _gameEnvironmentController = null!;
+    private readonly GamebananaApiService _gamebananaApiService = null!;
 
     // ---- Observable Properties ----
     [ObservableProperty]
@@ -95,6 +97,13 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     [RelayCommand]
     public async Task AddModLocally(bool lookForDllFile) => await AddModUiAsync(lookForDllFile);
+    [RelayCommand]
+    public async Task OpenGamebananaModSelector()
+    {
+        var selectModDialog = _dialogService.GetDialog<ModSelectionDialogViewModel>();
+        selectModDialog.Prepare(_dialogService, _gamebananaApiService);
+        await _dialogService.ShowDialog(selectModDialog);
+    }
 
     [RelayCommand]
     public async Task OpenModPath() =>
@@ -182,6 +191,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         ModUnInstaller modUninstaller,
         ModArchiveGenerator archiveGenerator,
         ModActivator modActivator,
+        GamebananaApiService gamebananaApiService,
         ModInstaller modInstaller) : base(PageNames.Home)
     {
         _dialogService = dialogService;
@@ -194,6 +204,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         _archiveGenerator = archiveGenerator;
         _modActivator = modActivator;
         _modInstaller = modInstaller;
+        _gamebananaApiService = gamebananaApiService;
         NumberOfModsPerRow = settingsService.CurrentSettings.NumberOfRowsPerMod;
 
         FillUpAllMods(_profileManager.ActiveProfile?.ModDataFiles);
@@ -211,18 +222,12 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     {
         var list = manifests?.Select(m => new ObservableModManifest(m)).ToList() ?? [];
         ObservableUnchangedMods = new ObservableCollection<ObservableModManifest>(list);
-        OnPropertyChanged(nameof(ModsEnabledCount));
         ResetListVisibleConfigurations();
+        OnPropertyChanged(nameof(ModsEnabledCount));
     }
 
-    private void ProfilesProvider_OnProfilesUpdate(ProfileMetadata? profileMetadata)
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            FillUpAllMods(profileMetadata?.ModDataFiles);
-            ResetListVisibleConfigurations();
-        });
-    }
+    private void ProfilesProvider_OnProfilesUpdate(ProfileMetadata? profileMetadata) =>
+        Dispatcher.UIThread.Post(() => FillUpAllMods(profileMetadata?.ModDataFiles));
 
     private void UpdateModsList(ModManifest? highlightedItem)
     {
@@ -247,11 +252,13 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     private async Task AddModUiAsync(bool lookForDllFileOnly)
     {
-        DirectoryInfo? tempDir = null;
+        TemporaryDirectoryInfo? tempDir = null;
         try
         {
             // If looking for DLL only, we're expecting a plugin and a single asset folder.
             string? archiveToInstall;
+            
+            // # DLL ONLY SEARCH #
             if (lookForDllFileOnly)
             {
                 // Retrieve the dll file from the picker.
@@ -295,8 +302,8 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                 }).ToArray();
 
                 // Get a temporary location for the to-be-generated archive.
-                tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger);
-                archiveToInstall = Path.Combine(tempDir.FullName, Path.GetFileNameWithoutExtension(dllFile) + ".bin");
+                using (tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger));
+                archiveToInstall = Path.Combine(tempDir.DirectoryInfo.FullName, Path.GetFileNameWithoutExtension(dllFile) + ".bin");
 
                 // Now, actually wrap the files in a temporary zip file.
                 if (!await _dialogService.GenerateLoadingProcess(
@@ -314,6 +321,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                     return;
                 }
             }
+            // # ARCHIVE SEARCH #
             else
             {
                 // Retrieve the archive itself.
@@ -376,17 +384,6 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         {
             Log.Logger.Error("Error during generation of archive for installation!\n{e}", e);
         }
-        finally
-        {
-            try
-            {
-                if (tempDir?.Exists == true) tempDir.Delete();
-            }
-            catch
-            {
-                /* Suppress */
-            }
-        }
     }
 
     private async Task DeleteModManifestUiAsync(ModManifest modToDelete)
@@ -405,7 +402,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             try
             {
                 // Uninstalls and update it afterward.
-                _modUninstaller.DeleteMod(modToDelete, ProfilesProvider_OnProfilesUpdate);
+                _modUninstaller.DeleteMod(modToDelete, profile => FillUpAllMods(profile.ModDataFiles));
             }
             catch (Exception e)
             {

@@ -56,6 +56,7 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
         </Style>
+        <!-- YCTP Monitor Style -->
         <Style Selector="Button.YCTP">
             <Setter Property="CornerRadius" Value="35" />
             <Setter Property="BorderThickness" Value="5" />
@@ -130,58 +131,56 @@
                         <Button
                             Name="AddModButton"
                             Margin="10 0"
-                            Click="OnTogglePopup"
                             Classes="ModViewerHeader YCTPButton Miniature">
                             <Svg Path="/Assets/UI/add.svg" />
-                        </Button>
-                        <Popup
-                            Name="AddModPopup"
-                            PlacementTarget="{CompiledBinding #AddModButton}"
-                            Placement="Bottom">
-                            <Border Classes="YCTP"
+                            <Button.Flyout>
+                                <Flyout>
+                                    <Border Classes="YCTP"
                                     Padding="12" 
                                     CornerRadius="4">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="Choose an option:" FontWeight="SemiBold" />
-                                    <Button 
-                                        Classes="YCTPButton"
-                                        Click="OnTogglePopup"
-                                        Command="{Binding AddModLocally}"
-                                        CommandParameter="False"
-                                        Width="256"
-                                        Height="48"
-                                        HorizontalAlignment="Stretch">
-                                        <TextBlock
-                                            FontSize="16"
-                                            Text="Add an archive..." 
-                                            TextWrapping="WrapWithOverflow"/>
-                                    </Button>
-                                    <Button 
-                                        Classes="YCTPButton"
-                                        Click="OnTogglePopup"
-                                        Command="{Binding AddModLocally}"
-                                        CommandParameter="True"
-                                        Width="256"
-                                        Height="48"
-                                        HorizontalAlignment="Stretch">
-                                        <TextBlock Text="Add a plugin manually..." 
-                                                   TextWrapping="WrapWithOverflow"/>
-                                    </Button>
-                                    
-                                    <Button 
-                                        Classes="YCTPButton"
-                                        Click="OnTogglePopup"
-                                        Width="256"
-                                        Height="48"
-                                        Opacity="0.5"
-                                        IsHitTestVisible="False"
-                                        HorizontalAlignment="Stretch">
-                                        <TextBlock Text="(WIP) Add from Gamebanana..." 
-                                                   TextWrapping="WrapWithOverflow"/>
-                                    </Button>
-                                </StackPanel>
-                            </Border>
-                        </Popup>
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="Choose an option:" FontWeight="SemiBold" />
+                                            <Button 
+                                                Classes="YCTPButton"
+                                                Command="{Binding AddModLocally}"
+                                                CommandParameter="False"
+                                                Click="CloseAddModFlyout"
+                                                Width="256"
+                                                Height="48"
+                                                HorizontalAlignment="Stretch">
+                                                <TextBlock
+                                                    FontSize="16"
+                                                    Text="Add an archive..." 
+                                                    TextWrapping="WrapWithOverflow"/>
+                                            </Button>
+                                            <Button 
+                                                Classes="YCTPButton"
+                                                Command="{Binding AddModLocally}"
+                                                CommandParameter="True"
+                                                Click="CloseAddModFlyout"
+                                                Width="256"
+                                                Height="48"
+                                                HorizontalAlignment="Stretch">
+                                                <TextBlock Text="Add a plugin manually..." 
+                                                           TextWrapping="WrapWithOverflow"/>
+                                            </Button>
+                                            
+                                            <Button 
+                                                Classes="YCTPButton"
+                                                Command="{Binding OpenGamebananaModSelector}"
+                                                Click="CloseAddModFlyout"
+                                                Width="256"
+                                                Height="48"
+                                                HorizontalAlignment="Stretch">
+                                                <TextBlock Text="Add from Gamebanana..." 
+                                                           TextWrapping="WrapWithOverflow"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                        
                         
                         <!--Scroll viewer search box-->
                         <AutoCompleteBox
@@ -395,6 +394,7 @@
                                                     Grid.ColumnSpan="3"
                                                     ToolTip.Tip="Click to visualize this mod."
                                                     HorizontalAlignment="Stretch"
+                                                    BorderBrush="{StaticResource YctpBg-Warning}"
                                                     MinHeight="150"
                                                     Command="{Binding #ModList.((vm:MyModsViewModel)DataContext).SelectModToPreview}"
                                                     CommandParameter="{CompiledBinding .}"

@@ -14,10 +14,10 @@ namespace GottaManagePlus.Services.ModServices;
 /// </summary>
 public sealed class SecurityScanner(ILogger logger)
 {
-    // ---- Private API -----
+    // ---- Private -----
     private readonly ILogger _logger = logger;
     
-    // ---- Public API ----
+    // ---- Public ----
     /// <summary>
     /// Scans a mod's file structure in order to find any suspicious file in the assets or plugins.
     /// </summary>
@@ -33,7 +33,7 @@ public sealed class SecurityScanner(ILogger logger)
     {
         _logger.Information("Starting security scan on '{modRootPath}'", modRootPath);
         // Get a flatted out array of every asset to be scanned
-        var allAssets = manifest.GetAllResources(modRootPath);
+        var allAssets = manifest.GetAllResources(controller, modRootPath);
         var safeForLoading = true;
         var numOfTasks = 0;
 
@@ -52,7 +52,7 @@ public sealed class SecurityScanner(ILogger logger)
             }
 
             var resourcePath = resource.LocalPath;
-            progress?.Report(new ProgressReport(numOfTasks, allAssets.Length, "Scanning files:",
+            progress?.Report(new ProgressReport(numOfTasks, allAssets.Length, "Scanning files",
                 $"Checking '{resource}'"));
 
             // Make the file info and check if it exists.

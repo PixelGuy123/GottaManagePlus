@@ -51,7 +51,6 @@
                                                    Watermark="{TemplateBinding Placeholder}"
                                                    TextTrimming="PathSegmentEllipsis"
                                                    FontFamily="{TemplateBinding PlaceholderFontFamily}"
-                                                   Foreground="Black"
                                                    FontWeight="Normal"/>
                     </DockPanel>
                 </StackPanel>
