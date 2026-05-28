@@ -71,8 +71,13 @@ public partial class SettingsViewModel : PageViewModel
     [ObservableProperty]
     public partial string? ExecutablePath { get; set; }
 
+    [ObservableProperty]
+    public partial string? Theme { get; set; }
+
     // Property changes
     partial void OnNumberOfRowsPerModIndexChanged(int value) => CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
+    
+    partial void OnThemeChanged(string? value) => CurrentSaveState.Theme = value ?? "Dark";
     
     
     // Commands
@@ -131,6 +136,8 @@ public partial class SettingsViewModel : PageViewModel
                 settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
             // Saving number of rows
             settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
+            // Saving theme
+            settings.Theme = CurrentSaveState.Theme ?? "Dark";
 
             // Saving executable path to the folder validator
             _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
@@ -171,5 +178,8 @@ public partial class SettingsViewModel : PageViewModel
         
         // Update Executable's Path
         ExecutablePath = CurrentSaveState.GameExecutablePath;
+        
+        // Update Theme
+        Theme = CurrentSaveState.Theme;
     }
 }
