@@ -468,7 +468,8 @@
                                         Command="{Binding ToggleModToInstallQueue}"
                                         CommandParameter="{CompiledBinding SelectedMod}"
                                         Margin="4 8"
-                                        HorizontalAlignment="Stretch" />
+                                        Content="{CompiledBinding }"
+                                        HorizontalAlignment="Stretch"/> <!-- TODO: Create two text blocks "Mark mod for download" / "Unmark mod for download" based on IsChecked toggle-->
 
                                     <!-- Fallback if no mod selected -->
                                     <StackPanel

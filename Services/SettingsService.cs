@@ -1,7 +1,8 @@
 using System.Text.Json;
 using Avalonia;
+using Avalonia.Styling;
+using Avalonia.Threading;
 using GottaManagePlus.Models;
-using Microsoft.Extensions.Options;
 using Serilog;
 using AppSettingsContext = GottaManagePlus.Models.SourceGenerators.AppSettingsContext;
 
@@ -14,7 +15,7 @@ public sealed class SettingsService
     private readonly AppSettings _appSettings;
 
     /// <summary>
-    /// Gets the currently loaded settings. 
+    /// Gets a snapshot of the currently loaded settings. 
     /// Modifications should be made via <see cref="Update(Action{AppSettings})"/> to ensure validation.
     /// </summary>
     public AppSettings.ReadonlyAppSettings CurrentSettings => new(_appSettings);
@@ -27,7 +28,7 @@ public sealed class SettingsService
         
         _appSettings = LoadOrDefault();
         ApplyConstraints(_appSettings);
-        SetupThemeOnStartup();
+        UpdateTheme(_appSettings.Theme);
         
         _logger.Information("Settings loaded from {FilePath}", _filePath);
     }
@@ -58,7 +59,7 @@ public sealed class SettingsService
             _logger.Warning(ex, "Failed to load settings from disk; using fallback");
         }
 
-        // Fallback chain: IOptions<T> → new instance with defaults
+        // Fallback
         return new AppSettings();
     }
 
@@ -74,19 +75,14 @@ public sealed class SettingsService
     /// <summary>
     /// Sets up the theme on application startup based on saved settings.
     /// </summary>
-    private void SetupThemeOnStartup()
+    public void UpdateTheme(string theme)
     {
-        var theme = _appSettings.Theme ?? "Dark";
-        
-        if (Application.Current is not null)
+        Application.Current?.RequestedThemeVariant = theme switch
         {
-            Application.Current.RequestedThemeVariant = theme switch
-            {
-                "Light" => ThemeVariant.Light,
-                "Dark" => ThemeVariant.Dark,
-                _ => ThemeVariant.Dark
-            };
-        }
+            "Light" => ThemeVariant.Light,
+            "Dark" => ThemeVariant.Dark,
+            _ => ThemeVariant.Default
+        };
         
         _logger.Information("Theme set to {Theme} on startup", theme);
     }
@@ -97,10 +93,13 @@ public sealed class SettingsService
     public void Update(Action<AppSettings> mutate)
     {
         ArgumentNullException.ThrowIfNull(mutate);
-
-        mutate(_appSettings);
-        ApplyConstraints(_appSettings);
-        _logger.Debug("Settings updated in memory");
+     
+        Dispatcher.UIThread.Post(() =>
+        {
+            mutate(_appSettings);
+            ApplyConstraints(_appSettings);
+            _logger.Debug("Settings updated in memory");
+        });
     }
 
     /// <summary>

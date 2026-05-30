@@ -34,28 +34,40 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
     
     // *** Observables ***
     // Observable Private Members
-    private string? _gameExecutablePath;
-    private int _numberOfModsPerRow = 6;
-    private string _theme = "Dark";
-    
+
     // Observable Properties
     public string? GameExecutablePath
     {
-        get => _gameExecutablePath;
-        set { _gameExecutablePath = value; OnPropertyChanged(nameof(GameExecutablePath)); OnPropertyChanged(nameof(HasChanged)); }
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(GameExecutablePath));
+            OnPropertyChanged(nameof(HasChanged));
+        }
     }
-    
+
     public int NumberOfModsPerRow
     {
-        get => _numberOfModsPerRow;
-        set { _numberOfModsPerRow = value; OnPropertyChanged(nameof(NumberOfModsPerRow)); OnPropertyChanged(nameof(HasChanged)); }
-    }
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(NumberOfModsPerRow));
+            OnPropertyChanged(nameof(HasChanged));
+        }
+    } = 6;
 
     public string Theme
     {
-        get => _theme;
-        set { _theme = value; OnPropertyChanged(nameof(Theme)); OnPropertyChanged(nameof(HasChanged)); }
-    }
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(Theme));
+            OnPropertyChanged(nameof(HasChanged));
+        }
+    } = "Dark";
 
     [JsonIgnore]
     public SaveState LastSavedState {
@@ -73,6 +85,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
     }
     [JsonIgnore]
     public bool HasChanged => !Design.IsDesignMode && _savedState != JsonSerializer.Serialize(this, SaveStateContext.Default.SaveState); // Tell whether the state has changed
+    public bool HasChangesThatRequiresRestart(AppSettings.ReadonlyAppSettings appSettings) => Theme != appSettings.Theme;
 
     public void UpdateSavedState()
     {

@@ -116,6 +116,11 @@
                                     Name="NumOfModsPerRowCombo"
                                     SelectedIndex="{CompiledBinding NumberOfRowsPerModIndex}"
                                     ItemsSource="{CompiledBinding PossibleRowsPerModStates, Mode=OneTime}"/>
+                                <Label Content="Theme:"/>
+                                <ComboBox
+                                    FontFamily="{StaticResource WorkSans}"
+                                    SelectedValue="{CompiledBinding Theme}"
+                                    ItemsSource="{CompiledBinding PossibleThemes, Mode=OneTime}"/>
                             </StackPanel>
                         </StackPanel>
                         <!-- END OF SECOND COLUMN -->

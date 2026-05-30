@@ -20,15 +20,17 @@ public partial class SettingsViewModel : PageViewModel
     }
 
     public SettingsViewModel(FilePicker filePicker, FileLauncher fileLauncher, SettingsService settingsService,
-        GameEnvironmentController gameEnvironmentController, DialogService dialogService, ILogger logger) : base(PageNames.Settings)
+        GameEnvironmentController gameEnvironmentController, DialogService dialogService, ApplicationManager appManager,
+        ILogger logger) : base(PageNames.Settings)
     {
         if (Design.IsDesignMode) return;
-        
+
         _filePicker = filePicker;
         _fileLauncher = fileLauncher;
         _settingsService = settingsService;
         _gameEnvironmentController = gameEnvironmentController;
         _dialogService = dialogService;
+        _appManager = appManager;
         _logger = logger;
         CurrentSaveState = Models.UI.SaveState.InitializeState(settingsService);
 
@@ -43,44 +45,43 @@ public partial class SettingsViewModel : PageViewModel
         Dispatcher.UIThread.InvokeAsync(async () =>
         {
             await _dialogService.NotifyUser(Constants.WarningDialog, """
-                      Looks like the Baldi's Basics Plus (BB+) folder is not set or is not valid.
-                      If this is your first time using the tool, just select the executable of BB+ inside Settings.
-                      You cannot go to the Home Page while under this condition.
-                      """);
+                                                                     Looks like the Baldi's Basics Plus (BB+) folder is not set or is not valid.
+                                                                     If this is your first time using the tool, just select the executable of BB+ inside Settings.
+                                                                     You cannot go to the Home Page while under this condition.
+                                                                     """);
         });
     }
-    
+
     // Private members
     private readonly FilePicker _filePicker = null!;
     private readonly FileLauncher _fileLauncher = null!;
     private readonly SettingsService _settingsService = null!;
     private readonly GameEnvironmentController _gameEnvironmentController = null!;
     private readonly DialogService _dialogService = null!;
+    private readonly ApplicationManager _appManager = null!;
     private readonly ILogger _logger = null!;
 
     // Readonly collections
     public int[] PossibleRowsPerModStates { get; } = [4, 5, 6];
+    public string[] PossibleThemes { get; } = ["Light", "Dark", "System Default"];
 
     // Observable Members
-    [ObservableProperty]
-    public partial SaveState CurrentSaveState { get; set; } = null!;
+    [ObservableProperty] public partial SaveState CurrentSaveState { get; set; } = null!;
 
-    [ObservableProperty]
-    public partial int NumberOfRowsPerModIndex { get; set; }
+    [ObservableProperty] public partial int NumberOfRowsPerModIndex { get; set; }
 
-    [ObservableProperty]
-    public partial string? ExecutablePath { get; set; }
+    [ObservableProperty] public partial string? ExecutablePath { get; set; }
 
-    [ObservableProperty]
-    public partial string? Theme { get; set; }
+    [ObservableProperty] public partial string? Theme { get; set; } = "Light";
 
     // Property changes
-    partial void OnNumberOfRowsPerModIndexChanged(int value) => CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
-    
-    partial void OnThemeChanged(string? value) => CurrentSaveState.Theme = value ?? "Dark";
-    
-    
-    // Commands
+    partial void OnNumberOfRowsPerModIndexChanged(int value) =>
+        CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
+
+    partial void OnThemeChanged(string? value) { CurrentSaveState.Theme = value!; } // Update the settings to show the new theme
+
+
+// Commands
     [RelayCommand]
     public async Task SetFilePathForPlusFolder()
     {
@@ -125,6 +126,9 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     public async Task SaveState()
     {
+        // Gets the snapshot for the end script.
+        var previousSettings = _settingsService.CurrentSettings;
+        
         // Serialize saved state
         CurrentSaveState.UpdateSavedState();
 
@@ -137,7 +141,7 @@ public partial class SettingsViewModel : PageViewModel
             // Saving number of rows
             settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
             // Saving theme
-            settings.Theme = CurrentSaveState.Theme ?? "Dark";
+            settings.Theme = CurrentSaveState.Theme;
 
             // Saving executable path to the folder validator
             _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
@@ -152,6 +156,10 @@ public partial class SettingsViewModel : PageViewModel
              """,
             null,
             "Saving settings...", "Saving...", (Delegate)_settingsService.SaveAsync);
+        
+        // Quit if necessary dialog
+        if (CurrentSaveState.HasChangesThatRequiresRestart(previousSettings) && await _dialogService.PromptUserQuestion("Restart Required", "To see the changes, you'll need to restart the application.\nYou can still use the mod manager normally.", DialogServiceUtils.QuestionAnswerType.ProceedOrCancel))
+            _appManager.Exit();
     }
 
     [RelayCommand]
