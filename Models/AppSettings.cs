@@ -8,6 +8,7 @@ public class AppSettings
     public string BaldiPlusExecutablePath { get; set; } = string.Empty;
     public string CurrentProfileSet { get; set; } = string.Empty;
     public int NumberOfRowsPerMod { get; set; } = 4;
+    public string Theme { get; set; } = "Dark";
 
     /// <summary>
     /// Readonly Variant of <see cref="AppSettings"/>.
@@ -15,12 +16,14 @@ public class AppSettings
     public record struct ReadonlyAppSettings(
         string BaldiPlusExecutablePath,
         string CurrentProfileSet,
-        int NumberOfRowsPerMod)
+        int NumberOfRowsPerMod,
+        string Theme)
     {
         public ReadonlyAppSettings(AppSettings settings) : this(
             settings.BaldiPlusExecutablePath,
             settings.CurrentProfileSet, 
-            settings.NumberOfRowsPerMod) 
+            settings.NumberOfRowsPerMod,
+            settings.Theme) 
         { }
     };
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Avalonia;
 using GottaManagePlus.Models;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -26,6 +27,7 @@ public sealed class SettingsService
         
         _appSettings = LoadOrDefault();
         ApplyConstraints(_appSettings);
+        SetupThemeOnStartup();
         
         _logger.Information("Settings loaded from {FilePath}", _filePath);
     }
@@ -67,6 +69,26 @@ public sealed class SettingsService
     private static void ApplyConstraints(AppSettings settings)
     {
         settings.NumberOfRowsPerMod = Math.Clamp(settings.NumberOfRowsPerMod, 4, 6);
+    }
+
+    /// <summary>
+    /// Sets up the theme on application startup based on saved settings.
+    /// </summary>
+    private void SetupThemeOnStartup()
+    {
+        var theme = _appSettings.Theme ?? "Dark";
+        
+        if (Application.Current is not null)
+        {
+            Application.Current.RequestedThemeVariant = theme switch
+            {
+                "Light" => ThemeVariant.Light,
+                "Dark" => ThemeVariant.Dark,
+                _ => ThemeVariant.Dark
+            };
+        }
+        
+        _logger.Information("Theme set to {Theme} on startup", theme);
     }
 
     /// <summary>
