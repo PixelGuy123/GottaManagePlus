@@ -29,6 +29,7 @@ public partial class App
         collection.AddSingleton<MainWindowViewModel>(); // Singleton
         collection.AddTransient<MyModsViewModel>(); // Transient means the instance only exists when requested and destroys itself when not used
         collection.AddTransient<SettingsViewModel>();
+        collection.AddTransient<LogsTreeViewModel>();
     }
 
     private static void SetupSingletonServices(ServiceCollection collection)

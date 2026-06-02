@@ -25,7 +25,7 @@
             Background="{DynamicResource MainMenus-Bg}"
             CornerRadius="10"
             ClipToBounds="True">
-            <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+            <Grid RowDefinitions="Auto, *, Auto, Auto"> <!-- Title | Description | Logs | Buttons -->
                 <!-- Title -->
                 <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
                     <TextBlock 
@@ -51,10 +51,21 @@
                         />
                 </Border>
                 
+                <!-- Logs TreeDataGrid (only visible if LogContainer has logs) -->
+                <Border Grid.Row="2" 
+                        Padding="10,0,10,10"
+                        IsVisible="{CompiledBinding LogContainer.HasLogs, Mode=OneWay}">
+                    <TreeDataGrid 
+                        Source="{CompiledBinding LogsTreeSource, Mode=OneWay}"
+                        MaxHeight="300"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"/>
+                </Border>
+                
                 <!-- Buttons -->
                 <StackPanel 
                     Orientation="Horizontal" 
-                    Grid.Row="2"
+                    Grid.Row="3"
                     HorizontalAlignment="Center"
                     Spacing="20"
                     Margin="10">
