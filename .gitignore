@@ -1,98 +1,64 @@
-```
-# Build artifacts
+# Compiled and build artifacts
+*.o
 *.obj
 *.exe
 *.dll
 *.so
 *.a
 *.out
+*.pyc
+__pycache__/
 
 # Dependencies
-packages/
-bin/
-obj/
-
-# Logs
-*.log
-
-# Environment
+node_modules/
+venv/
+.venv/
 .env
 .env.local
 *.env.*
 
-# Editors
+# Build directories
+dist/
+build/
+target/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+
+# Editors/IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
+*.log
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Python (if applicable)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage*
-.nox/
-.pytest_cache/
-.mypy_cache/
-
-# Node.js (if applicable)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-node_modules/
-dist/
-build/
-
-# Java (if applicable)
-*.class
-*.jar
-*.war
-*.ear
-target/
-.gradle/
-!gradle/wrapper/gradle-wrapper.jar
-
-# C# (based on your files)
-**/[Dd]ebug/
-**/[Rr]elease/
-**/[Dd]ebugPublic/
-**/[Rr]eleasePublic/
-**/[Pp]ublish/
-*.user
-*.sln.docstates
-*.userprefs
-**/.DS_Store
-**/CVS/
-**/.cvsignore
-**/*.obj/
-**/*.nupkg
-**/*.snupkg
-**/packages/
-**/[Bb]in/
-**/[Oo]bj/
-**/[Ll]og/
-**/[Ll]ogs/
-**/TestResults/
-**/packages.lock.json
-**/Directory.Build.props
-**/Directory.Build.targets
-.vs/
-```
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst

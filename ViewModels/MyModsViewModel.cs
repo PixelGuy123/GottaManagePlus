@@ -352,7 +352,27 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
             if (result is ModInstallationResult installationResult)
             {
-                // TODO: Display security issues here.
+                // Display security issues if any are present
+                if (installationResult.HasSecurityIssues)
+                {
+                    var logContainer = new LogContainer();
+                    foreach (var issue in installationResult.SecurityIssues)
+                    {
+                        logContainer.AddWarning("Security Issue", issue);
+                    }
+
+                    var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
+                    confirmViewModel.Prepare(false, Constants.WarningDialog,
+                        "The mod you're installing contains potential security issues. Do you want to continue?",
+                        "Continue", "Cancel", default, logContainer);
+                    await _dialogService.ShowDialog(confirmViewModel);
+
+                    // If user cancels, don't proceed with installation
+                    if (!confirmViewModel.Confirmed)
+                    {
+                        return;
+                    }
+                }
 
                 // If it fails to be installed, warn first.
                 if (!installationResult.Success || installationResult.Metadata == null)
