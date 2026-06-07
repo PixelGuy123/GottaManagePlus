@@ -158,6 +158,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 {
                     DisplayLoadingIndicator = true;
                     await IncrementModsList(null);  // This runs after dialog is shown
+                    
                 }
                 catch
                 {
@@ -437,9 +438,6 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             // Finally, if the metadata is complete, set an invalid page counter
             if (index.Metadata?.IsComplete == true)
                 _incrementalPageCounter = -1;
-
-            // Reapply current sorting after new items have been added
-            ApplyFilterAndUpdateDisplay(SelectedFilterType);
         }
         catch (Exception e)
         {
@@ -452,6 +450,8 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             DisplayLoadingIndicator = false;
             _loadSemaphore.Release();
             AllMods = new ObservableCollection<ModItem>(allModsMirror);
+            // Reapply current sorting after new items have been added
+            ApplyFilterAndUpdateDisplay(SelectedFilterType);
         }
     }
 

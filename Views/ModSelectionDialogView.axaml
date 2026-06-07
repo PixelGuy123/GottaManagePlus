@@ -247,7 +247,7 @@
                                             Width="150"
                                             VerticalAlignment="Center"
                                             CornerRadius="10"
-                                            PlaceholderText="Search a mod online..."
+                                            PlaceholderText="Search a mod..."
                                             KeyDown="InputElement_KeyDown"
                                             Text="{CompiledBinding SearchModText}"
                                             ValueMemberBinding="{Binding Name, x:DataType=models:ModItem, Mode=OneWay}"
