@@ -35,18 +35,24 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
         throw new HttpRequestException($"API Error: {response.StatusCode}");
     }
     
+    // TODO: Integrate a Result<T> pattern for safe exception handling of all Gamebanana API service calls.
+    // Then, include a "Failed to Load" indicator to the ModSelectionDialogView.axaml file, located exactly where the loading indicator is.
     /// <summary>
     /// Attempts to search through Gamebanana API.
     /// </summary>
     /// <param name="page">The page to follow up.</param>
+    /// <param name="searchTerm">The term to be used for filtering the search.</param>
     /// <returns>A <see cref="GameBananaIndex"/> with the data from the request.</returns>
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
-    public async Task<GameBananaIndex> GetSubmissionListAsync(int page)
+    public async Task<GameBananaIndex> GetSubmissionListAsync(int page, string? searchTerm = null)
     {
         // Try to request to GB.
-        // URL: https://gamebanana.com/apiv12/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}
+        var urlToUse = string.IsNullOrWhiteSpace(searchTerm)
+            ? $"/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}"
+            : $"/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_aFilters[Generic_Name]=contains,{searchTerm}&_nPage={page}";
+        // URL: https://gamebanana.com/apiv12/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}&_aFilters[Generic_Name]=contains,{searchTerm}
         var response = await _httpClientFactory.CreateClient(ClientName)
-            .GetAsync($"{apiVersion}/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}");
+            .GetAsync($"{apiVersion}{urlToUse}");
 
         // If successful, get the document.
         if (response.IsSuccessStatusCode) return GameBananaIndex.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync()));

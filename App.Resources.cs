@@ -15,6 +15,7 @@ public static class AppInfo
     // Application Version Information
     public static readonly string AppVersion = typeof(AppInfo).Assembly.GetName().Version!.ToString();
     public static readonly string AvaloniaVersion = typeof(AvaloniaObject).Assembly.GetName().Version!.ToString();
+    public const string MutexName = "pixelguy.gottamanageplus.mutex";
 }
 
 public static class HyperLinks

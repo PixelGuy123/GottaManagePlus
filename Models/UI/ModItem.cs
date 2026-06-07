@@ -1,93 +1,156 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Media.Imaging;
+using ByteSizeLib;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GottaManagePlus.Services.APIServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Models.UI;
 
 /// <summary>
-/// Concrete representation of a JSON document from <see cref="GamebananaApiService.GetSubmissionDataAsync"/>.
+/// Represents a mod submission from the GameBanana API, mapping the JSON structure returned by <see cref="GamebananaApiService.GetSubmissionDataAsync"/>.
 /// </summary>
 public partial class ModItem : ObservableObject, IDisposable
 {
+    /// <summary>Gets the unique identifier of the mod (from _idRow).</summary>
+    [JsonPropertyName("_idRow")] public int Id { get; init; }
+
+    /// <summary>Gets or sets the display name of the mod (from _sName).</summary>
+    [JsonPropertyName("_sName")] public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the short description of the mod (from _sDescription).</summary>
+    [JsonPropertyName("_sDescription")] public string Description { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the submitter information (from _aSubmitter).</summary>
+    [JsonPropertyName("_aSubmitter")] public ModSubmitter? Submitter { get; set; }
+
+    /// <summary>Gets or sets the last modification date (Unix timestamp from _tsDateModified).</summary>
+    [JsonPropertyName("_tsDateModified")] public DateTime DateModified { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Gets or sets the last update date (Unix timestamp from _tsDateUpdated).</summary>
+    [JsonPropertyName("_tsDateUpdated")] public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Gets or sets the creation date (Unix timestamp from _tsDateAdded).</summary>
+    [JsonPropertyName("_tsDateAdded")] public DateTime DateAdded { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Gets or sets the total download count (from _nDownloadCount).</summary>
+    [JsonPropertyName("_nDownloadCount")] public int? DownloadCount { get; set; }
+
+    /// <summary>Gets or sets the total view count (from _nViewCount).</summary>
+    [JsonPropertyName("_nViewCount")] public int? ViewCount { get; set; }
+
+    /// <summary>Gets or sets the total like count (from _nLikeCount).</summary>
+    [JsonPropertyName("_nLikeCount")] public int? LikeCount { get; set; }
+
+    /// <summary>Gets or sets the primary download URL (from _sDownloadUrl).</summary>
+    [JsonPropertyName("_sDownloadUrl")] public string DownloadUrl { get; set; } = string.Empty;
+    
+    /// <summary>Gets or sets the Gamebanana URL page (from _sProfileUrl).</summary>
+    [JsonPropertyName("_sProfileUrl")] public string ProfileUrl { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the preview media (screenshots/videos) (from _aPreviewMedia).</summary>
+    [JsonPropertyName("_aPreviewMedia")] public ModPreviewMedia? PreviewMedia { get; set; }
+
+    /// <summary>Indicates whether the mod is private (from _bIsPrivate).</summary>
+    [JsonPropertyName("_bIsPrivate")] public bool IsPrivate { get; set; }
+
+    /// <summary>Indicates whether the mod is trashed/deleted (from _bIsTrashed).</summary>
+    [JsonPropertyName("_bIsTrashed")] public bool IsTrashed { get; set; }
+
+    /// <summary>Gets or sets the version string (from _sVersion).</summary>
+    [JsonPropertyName("_sVersion")] public string Version { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the comments mode (e.g., "open", "closed") (from _sCommentsMode).</summary>
+    [JsonPropertyName("_sCommentsMode")] public string CommentsMode { get; set; } = "open";
+
+    /// <summary>Gets or sets the number of updates posted (from _nUpdatesCount).</summary>
+    [JsonPropertyName("_nUpdatesCount")] public int UpdatesCount { get; set; }
+
+    /// <summary>Indicates whether the mod has any updates (from _bHasUpdates).</summary>
+    [JsonPropertyName("_bHasUpdates")] public bool HasUpdates { get; set; }
+
+    /// <summary>Gets or sets the total number of to-dos (from _nAllTodosCount).</summary>
+    [JsonPropertyName("_nAllTodosCount")] public int AllTodosCount { get; set; }
+
+    /// <summary>Indicates whether the mod has any to-dos (from _bHasTodos).</summary>
+    [JsonPropertyName("_bHasTodos")] public bool HasTodos { get; set; }
+
+    /// <summary>Gets or sets the number of posts/comments (from _nPostCount).</summary>
+    [JsonPropertyName("_nPostCount")] public int PostCount { get; set; }
+
+    /// <summary>Gets or sets the list of tag strings (from _aTags).</summary>
+    [JsonPropertyName("_aTags")] public List<string> Tags { get; set; } = [];
+
+    /// <summary>Indicates whether the current user created this mod (from _bCreatedBySubmitter).</summary>
+    [JsonPropertyName("_bCreatedBySubmitter")] public bool CreatedBySubmitter { get; set; }
+
+    /// <summary>Indicates whether the mod is a port from another game (from _bIsPorted).</summary>
+    [JsonPropertyName("_bIsPorted")] public bool IsPorted { get; set; }
+
+    /// <summary>Gets or sets the number of thanks received (from _nThanksCount).</summary>
+    [JsonPropertyName("_nThanksCount")] public int ThanksCount { get; set; }
+
+    /// <summary>Gets or sets the initial visibility setting (from _sInitialVisibility).</summary>
+    [JsonPropertyName("_sInitialVisibility")] public string InitialVisibility { get; set; } = "show";
+
+    /// <summary>Gets or sets the payment type (e.g., "free") (from _sPayType).</summary>
+    [JsonPropertyName("_sPayType")] public string PayType { get; set; } = "free";
+
+    /// <summary>Indicates whether a table of contents should be generated (from _bGenerateTableOfContents).</summary>
+    [JsonPropertyName("_bGenerateTableOfContents")] public bool GenerateTableOfContents { get; set; }
+
+    /// <summary>Gets or sets the detailed description HTML (from _sText).</summary>
+    [JsonPropertyName("_sText")] public string Text { get; set; } = string.Empty;
+
+    /// <summary>Indicates whether to show RIPE promo (from _bShowRipePromo).</summary>
+    [JsonPropertyName("_bShowRipePromo")] public bool ShowRipePromo { get; set; }
+
+    /// <summary>Indicates whether external links should be followed (from _bFollowLinks).</summary>
+    [JsonPropertyName("_bFollowLinks")] public bool FollowLinks { get; set; }
+
+    /// <summary>Indicates whether the current user has unliked this mod (from _bAccessorHasUnliked).</summary>
+    [JsonPropertyName("_bAccessorHasUnliked")] public bool AccessorHasUnliked { get; set; }
+
+    /// <summary>Indicates whether the current user has liked this mod (from _bAccessorHasLiked).</summary>
+    [JsonPropertyName("_bAccessorHasLiked")] public bool AccessorHasLiked { get; set; }
+
+    /// <summary>Indicates whether the current user has thanked this mod (from _bAccessorHasThanked).</summary>
+    [JsonPropertyName("_bAccessorHasThanked")] public bool AccessorHasThanked { get; set; }
+
+    /// <summary>Indicates whether the current user is subscribed to this mod (from _bAccessorIsSubscribed).</summary>
+    [JsonPropertyName("_bAccessorIsSubscribed")] public bool AccessorIsSubscribed { get; set; }
+
+    /// <summary>Gets or sets the subscription row ID for the current user (from _idAccessorSubscriptionRow).</summary>
+    [JsonPropertyName("_idAccessorSubscriptionRow")] public int AccessorSubscriptionRowId { get; set; }
+
+    /// <summary>Indicates whether advanced requirements exist (from _bAdvancedRequirementsExist).</summary>
+    [JsonPropertyName("_bAdvancedRequirementsExist")] public bool AdvancedRequirementsExist { get; set; }
+
+    /// <summary>Gets or sets the list of requirements as pairs of [name, url] (from _aRequirements).</summary>
+    [JsonPropertyName("_aRequirements")] public List<List<string>> Requirements { get; set; } = [];
+
+    /// <summary>Gets or sets the list of active (non‑archived) files (from _aFiles).</summary>
+    [JsonPropertyName("_aFiles")] public List<ModFile> Files { get; set; } = [];
+
+    /// <summary>Gets or sets the list of archived files (from _aArchivedFiles).</summary>
+    [JsonPropertyName("_aArchivedFiles")] public List<ModFile> ArchivedFiles { get; set; } = [];
+
+    /// <summary>Gets or sets the structured credits groups (from _aCredits).</summary>
+    [JsonPropertyName("_aCredits")] public List<ModCreditsGroup> Credits { get; set; } = [];
+
+    
     // To dispose the Bitmap images stored in.
     public void Dispose()
     {
         ImageUrlAsImage?.Dispose();
         ThumbnailUrlAsImage?.Dispose();
     }
-    
-    [JsonPropertyName("_idRow")] public int Id { get; init; }
-    [JsonPropertyName("_sName")] public string Name { get; set; } = string.Empty;
-    [JsonPropertyName("_sDescription")] public string Description { get; set; } = string.Empty;
-    [JsonPropertyName("_aSubmitter")] public ModSubmitter? Submitter { get; set; }
-    [JsonPropertyName("_tsDateModified")] public DateTime DateModified { get; set; } = DateTime.UtcNow;
-    [JsonPropertyName("_tsDateUpdated")] public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
-    [JsonPropertyName("_tsDateAdded")] public DateTime DateAdded { get; set; } = DateTime.UtcNow;
-    [JsonPropertyName("_nDownloadCount")] public int? DownloadCount { get; set; }
-    [JsonPropertyName("_nViewCount")] public int? ViewCount { get; set; }
-    [JsonPropertyName("_nLikeCount")] public int? LikeCount { get; set; }
-    [JsonPropertyName("_sDownloadUrl")] public string DownloadUrl { get; set; } = string.Empty;
-    [JsonPropertyName("_aPreviewMedia")] public ModPreviewMedia? PreviewMedia { get; set; }
-    [JsonPropertyName("_bIsPrivate")] public bool IsPrivate { get; set; }
-    [JsonPropertyName("_bIsTrashed")] public bool IsTrashed { get; set; }
-
-    [JsonPropertyName("_sVersion")] public string Version { get; set; } = string.Empty;
-    [JsonPropertyName("_sCommentsMode")] public string CommentsMode { get; set; } = "open";
-    [JsonPropertyName("_nUpdatesCount")] public int UpdatesCount { get; set; }
-    [JsonPropertyName("_bHasUpdates")] public bool HasUpdates { get; set; }
-    [JsonPropertyName("_nAllTodosCount")] public int AllTodosCount { get; set; }
-    [JsonPropertyName("_bHasTodos")] public bool HasTodos { get; set; }
-    [JsonPropertyName("_nPostCount")] public int PostCount { get; set; }
-    [JsonPropertyName("_aTags")] public List<string> Tags { get; set; } = [];
-
-    [JsonPropertyName("_bCreatedBySubmitter")]
-    public bool CreatedBySubmitter { get; set; }
-
-    [JsonPropertyName("_bIsPorted")] public bool IsPorted { get; set; }
-    [JsonPropertyName("_nThanksCount")] public int ThanksCount { get; set; }
-
-    [JsonPropertyName("_sInitialVisibility")]
-    public string InitialVisibility { get; set; } = "show";
-
-    [JsonPropertyName("_sPayType")] public string PayType { get; set; } = "free";
-
-    [JsonPropertyName("_bGenerateTableOfContents")]
-    public bool GenerateTableOfContents { get; set; }
-
-    [JsonPropertyName("_sText")] public string Text { get; set; } = string.Empty;
-    [JsonPropertyName("_bShowRipePromo")] public bool ShowRipePromo { get; set; }
-    [JsonPropertyName("_bFollowLinks")] public bool FollowLinks { get; set; }
-
-    [JsonPropertyName("_bAccessorHasUnliked")]
-    public bool AccessorHasUnliked { get; set; }
-
-    [JsonPropertyName("_bAccessorHasLiked")]
-    public bool AccessorHasLiked { get; set; }
-
-    [JsonPropertyName("_bAccessorHasThanked")]
-    public bool AccessorHasThanked { get; set; }
-
-    [JsonPropertyName("_bAccessorIsSubscribed")]
-    public bool AccessorIsSubscribed { get; set; }
-
-    [JsonPropertyName("_idAccessorSubscriptionRow")]
-    public int AccessorSubscriptionRowId { get; set; }
-
-    [JsonPropertyName("_bAdvancedRequirementsExist")]
-    public bool AdvancedRequirementsExist { get; set; }
-
-    [JsonPropertyName("_aRequirements")] public List<List<string>> Requirements { get; set; } = [];
-
-    // File collections
-    [JsonPropertyName("_aFiles")] public List<ModFile> Files { get; set; } = [];
-    [JsonPropertyName("_aArchivedFiles")] public List<ModFile> ArchivedFiles { get; set; } = [];
-
-    // Credits (new structured format)
-    [JsonPropertyName("_aCredits")] public List<ModCreditsGroup> Credits { get; set; } = [];
 
     // Helper properties for UI
     [JsonIgnore]
@@ -123,18 +186,58 @@ public partial class ModItem : ObservableObject, IDisposable
         }
     }
 
+    [JsonIgnore]
+    public IEnumerable<ModFile> AllFiles => Files.Union(ArchivedFiles);
+    [JsonIgnore]
+    public IEnumerable<ModFile> AllValidFiles => Files.Union(ArchivedFiles).Where(f => f.IndexedFile is {
+        HasGMPRoot: true
+    });
+
+    [JsonIgnore] [ObservableProperty] public partial ObservableCollection<ModFile> AllEnvironmentallyValidFiles { get; set; } = [];
+
     [JsonIgnore] public Bitmap? ImageUrlAsImage { get; private set; }
     [JsonIgnore] public Bitmap? ThumbnailUrlAsImage { get; private set; }
 
     [ObservableProperty] [JsonIgnore] public partial bool IsSelected { get; set; }
 
     [ObservableProperty] [JsonIgnore] public partial bool IsUnselectable { get; set; }
+    
+    public void UpdateEnvironmentallyValidFiles(GameEnvironmentController controller)
+    {
+        var envValidFiles = new List<ModFile>();
+        foreach (var file in AllValidFiles)
+        {
+            // Get indexed file.
+            var idxFile = file.IndexedFile;
+
+            // Get version file and check its existence.
+            var versionFile = idxFile?.FindFileByName(Constants.ModSupportForGameVersionPreviewFilePrefixName);
+            if (versionFile == null)
+            {
+                // If it doesn't exist, assume it's a universally accepted file.
+                envValidFiles.Add(file);
+                continue;
+            }
+
+            // Get the accepted versions.
+            var acceptedVersions = versionFile.Split('_');
+            var targetVersion = controller.CurrentEnvironment!.GameVersion.ToString();
+            
+            // If it exists, check version related to the environment.
+            if (acceptedVersions.Contains(targetVersion,
+                    StringComparer.FromComparison(StringComparison.OrdinalIgnoreCase)))
+                envValidFiles.Add(file);
+        }
+        
+        AllEnvironmentallyValidFiles = new ObservableCollection<ModFile>(envValidFiles);
+    }
 
     public override bool Equals(object? obj) =>
         obj is ModItem item && item.Id == Id;
     public override int GetHashCode() => Id;
     public static bool operator ==(ModItem? a, ModItem? b) => a?.Equals(b) == true;
     public static bool operator !=(ModItem? a, ModItem? b) => !(a == b);
+    public override string ToString() => $"{Name} ({Version} | {Author})";
 
     /// <summary>
     /// Creates a <see cref="ModItem"/> from a JSON document.
@@ -152,6 +255,9 @@ public partial class ModItem : ObservableObject, IDisposable
                 : "No description",
             DownloadUrl = root.TryGetProperty("_sDownloadUrl", out var dl)
                 ? dl.GetString() ?? string.Empty
+                : string.Empty,
+            ProfileUrl = root.TryGetProperty("_sProfileUrl", out var prUrl)
+                ? prUrl.GetString() ?? string.Empty
                 : string.Empty,
 
             // Submitter
@@ -327,6 +433,7 @@ public partial class ModItem : ObservableObject, IDisposable
     {
         [JsonPropertyName("_idRow")] public int Id { get; set; }
         [JsonPropertyName("_sFile")] public string FileName { get; set; } = string.Empty;
+        [JsonPropertyName("_sVersion")] public string Version { get; set; } = string.Empty;
         [JsonPropertyName("_nFilesize")] public long FileSize { get; set; }
         [JsonPropertyName("_tsDateAdded")] public DateTime DateAdded { get; set; } = DateTime.UtcNow;
         [JsonPropertyName("_nDownloadCount")] public int DownloadCount { get; set; }
@@ -356,6 +463,7 @@ public partial class ModItem : ObservableObject, IDisposable
             {
                 Id = el.TryGetProperty("_idRow", out var id) ? id.GetInt32() : 0,
                 FileName = el.TryGetProperty("_sFile", out var name) ? name.GetString() ?? string.Empty : string.Empty,
+                Version = el.TryGetProperty("_sVersion", out var version) ? version.GetString() ?? string.Empty : string.Empty,
                 FileSize = el.TryGetProperty("_nFilesize", out var size) ? size.GetInt64() : 0,
                 DateAdded = el.TryGetProperty("_tsDateAdded", out var added) ? added.GetUnixDateTime() : default,
                 DownloadCount = el.TryGetProperty("_nDownloadCount", out var dl) ? dl.GetInt32() : 0,
@@ -396,10 +504,44 @@ public partial class ModItem : ObservableObject, IDisposable
             // Parse mod manager integrations
             if (!el.TryGetProperty("_aModManagerIntegrations", out var integrations)) return file;
 
-            foreach (var integ in integrations.EnumerateArray())
-                file.ModManagerIntegrations.Add(ModManagerIntegration.FromJson(integ));
+            foreach (var integration in integrations.EnumerateArray())
+                file.ModManagerIntegrations.Add(ModManagerIntegration.FromJson(integration));
 
             return file;
+        }
+        
+        [JsonIgnore]
+        public IndexedFile? IndexedFile { get; set; }
+
+        public override string ToString() => 
+            string.IsNullOrEmpty(Version) 
+                ? $"{FileName} ({ByteSize.FromBytes(FileSize).ToString("MB")})" 
+                : $"{FileName} ({ByteSize.FromBytes(FileSize).ToString("MB")} | {Version})";
+        
+        [JsonIgnore]
+        public string? FormattedAnalysisWarnings {
+            get
+            {
+                // If there's no warnings, return null
+                if (AnalysisWarnings.Count == 0) return null;
+                
+                // TODO: Add localization here
+                StringBuilder strBld = new("This file contains the following warnings:");
+                var titleCase = CultureInfo.InvariantCulture.TextInfo.ToTitleCase; // Make "this sentence" become "This Sentence"
+                
+                // Warn Name.
+                foreach (var (warnName, warnList) in AnalysisWarnings)
+                {
+                    // Return Title.
+                    strBld.AppendLine(titleCase(warnName.Replace('_', ' ')));
+                    
+                    // Return all the list.
+                    foreach (var t in warnList)
+                        strBld.AppendLine('\t' + "\"" + t + "\"");
+                }
+                
+                return strBld.ToString();
+            }
         }
     }
 
