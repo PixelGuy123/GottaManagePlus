@@ -1,1 +1,47 @@
-Nothing should be ignored based on the provided file changes, as they only include source code files (.cs files) without any build artifacts, dependencies, or temporary files.
+```
+# Build artifacts
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+*.jar
+*.war
+*.class
+
+# Dependencies
+packages/
+node_modules/
+bower_components/
+vendor/
+
+# Logs
+*.log
+
+# Environment specific
+.env
+.env.local
+*.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vs/
+.idea/
+*.swp
+*.swo
+
+# User-specific
+*.userprefs
+*.suo
+*.user
+*.aps
+
+# Testing
+TestResults/
+coverage/
+```
