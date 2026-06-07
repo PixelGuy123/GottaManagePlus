@@ -116,7 +116,9 @@
                     Header="{CompiledBinding ProfileCount, Converter={StaticResource InsertSuffixConverter}, ConverterParameter=Profiles}">
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="_Help">
+            <MenuItem Header="_Help"
+                      IsHitTestVisible="{CompiledBinding ProfileMetadataCollection.Count, FallbackValue=False, Converter={x:Static converters:EqualityConverters.IsHigherThanOne}}"
+                      Opacity="{CompiledBinding ProfileMetadataCollection.Count, FallbackValue=0.5, Converter={x:Static converters:EqualityConverters.IsHigherThanOne_Opacity}}">
                 <MenuItem Header="Tutorial"/>
                 <MenuItem Header="About" Command="{Binding RevealAboutSection}"/>
             </MenuItem>

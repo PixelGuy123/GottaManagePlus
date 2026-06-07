@@ -8,7 +8,7 @@
              xmlns:av="clr-namespace:TheArtOfDev.HtmlRenderer.Avalonia;assembly=Avalonia.HtmlRenderer"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="550"
              MinHeight="550"
-             MinWidth="500"
+             MinWidth="750"
              x:Class="GottaManagePlus.Views.ModSelectionDialogView"
              x:DataType="vm:ModSelectionDialogViewModel">
     <Design.DataContext>
@@ -121,6 +121,7 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}"
                             CornerRadius="{TemplateBinding CornerRadius}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -231,9 +232,9 @@
                                BorderBrush="{StaticResource GB_BorderBrush}" />
 
                     <!-- LEFT: Mods List (GameBanana style) -->
-                    <StackPanel Orientation="Vertical" Grid.Column="0">
+                    <Grid Grid.Column="0" RowDefinitions="Auto, *">
                         <!-- Header -->
-                        <Panel Margin="5">
+                        <Panel Grid.Row="0" Margin="5">
                             <StackPanel Orientation="Vertical">
                                 <TextBlock Classes="MetaLabel"><Run Text="{CompiledBinding AllMods.Count}"/> Mods loaded</TextBlock>
                                 <StackPanel 
@@ -246,8 +247,8 @@
                                             Width="150"
                                             VerticalAlignment="Center"
                                             CornerRadius="10"
-                                            PlaceholderText="Search"
-                                            LostFocus="InputElement_OnLostFocus"
+                                            PlaceholderText="Search a mod online..."
+                                            KeyDown="InputElement_KeyDown"
                                             Text="{CompiledBinding SearchModText}"
                                             ValueMemberBinding="{Binding Name, x:DataType=models:ModItem, Mode=OneWay}"
                                             FilterMode="Contains" />
@@ -256,7 +257,7 @@
                                         </Button>
                                         <Separator Classes="vertical"/>
                                         <StackPanel>
-                                            <Label FontSize="12" Padding="0" Content="Filter:" Target="FilterComboBox"/>
+                                            <Label FontSize="12" Padding="0" Content="Order By:" Target="FilterComboBox"/>
                                             <ComboBox
                                                 Name="FilterComboBox"
                                                 SelectedItem="{CompiledBinding SelectedFilterType}"
@@ -271,22 +272,36 @@
                                 </StackPanel>
                             </StackPanel>
                             <!-- Loading Indicator -->
-                            <ProgressBar Classes="circular"
-                                         IsVisible="{CompiledBinding DisplayLoadingIndicator, Mode=OneWay}"
-                                         MaxWidth="16"
-                                         MaxHeight="16"
-                                         HorizontalAlignment="Right"
-                                         VerticalAlignment="Top"
-                                         IsIndeterminate="True" />
+                            <StackPanel 
+                                HorizontalAlignment="Right" 
+                                VerticalAlignment="Top"
+                                Spacing="5"
+                                Orientation="Horizontal">
+                                <!-- Error Message -->
+                                <TextBlock Classes="MetaLabel" 
+                                           VerticalAlignment="Center" 
+                                           Foreground="Red" 
+                                           FontWeight="Normal"
+                                           FontSize="10"
+                                           IsVisible="{CompiledBinding LoadingErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                           Text="{CompiledBinding LoadingErrorText}"/>
+                                <!-- TODO: Add a Reload button that resets the page counter and immediately increments again the list (full reload); include tooltip as well. -->
+                                <!-- Progress -->
+                                <ProgressBar Classes="circular"
+                                             IsVisible="{CompiledBinding DisplayLoadingIndicator}"
+                                             MaxWidth="16"
+                                             MaxHeight="16"
+                                             IsIndeterminate="True" />
+                            </StackPanel>
                         </Panel>
                         <!-- Mod List -->
-                        <ListBox ItemsSource="{CompiledBinding Mods, Mode=OneWay}"
+                        <ListBox Grid.Row="1" ItemsSource="{CompiledBinding Mods, Mode=OneWay}"
                                  SelectedItem="{CompiledBinding SelectedMod, Mode=TwoWay}"
                                  SelectionMode="Single"
                                  BorderThickness="0"
                                  Name="ModList"
-                                 Padding="8"
                                  Background="{StaticResource GB_DarkSurfaceBrush}"
+                                 ScrollViewer.AllowAutoHide="False"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="models:ModItem">
@@ -328,7 +343,7 @@
                                                 Orientation="Horizontal">
                                                 <CheckBox
                                                     IsVisible="{CompiledBinding !IsUnselectable, Mode=OneWay}"
-                                                    IsHitTestVisible="False"
+                                                    IsEnabled="False"
                                                     Opacity="{CompiledBinding !!AllEnvironmentallyValidFiles.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
                                                     Command="{Binding  #ModList.((vm:ModSelectionDialogViewModel)DataContext).ToggleModToInstallQueue}"
                                                     CommandParameter="{CompiledBinding .}"
@@ -343,7 +358,7 @@
                                                 <Label 
                                                     Opacity="{CompiledBinding !!AllEnvironmentallyValidFiles.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
                                                     Classes="MetaLabel" 
-                                                    Content="Selected?" VerticalAlignment="Center"/>
+                                                    Content="{CompiledBinding !!AllEnvironmentallyValidFiles.Count, Converter={x:Static converters:BoolConverters.BoolToCheckBoxLabelFileMissingReason}}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                             <TextBlock
                                                 Classes="MetaLabel"
@@ -355,7 +370,7 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                    </StackPanel>
+                    </Grid>
                     
                     <Separator Classes="vertical" Width="5" Margin="0" Background="{StaticResource GB_DarkSurface}" Foreground="{x:Null}" Grid.Column="1"/>
 
@@ -366,6 +381,7 @@
                                    IsVisible="{CompiledBinding SelectedMod, Mode=OneWay, Converter={x:Static ObjectConverters.IsNull}}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
+                                   FontSize="24"
                                    Opacity="0.35"
                                    FontFamily="{StaticResource ComicRelief}"
                                    Text="No Mod Selected!">
@@ -542,7 +558,7 @@
                                     <Grid 
                                         Margin="5 0" 
                                         ColumnDefinitions="Auto,*" 
-                                        RowDefinitions="*,Auto" 
+                                        RowDefinitions="*,*" 
                                         ColumnSpacing="5"
                                         RowSpacing="5">
                                         <!-- Main action button: Download / Subscribe -->
@@ -579,7 +595,8 @@
                                             <Label Classes="MetaLabel" Content="Select a file:"/> <!-- TODO: Add language support here -->
                                             <ComboBox
                                                 Name="SelectVersionModBox"
-                                                IsHitTestVisible="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count}"
+                                                ToolTip.ShowOnDisabled="True"
+                                                IsEnabled="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count}"
                                                 Opacity="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
                                                 ItemsSource="{CompiledBinding SelectedMod.AllEnvironmentallyValidFiles}">
                                                 <ComboBox.ItemTemplate>

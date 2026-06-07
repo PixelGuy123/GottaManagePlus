@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
@@ -51,6 +52,8 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     private GameEnvironmentController _gameEnvironmentController = null!;
     private string? _lastSearchedTerm;
     private int _incrementalPageCounter = 1;
+    private readonly SemaphoreSlim _loadSemaphore = new(1, 1); // For limiting the IncrementModsList concurrent calls
+    private readonly Queue<IndexMod> _failedRecordsQueue = new();
 
     #endregion
 
@@ -91,6 +94,12 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     /// </summary>
     [ObservableProperty]
     public partial bool DisplayLoadingIndicator { get; set; }
+    
+    /// <summary>
+    /// The error text to indicate something went wrong during loading.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? LoadingErrorText { get; set; }
 
     /// <summary>
     /// Text entered in the search box.
@@ -132,7 +141,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     /// Initializes the ViewModel with required services and loads the first page of mods.
     /// </summary>
     /// <param name="args">Expected: DialogService, GamebananaApiService, GameEnvironmentController.</param>
-    protected override async void Setup(params object?[]? args)
+    protected override void Setup(params object?[]? args)
     {
         try
         {
@@ -140,9 +149,25 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             _gamebananaApiService = GetValueOrException<GamebananaApiService>(args, 1);
             _gameEnvironmentController = GetValueOrException<GameEnvironmentController>(args, 2);
 
-            AllMods.Clear();
-            await IncrementModsList(null);
-            ApplyFilterAndUpdateDisplay(FilterTypes.None);
+            // If the counter is not 1, then this is not the first time that this dialog loads.
+            if (_incrementalPageCounter != 1) return;
+            
+            Dispatcher.UIThread.Post(async void () =>
+            {
+                try
+                {
+                    DisplayLoadingIndicator = true;
+                    await IncrementModsList(null);  // This runs after dialog is shown
+                }
+                catch
+                {
+                    // ignore
+                }
+                finally
+                {
+                    DisplayLoadingIndicator = false;
+                }
+            }, DispatcherPriority.Background);
         }
         catch (Exception e)
         {
@@ -153,16 +178,16 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     #endregion
 
     #region Lifecycle Overrides
-
-#if DEBUG
+    
     protected override void OnClose()
     {
         base.OnClose();
+        #if DEBUG
         Log.Logger.Information("---- Enqueued Mods ----");
         foreach (var mod in EnqueuedModsToInstall)
             Log.Logger.Information("{modItem} --> {modFile}", mod.Key.ToString(), mod.Value.ToString());
+        #endif
     }
-#endif
 
     #endregion
 
@@ -243,10 +268,14 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         try
         {
             _incrementalPageCounter = 0;
+            lock (_failedRecordsQueue)
+            {
+                _failedRecordsQueue.Clear();
+            }
             await IncrementModsList(searchTerm);
             _lastSearchedTerm = searchTerm;
         }
-        catch (Exception e)
+        catch
         {
             // ignored
         }
@@ -270,7 +299,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     partial void OnSelectedModChanged(ModItem? value)
     {
         // If mod is null, reset the selected file.
-        SelectedFile = value == null || value.AllEnvironmentallyValidFiles.Count == 0 ? null :
+        SelectedFile = value is null || value.AllEnvironmentallyValidFiles.Count == 0 ? null :
             // If mod isn't null, automatically choose the first option available for SelectedFile.
             value.AllEnvironmentallyValidFiles[0];
     }
@@ -280,6 +309,13 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         // If the file changed, update its queue if it exists.
         if (value != null && SelectedMod != null && EnqueuedModsToInstall.ContainsKey(SelectedMod))
             EnqueuedModsToInstall[SelectedMod] = value;
+    }
+
+    partial void OnDisplayLoadingIndicatorChanged(bool value)
+    {
+        // If the loading indicator shows up again, hide the loading error text.
+        if (value)
+            LoadingErrorText = null;
     }
 
     #endregion
@@ -292,33 +328,110 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     /// <param name="searchTerm">Search term or null to load the default feed.</param>
     private async Task IncrementModsList(string? searchTerm)
     {
-        // If it is less than 0, then this is a final page
-        if (_incrementalPageCounter < 0) return;
-
-        DisplayLoadingIndicator = true;
+        const string ModLoadFail = "Some mods failed to be loaded in."; // TODO: Localization needed here
+        await _loadSemaphore.WaitAsync();
+        List<ModItem> allModsMirror = [.. AllMods];
         try
         {
+            // ====== Lost Records Retrieval ====== 
+            DisplayLoadingIndicator = true;
+            List<IndexMod> toRetry;
+            lock (_failedRecordsQueue)
+            {
+                toRetry = new List<IndexMod>(_failedRecordsQueue);
+                _failedRecordsQueue.Clear();
+            }
+            
+            // Parallel Conversion.
+            var conversionTasks = toRetry.Select(record =>
+                record.ToModItem(_gamebananaApiService, _gameEnvironmentController)
+            ).ToList();
+            
+            
+            // Wait for the result of all tasks.
+            var tasks = conversionTasks.Select(t =>
+                t.ContinueWith(_ => { }));
+            await Task.WhenAll(tasks);
+
+            for (var i = 0; i < conversionTasks.Count; i++)
+            {
+                var task = conversionTasks[i];
+                var record = toRetry[i]; // Each index in conversionTask corresponds to the IndexMod
+                
+                if (!task.IsCompletedSuccessfully)
+                {
+                    // Re-queue if the conversion failed.
+                    lock (_failedRecordsQueue)
+                    {
+                        _failedRecordsQueue.Enqueue(record);
+                    }
+                    Log.Logger.Error(task.Exception, "An error occurred while incrementing the items list.");
+                    LoadingErrorText = ModLoadFail;
+                    continue;
+                }
+                var modItem = await record.ToModItem(_gamebananaApiService, _gameEnvironmentController);
+                if (allModsMirror.Contains(modItem)) continue;
+                
+#if RELEASE
+                if (modItem.AllValidFiles.Any())
+#elif DEBUG
+                if (modItem.AllFiles.Any())
+#endif
+                    allModsMirror.Add(modItem);
+            }
+
+            // If it is less than 0, then this is a final page
+            if (_incrementalPageCounter < 0) return;
+
+            // ====== Normal Submission Retrieval ======
             // Get a list of submissions with the current counter.
-            var index = await _gamebananaApiService.GetSubmissionListAsync(_incrementalPageCounter++, searchTerm);
+            var result = await _gamebananaApiService.GetSubmissionListAsync(_incrementalPageCounter++, searchTerm);
+
+            // If the result failed, show the error.
+            if (result.IsFailure)
+            {
+                Log.Logger.Error("{error}", result.Error);
+                LoadingErrorText = result.Error;
+                return;
+            }
+
+            var index = result.Value!;
+
+            // Start all record tasks in parallel.
+            conversionTasks = index.Records.Select(record =>
+                record.ToModItem(_gamebananaApiService, _gameEnvironmentController)
+            ).ToList();
+
+            // Wait for the result of all tasks.
+            tasks = conversionTasks.Select(t =>
+                t.ContinueWith(_ => { }));
+            await Task.WhenAll(tasks);
 
             // Add it to the Mods list.
-            foreach (var record in index.Records)
+            foreach (var task in conversionTasks)
             {
-                // Get the mod item.
-                var modItem = await record.ToModItem(_gamebananaApiService, _gameEnvironmentController);
+                // If the task wasn't completed, then check for exceptions.
+                if (!task.IsCompletedSuccessfully)
+                {
+                    Log.Logger.Error(task.Exception, "An error occurred while incrementing the items list.");
+                    LoadingErrorText = ModLoadFail;
+                    continue;
+                }
+
+                var modItem = task.Result;
 
                 // Ensure the mod item is not contained in the list of mods.
-                if (AllMods.Contains(modItem)) continue;
+                if (allModsMirror.Contains(modItem)) continue;
 
                 // If no files have a GMP root, then this is not a valid ModItem.
-                #if RELEASE
+#if RELEASE
                 if (!modItem.AllValidFiles.Any()) continue;
-                #elif DEBUG
+#elif DEBUG
                 if (!modItem.AllFiles.Any()) continue; // Display all files to test retrieval access.
-                #endif
+#endif
 
                 // Finally, add the mod item to the list.
-                AllMods.Add(modItem);
+                allModsMirror.Add(modItem);
             }
 
             // Finally, if the metadata is complete, set an invalid page counter
@@ -332,10 +445,13 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         {
             _incrementalPageCounter--;
             Log.Logger.Error(e, "Failed to generate a mod list from the API.");
+            LoadingErrorText = "Failed to load mods from the API.";
         }
         finally
         {
             DisplayLoadingIndicator = false;
+            _loadSemaphore.Release();
+            AllMods = new ObservableCollection<ModItem>(allModsMirror);
         }
     }
 
@@ -462,7 +578,6 @@ internal static class MockModsGenerator
                 AllTodosCount = i * 2,
                 HasTodos = i % 3 == 0,
                 PostCount = i * 3,
-                Tags = ["tag1", "tag2", $"tag_{i}"],
                 CreatedBySubmitter = true,
                 IsPorted = i == 3,
                 ThanksCount = i * 2,

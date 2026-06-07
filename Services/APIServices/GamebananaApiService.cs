@@ -43,7 +43,7 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     /// <param name="searchTerm">The term to be used for filtering the search.</param>
     /// <returns>A <see cref="GameBananaIndex"/> with the data from the request.</returns>
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
-    public async Task<GameBananaIndex> GetSubmissionListAsync(int page, string? searchTerm = null)
+    public async Task<Result<GameBananaIndex>> GetSubmissionListAsync(int page, string? searchTerm = null)
     {
         // Try to request to GB.
         var urlToUse = string.IsNullOrWhiteSpace(searchTerm)

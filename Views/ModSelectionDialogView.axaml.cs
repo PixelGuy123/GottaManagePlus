@@ -16,10 +16,9 @@ public partial class ModSelectionDialogView : DisposableUserControl
 
     private const string HTML_DISPLAY_STYLESHEET = """
                                               <style>
-                                                  body {
+                                                  * {
                                                       font-family: 'Segoe UI', Arial, sans-serif;
                                                       font-size: 14px;
-                                                      background-color: #1F1F1F;
                                                       color: #F0F0F0;
                                                       margin: 0;
                                                       padding: 8px;
@@ -29,8 +28,12 @@ public partial class ModSelectionDialogView : DisposableUserControl
                                                       margin-bottom: 2px;
                                                       font-weight: normal;
                                                   }
+                                                  p, li, span, body {
+                                                      color: #AAAAAA;
+                                                      line-height: 1.4;
+                                                  }
                                                   a {
-                                                      color: #6AB344;
+                                                      color: #D3D304;
                                                       text-decoration: underline;
                                                       cursor: default;
                                                   }
@@ -38,10 +41,6 @@ public partial class ModSelectionDialogView : DisposableUserControl
                                                       color: #7AC44D;
                                                       text-decoration: underline;
                                                       cursor: pointer;
-                                                  }
-                                                  p, li {
-                                                      color: #AAAAAA;
-                                                      line-height: 1.4;
                                                   }
                                                   code, pre {
                                                       background-color: #2A2A2A;
@@ -52,6 +51,14 @@ public partial class ModSelectionDialogView : DisposableUserControl
                                                   hr {
                                                       border-color: #3A3A3A;
                                                   }
+                                                  
+                                                  /* GameBanana-style formatting classes */
+                                                  .RedColor { color: #FF4E4E; }
+                                                  .BlueColor { color: #6CB1E1; }
+                                                  .GreenColor { color: #6EE16C; }
+                                                  .OrangeColor { color: #FF7238; }
+                                                  .GreyColor { color: #999999; }
+                                                  .PurpleColor { color: #FF5E9D; }
                                               </style>
                                               """;
 
@@ -121,30 +128,24 @@ public partial class ModSelectionDialogView : DisposableUserControl
     // Install Button Label Update
     private void DisplayInstallStringOrUnavailableString(string myString)
     {
+        const string NoFileWarning = "This mod has no file available for the current version of the game.";
         if (SelectInstallModButton.IsEnabled)
         {
             ToolTip.SetTip(SelectInstallModButton, null);
+            ToolTip.SetTip(SelectVersionModBox, null);
             SelectInstallModButton.Content = myString;
             return;
         }
 
         SelectInstallModButton.Content = InstallButtonFileUnavailability;
-        ToolTip.SetTip(SelectInstallModButton, "This mod has no file available for the current version of the game.");
+        ToolTip.SetTip(SelectInstallModButton, SelectInstallModButton);
+        ToolTip.SetTip(SelectVersionModBox, SelectInstallModButton);
     }
 
     // --- Mod visualizer (no mod text font sizing) ---
-    private void ModVisualizerOnSizeChanged(object? sender, SizeChangedEventArgs e)
-    {
-        if (sender is not TextBlock text) return;
-
-        if (string.IsNullOrEmpty(text.Text))
-        {
-            NoModTextIndicator.FontSize = 1;
-            return;
-        }
-
-        text.FontSize = Math.Min(175, (e.NewSize.Width + e.NewSize.Height) / text.Text.Length);
-    }
+    private void ModVisualizerOnSizeChanged(object? sender, SizeChangedEventArgs e) =>
+        NoModTextIndicator.FontSize = Math.Min(45, (e.NewSize.Width + e.NewSize.Height) / (NoModTextIndicator.Text?.Length ?? 1));
+    
 
     // --- Select/Install Mod button ---
     private void OnSelectInstallModButtonIsCheckedChanged(object? sender, RoutedEventArgs args)
@@ -191,12 +192,12 @@ public partial class ModSelectionDialogView : DisposableUserControl
     }
 
     // --- Search box lost focus ---
-    private void InputElement_OnLostFocus(object? sender, FocusChangedEventArgs e)
+    private void InputElement_KeyDown(object sender, KeyEventArgs e)
     {
-        if (DataContext is not ModSelectionDialogViewModel vm) return;
-
-        if (sender is AutoCompleteBox box)
-            box.Dispatcher.Invoke(async () => await vm.SearchByTerm(vm.SearchModText));
+        if (DataContext is not ModSelectionDialogViewModel vm || e.Key != Key.Enter || sender is not AutoCompleteBox box) return;
+        
+        e.Handled = true;
+        box.Dispatcher.Invoke(async () => await vm.SearchByTerm(vm.SearchModText));
     }
 
     #endregion

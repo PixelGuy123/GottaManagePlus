@@ -85,7 +85,7 @@ public partial class ModItem : ObservableObject, IDisposable
     [JsonPropertyName("_nPostCount")] public int PostCount { get; set; }
 
     /// <summary>Gets or sets the list of tag strings (from _aTags).</summary>
-    [JsonPropertyName("_aTags")] public List<string> Tags { get; set; } = [];
+    [JsonPropertyName("_aTags")] public List<ModTag> Tags { get; set; } = [];
 
     /// <summary>Indicates whether the current user created this mod (from _bCreatedBySubmitter).</summary>
     [JsonPropertyName("_bCreatedBySubmitter")] public bool CreatedBySubmitter { get; set; }
@@ -249,76 +249,70 @@ public partial class ModItem : ObservableObject, IDisposable
         {
             // Basic info
             Id = root.TryGetProperty("_idRow", out var id) ? id.GetInt32() : 0,
-            Name = root.TryGetProperty("_sName", out var name) ? name.GetString() ?? string.Empty : string.Empty,
-            Description = root.TryGetProperty("_sDescription", out var desc)
-                ? desc.GetString() ?? "No description"
-                : "No description",
-            DownloadUrl = root.TryGetProperty("_sDownloadUrl", out var dl)
-                ? dl.GetString() ?? string.Empty
-                : string.Empty,
-            ProfileUrl = root.TryGetProperty("_sProfileUrl", out var prUrl)
-                ? prUrl.GetString() ?? string.Empty
-                : string.Empty,
-
-            // Submitter
-            Submitter = root.TryGetProperty("_aSubmitter", out var sub) ? ModSubmitter.FromJson(sub) : null,
-
-            // Preview media
-            PreviewMedia =
-                root.TryGetProperty("_aPreviewMedia", out var media) ? ModPreviewMedia.FromJson(media) : null,
-
-            // Counts
-            DownloadCount = root.TryGetProperty("_nDownloadCount", out var dlCount) ? dlCount.GetInt32() : 0,
-            ViewCount = root.TryGetProperty("_nViewCount", out var view) ? view.GetInt32() : 0,
-            LikeCount = root.TryGetProperty("_nLikeCount", out var like) ? like.GetInt32() : 0,
-
-            // Booleans
-            IsTrashed = root.TryGetProperty("_bIsTrashed", out var trash) && trash.GetBoolean(),
-            IsPrivate = root.TryGetProperty("_bIsPrivate", out var priv) && priv.GetBoolean(),
-            CreatedBySubmitter = root.TryGetProperty("_bCreatedBySubmitter", out var created) && created.GetBoolean(),
-            IsPorted = root.TryGetProperty("_bIsPorted", out var ported) && ported.GetBoolean(),
-            GenerateTableOfContents = root.TryGetProperty("_bGenerateTableOfContents", out var toc) && toc.GetBoolean(),
-            ShowRipePromo = root.TryGetProperty("_bShowRipePromo", out var ripe) && ripe.GetBoolean(),
-            FollowLinks = root.TryGetProperty("_bFollowLinks", out var follow) && follow.GetBoolean(),
-            AccessorHasUnliked = root.TryGetProperty("_bAccessorHasUnliked", out var unliked) && unliked.GetBoolean(),
-            AccessorHasLiked = root.TryGetProperty("_bAccessorHasLiked", out var liked) && liked.GetBoolean(),
-            AccessorHasThanked = root.TryGetProperty("_bAccessorHasThanked", out var thanked) && thanked.GetBoolean(),
-            AccessorIsSubscribed = root.TryGetProperty("_bAccessorIsSubscribed", out var subbed) && subbed.GetBoolean(),
-            AdvancedRequirementsExist = root.TryGetProperty("_bAdvancedRequirementsExist", out var advReq) &&
-                                        advReq.GetBoolean(),
-
-            // Dates
-            DateModified = root.TryGetProperty("_tsDateModified", out var mod) ? mod.GetUnixDateTime() : default,
-            DateUpdated = root.TryGetProperty("_tsDateUpdated", out var upd) ? upd.GetUnixDateTime() : default,
-            DateAdded = root.TryGetProperty("_tsDateAdded", out var added) ? added.GetUnixDateTime() : default,
-
-            // Strings and simple values
-            Version = root.TryGetProperty("_sVersion", out var ver) ? ver.GetString() ?? string.Empty : string.Empty,
-            CommentsMode = root.TryGetProperty("_sCommentsMode", out var cmtMode)
-                ? cmtMode.GetString() ?? "open"
-                : "open",
-            UpdatesCount = root.TryGetProperty("_nUpdatesCount", out var updates) ? updates.GetInt32() : 0,
-            HasUpdates = root.TryGetProperty("_bHasUpdates", out var hasUpd) && hasUpd.GetBoolean(),
-            AllTodosCount = root.TryGetProperty("_nAllTodosCount", out var todos) ? todos.GetInt32() : 0,
-            HasTodos = root.TryGetProperty("_bHasTodos", out var hasTodos) && hasTodos.GetBoolean(),
-            PostCount = root.TryGetProperty("_nPostCount", out var posts) ? posts.GetInt32() : 0,
-            Tags = root.TryGetProperty("_aTags", out var tags)
-                ? tags.EnumerateArray().Select(t => t.GetString() ?? string.Empty).Where(s => !string.IsNullOrEmpty(s))
-                    .ToList()
-                :
-                [
-                ],
-            ThanksCount = root.TryGetProperty("_nThanksCount", out var thanks) ? thanks.GetInt32() : 0,
-            InitialVisibility = root.TryGetProperty("_sInitialVisibility", out var vis)
-                ? vis.GetString() ?? "show"
-                : "show",
-            PayType = root.TryGetProperty("_sPayType", out var pay) ? pay.GetString() ?? "free" : "free",
-            Text = root.TryGetProperty("_sText", out var text) ? text.GetString() ?? string.Empty : string.Empty,
-            AccessorSubscriptionRowId = root.TryGetProperty("_idAccessorSubscriptionRow", out var subRow)
-                ? subRow.GetInt32()
-                : 0,
         };
+        item.Name = root.TryGetProperty("_sName", out var name) ? name.GetString() ?? string.Empty : string.Empty;
+        item.Description = root.TryGetProperty("_sDescription", out var desc)
+            ? desc.GetString() ?? "No description"
+            : "No description";
+        item.DownloadUrl = root.TryGetProperty("_sDownloadUrl", out var dl)
+            ? dl.GetString() ?? string.Empty
+            : string.Empty;
+        item.ProfileUrl = root.TryGetProperty("_sProfileUrl", out var prUrl)
+            ? prUrl.GetString() ?? string.Empty
+            : string.Empty; // Submitter
+        item.Submitter = root.TryGetProperty("_aSubmitter", out var sub) ? ModSubmitter.FromJson(sub) : null; // Preview media
+        item.PreviewMedia = root.TryGetProperty("_aPreviewMedia", out var media) ? ModPreviewMedia.FromJson(media) : null; // Counts
+        item.DownloadCount = root.TryGetProperty("_nDownloadCount", out var dlCount) ? dlCount.GetInt32() : 0;
+        item.ViewCount = root.TryGetProperty("_nViewCount", out var view) ? view.GetInt32() : 0;
+        item.LikeCount = root.TryGetProperty("_nLikeCount", out var like) ? like.GetInt32() : 0; // Booleans
+        item.IsTrashed = root.TryGetProperty("_bIsTrashed", out var trash) && trash.GetBoolean();
+        item.IsPrivate = root.TryGetProperty("_bIsPrivate", out var priv) && priv.GetBoolean();
+        item.CreatedBySubmitter = root.TryGetProperty("_bCreatedBySubmitter", out var created) && created.GetBoolean();
+        item.IsPorted = root.TryGetProperty("_bIsPorted", out var ported) && ported.GetBoolean();
+        item.GenerateTableOfContents = root.TryGetProperty("_bGenerateTableOfContents", out var toc) && toc.GetBoolean();
+        item.ShowRipePromo = root.TryGetProperty("_bShowRipePromo", out var ripe) && ripe.GetBoolean();
+        item.FollowLinks = root.TryGetProperty("_bFollowLinks", out var follow) && follow.GetBoolean();
+        item.AccessorHasUnliked = root.TryGetProperty("_bAccessorHasUnliked", out var unliked) && unliked.GetBoolean();
+        item.AccessorHasLiked = root.TryGetProperty("_bAccessorHasLiked", out var liked) && liked.GetBoolean();
+        item.AccessorHasThanked = root.TryGetProperty("_bAccessorHasThanked", out var thanked) && thanked.GetBoolean();
+        item.AccessorIsSubscribed = root.TryGetProperty("_bAccessorIsSubscribed", out var subbed) && subbed.GetBoolean();
+        item.AdvancedRequirementsExist = root.TryGetProperty("_bAdvancedRequirementsExist", out var advReq) &&
+                                         advReq.GetBoolean(); // Dates
+        item.DateModified = root.TryGetProperty("_tsDateModified", out var mod) ? mod.GetUnixDateTime() : default;
+        item.DateUpdated = root.TryGetProperty("_tsDateUpdated", out var upd) ? upd.GetUnixDateTime() : default;
+        item.DateAdded = root.TryGetProperty("_tsDateAdded", out var added) ? added.GetUnixDateTime() : default; // Strings and simple values
+        item.Version = root.TryGetProperty("_sVersion", out var ver) ? ver.GetString() ?? string.Empty : string.Empty;
+        item.CommentsMode = root.TryGetProperty("_sCommentsMode", out var cmtMode)
+            ? cmtMode.GetString() ?? "open"
+            : "open";
+        item.UpdatesCount = root.TryGetProperty("_nUpdatesCount", out var updates) ? updates.GetInt32() : 0;
+        item.HasUpdates = root.TryGetProperty("_bHasUpdates", out var hasUpd) && hasUpd.GetBoolean();
+        item.AllTodosCount = root.TryGetProperty("_nAllTodosCount", out var todos) ? todos.GetInt32() : 0;
+        item.HasTodos = root.TryGetProperty("_bHasTodos", out var hasTodos) && hasTodos.GetBoolean();
+        item.PostCount = root.TryGetProperty("_nPostCount", out var posts) ? posts.GetInt32() : 0;
+        item.Tags = root.TryGetProperty("_aTags", out var tags) && tags.ValueKind == JsonValueKind.Array
+            ? tags.EnumerateArray()
+                .Select(tagElem => new ModTag
+                {
+                    Title = tagElem.TryGetProperty("_sTitle", out var title) ? title.GetString() ?? string.Empty : string.Empty,
+                    Value = tagElem.TryGetProperty("_sValue", out var value) ? value.GetString() ?? string.Empty : string.Empty
+                })
+                .Where(tag => !string.IsNullOrEmpty(tag.Title) || !string.IsNullOrEmpty(tag.Value))
+                .ToList()
+            : [];
+        item.ThanksCount = root.TryGetProperty("_nThanksCount", out var thanks) ? thanks.GetInt32() : 0;
+        item.InitialVisibility = root.TryGetProperty("_sInitialVisibility", out var vis)
+            ? vis.GetString() ?? "show"
+            : "show";
+        item.PayType = root.TryGetProperty("_sPayType", out var pay) ? pay.GetString() ?? "free" : "free";
+        item.AccessorSubscriptionRowId = root.TryGetProperty("_idAccessorSubscriptionRow", out var subRow)
+            ? subRow.GetInt32()
+            : 0;
 
+        // Text (Long Description) Format
+        item.Text = root.TryGetProperty("_sText", out var text) ? "<body>" + text.GetString() + "</body>" : string.Empty;
+        
+        
         // Files (active, non‑archived)
         if (root.TryGetProperty("_aFiles", out var files))
         {
@@ -360,10 +354,10 @@ public partial class ModItem : ObservableObject, IDisposable
         IProgress<ProgressReport>? progress)
     {
         if (ValidateString(ThumbnailUrl, ThumbnailUrlAsImage))
-            ThumbnailUrlAsImage = await apiService.GetImageAsync(ThumbnailUrl, progress);
+            ThumbnailUrlAsImage = (await apiService.GetImageAsync(ThumbnailUrl, progress)).Value;
 
         if (ValidateString(ImageUrl, ImageUrlAsImage))
-            ImageUrlAsImage = await apiService.GetImageAsync(ImageUrl, progress);
+            ImageUrlAsImage = (await apiService.GetImageAsync(ImageUrl, progress)).Value;
         return;
 
         bool ValidateString([NotNullWhen(true)] string? url, Bitmap? img) =>
@@ -611,6 +605,15 @@ public partial class ModItem : ObservableObject, IDisposable
 
             return group;
         }
+    }
+    
+    /// <summary>
+    /// Represents the tag inside this mod.
+    /// </summary>
+    public class ModTag
+    {
+        [JsonPropertyName("_sTitle")] public string Title { get; set; } = string.Empty;
+        [JsonPropertyName("_sValue")] public string Value { get; set; } = string.Empty;
     }
 
     /// <summary>

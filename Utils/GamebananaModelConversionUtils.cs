@@ -25,15 +25,19 @@ public static class GamebananaModelConversionUtils
         ArgumentNullException.ThrowIfNull(gamebananaApiService);
 
         // Get all the data from this id
-        var modItem = await gamebananaApiService.GetSubmissionDataAsync(indexMod.Id);
-        
+        var result = await gamebananaApiService.GetSubmissionDataAsync(indexMod.Id);
+        if (result.IsFailure)
+            throw new NullReferenceException(result.Error);
+
+        var modItem = result.Value!;
         // # Use the service to implement fetching calls.
         // Attempt to load its thumbnail image too.
         await modItem.AttemptToLoadImagesFromURLs(gamebananaApiService, false, null);
         
         // Attempt to get the IndexedFile features
         foreach (var file in modItem.AllFiles)
-            file.IndexedFile = await gamebananaApiService.GetIndexedFileFromFileId(file.Id);
+            file.IndexedFile = (await gamebananaApiService.GetIndexedFileFromFileId(file.Id)).Value ?? 
+                               throw new NullReferenceException($"IndexedFile from {modItem} failed to load.");
         
         // Update mod item's environment files
         modItem.UpdateEnvironmentallyValidFiles(controller);
@@ -61,7 +65,7 @@ public static class GamebananaModelConversionUtils
             DateModified = modItem.DateModified,
             HasFiles = modItem.Files.Any(f => !f.IsArchived),
             PayType = modItem.PayType,
-            Tags = modItem.Tags.ToList(),
+            Tags = [.. modItem.Tags.Select(t => t.Value)],
             PreviewMedia = modItem.PreviewMedia?.ToIndexPreviewMedia(),
             Submitter = modItem.Submitter?.ToIndexSubmitter(),
             Game = null,                          // Not present in ModItem
