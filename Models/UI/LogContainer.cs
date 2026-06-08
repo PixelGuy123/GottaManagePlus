@@ -1,7 +1,3 @@
---- Models/UI/LogContainer.cs (原始)
-
-
-+++ Models/UI/LogContainer.cs (修改后)
 using System.Collections.ObjectModel;
 
 namespace GottaManagePlus.Models.UI;
