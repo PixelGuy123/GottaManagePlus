@@ -398,7 +398,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
 
     private async Task SwitchProfileUiAsync(ProfileMetadata profile)
     {
-        // TODO: Add a warning in case invalid mods are found, to auto-generate new mods when detected.
+       
         if (_profileManager.ActiveProfile == profile) return;
 
         if (!await _dialogService.PromptUserQuestion(

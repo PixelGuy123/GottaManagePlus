@@ -18,9 +18,8 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     /// Attempts to retrieve the Gamebanana submission data.
     /// </summary>
     /// <param name="id">The id of the submission.</param>
-    /// <returns>A <see cref="JsonDocument"/> with the data from the request.</returns>
-    /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
-    public async Task<ModItem> GetSubmissionDataAsync(int id)
+    /// <returns>A <see cref="Result{T}"/> containing the <see cref="ModItem"/> if successful, or an error message if failed.</returns>
+    public async Task<Result<ModItem>> GetSubmissionDataAsync(int id)
     {
         // Try to request to GB.
         // URL: https://gamebanana.com/apiv12/Mod/{ModID}/ProfilePage
@@ -28,41 +27,46 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
             .GetAsync($"{apiVersion}/Mod/{id}/ProfilePage");
 
         // If successful, get the document.
-        if (response.IsSuccessStatusCode) return ModItem.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync()));
+        if (response.IsSuccessStatusCode) return Result<ModItem>.Success(ModItem.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
         
-        // Otherwise, throw an error.
+        // Otherwise, return failure.
         Log.Logger.Error("Failed to retrieve the data from Mod/{id}", id);
-        throw new HttpRequestException($"API Error: {response.StatusCode}");
+        return Result<ModItem>.Failure($"API Error: {response.StatusCode}");
     }
     
+    // TODO: Integrate a Result<T> pattern for safe exception handling of all Gamebanana API service calls.
+    // Then, include a "Failed to Load" indicator to the ModSelectionDialogView.axaml file, located exactly where the loading indicator is.
     /// <summary>
     /// Attempts to search through Gamebanana API.
     /// </summary>
     /// <param name="page">The page to follow up.</param>
+    /// <param name="searchTerm">The term to be used for filtering the search.</param>
     /// <returns>A <see cref="GameBananaIndex"/> with the data from the request.</returns>
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
-    public async Task<GameBananaIndex> GetSubmissionListAsync(int page)
+    public async Task<Result<GameBananaIndex>> GetSubmissionListAsync(int page, string? searchTerm = null)
     {
         // Try to request to GB.
-        // URL: https://gamebanana.com/apiv12/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}
+        var urlToUse = string.IsNullOrWhiteSpace(searchTerm)
+            ? $"/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}"
+            : $"/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_aFilters[Generic_Name]=contains,{searchTerm}&_nPage={page}";
+        // URL: https://gamebanana.com/apiv12/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}&_aFilters[Generic_Name]=contains,{searchTerm}
         var response = await _httpClientFactory.CreateClient(ClientName)
-            .GetAsync($"{apiVersion}/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}");
+            .GetAsync($"{apiVersion}{urlToUse}");
 
         // If successful, get the document.
-        if (response.IsSuccessStatusCode) return GameBananaIndex.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync()));
+        if (response.IsSuccessStatusCode) return Result<GameBananaIndex>.Success(GameBananaIndex.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
         
-        // Otherwise, throw an error.
+        // Otherwise, return failure.
         Log.Logger.Error("Failed to retrieve the data from list ({page}).", page);
-        throw new HttpRequestException($"API Error: {response.StatusCode}");
+        return Result<GameBananaIndex>.Failure($"API Error: {response.StatusCode}");
     }
 
     /// <summary>
     /// Attempts to get an <see cref="IndexedFile"/> instance from a determined id.
     /// </summary>
     /// <param name="id">The id of the file.</param>
-    /// <returns>A <see cref="IndexedFile"/> with the data from the request.</returns>
-    /// <exception cref="HttpRequestException">Thrown if the requests fails.</exception>
-    public async Task<IndexedFile> GetIndexedFileFromFileId(int id)
+    /// <returns>A <see cref="Result{T}"/> containing the <see cref="IndexedFile"/> if successful, or an error message if failed.</returns>
+    public async Task<Result<IndexedFile>> GetIndexedFileFromFileId(int id)
     {
         // Try to request to GB.
         // URL: https://gamebanana.com/apiv12/File/{id}
@@ -70,11 +74,11 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
             .GetAsync($"{apiVersion}/File/{id}");
 
         // If successful, get the document.
-        if (response.IsSuccessStatusCode) return IndexedFile.CreateOrGetIndexedFile(JsonDocument.Parse(await response.Content.ReadAsStringAsync()));
+        if (response.IsSuccessStatusCode) return Result<IndexedFile>.Success(IndexedFile.CreateOrGetIndexedFile(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
         
-        // Otherwise, throw an error.
+        // Otherwise, return failure.
         Log.Logger.Error("Failed to retrieve the data from file id ({id}).", id);
-        throw new HttpRequestException($"API Error: {response.StatusCode}");
+        return Result<IndexedFile>.Failure($"API Error: {response.StatusCode}");
     }
 
     /// <summary>
@@ -83,8 +87,8 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     /// <param name="uri">The URL for the image (absolute or relative).</param>
     /// <param name="progress">For reporting download progress.</param>
     /// <param name="cancellationToken">For cancelling the bitmap load.</param>
-    /// <returns>A <see cref="Bitmap"/> image.</returns>
-    public async Task<Bitmap> GetImageAsync(
+    /// <returns>A <see cref="Result{T}"/> containing the <see cref="Bitmap"/> if successful, or an error message if failed.</returns>
+    public async Task<Result<Bitmap>> GetImageAsync(
         string uri,
         IProgress<ProgressReport>? progress = null,
         CancellationToken cancellationToken = default)
@@ -96,7 +100,10 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            return Result<Bitmap>.Failure($"HTTP Error: {response.StatusCode}");
+        }
 
         var contentLength = response.Content.Headers.ContentLength;
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -121,6 +128,6 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
         }
 
         memoryStream.Position = 0;
-        return new Bitmap(memoryStream);
+        return Result<Bitmap>.Success(new Bitmap(memoryStream));
     }
 }

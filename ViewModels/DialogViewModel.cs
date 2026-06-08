@@ -28,11 +28,15 @@ public abstract partial class DialogViewModel : ViewModelBase
 
     protected void Close()
     {
+        OnClose();
+        
         IsDialogOpen = false;
         _isDialogPrepared = false;
 
         _closeTask.TrySetResult();
     }
+    
+    protected virtual void OnClose() { }
 
     /// <summary>
     /// A method that must be called before displaying a dialog to prepare it.

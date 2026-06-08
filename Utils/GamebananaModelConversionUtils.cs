@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GottaManagePlus.Models.UI;
+using GottaManagePlus.Services.APIServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
 
 namespace GottaManagePlus.Utils;
 
@@ -17,53 +19,30 @@ public static class GamebananaModelConversionUtils
     /// Converts an <see cref="IndexMod"/> (summary record) into a partial <see cref="ModItem"/>.
     /// Only fields present in both models are filled; others retain default values.
     /// </summary>
-    public static ModItem ToModItem(this IndexMod indexMod)
+    public static async Task<ModItem> ToModItem(this IndexMod indexMod, GamebananaApiService gamebananaApiService, GameEnvironmentController controller)
     {
         ArgumentNullException.ThrowIfNull(indexMod);
+        ArgumentNullException.ThrowIfNull(gamebananaApiService);
 
-        return new ModItem
-        {
-            Id = indexMod.Id,
-            Name = indexMod.Name,
-            Description = string.Empty,          // Not available in index
-            Submitter = indexMod.Submitter?.ToModItemSubmitter(),
-            DateModified = indexMod.DateModified,
-            DateAdded = indexMod.DateAdded,
-            DownloadCount = 0,                   // Not in index
-            ViewCount = indexMod.ViewCount,
-            LikeCount = indexMod.LikeCount,
-            PreviewMedia = indexMod.PreviewMedia?.ToModItemPreviewMedia(),
-            IsPrivate = false,                   // Not in index
-            IsTrashed = false,                   // Not in index
-            Version = indexMod.Version,
-            CommentsMode = "open",
-            UpdatesCount = 0,
-            HasUpdates = false,
-            AllTodosCount = 0,
-            HasTodos = false,
-            PostCount = indexMod.PostCount,
-            Tags = indexMod.Tags.ToList(),
-            CreatedBySubmitter = false,
-            IsPorted = false,
-            ThanksCount = 0,
-            InitialVisibility = indexMod.InitialVisibility,
-            PayType = indexMod.PayType,
-            GenerateTableOfContents = false,
-            Text = string.Empty,
-            ShowRipePromo = false,
-            FollowLinks = false,
-            AccessorHasUnliked = false,
-            AccessorHasLiked = false,
-            AccessorHasThanked = false,
-            AccessorIsSubscribed = false,
-            AccessorSubscriptionRowId = 0,
-            AdvancedRequirementsExist = false,
-            Requirements = [],
-            Files = [],
-            ArchivedFiles = [],
-            Credits = [],
-            // DownloadUrl, ImageUrl, ThumbnailUrl – leave empty (would need separate fetch)
-        };
+        // Get all the data from this id
+        var result = await gamebananaApiService.GetSubmissionDataAsync(indexMod.Id);
+        if (result.IsFailure)
+            throw new NullReferenceException(result.Error);
+
+        var modItem = result.Value!;
+        // # Use the service to implement fetching calls.
+        // Attempt to load its thumbnail image too.
+        await modItem.AttemptToLoadImagesFromURLs(gamebananaApiService, false, null);
+        
+        // Attempt to get the IndexedFile features
+        foreach (var file in modItem.AllFiles)
+            file.IndexedFile = (await gamebananaApiService.GetIndexedFileFromFileId(file.Id)).Value ?? 
+                               throw new NullReferenceException($"IndexedFile from {modItem} failed to load.");
+        
+        // Update mod item's environment files
+        modItem.UpdateEnvironmentallyValidFiles(controller);
+        
+        return modItem;
     }
 
     /// <summary>
@@ -86,7 +65,7 @@ public static class GamebananaModelConversionUtils
             DateModified = modItem.DateModified,
             HasFiles = modItem.Files.Any(f => !f.IsArchived),
             PayType = modItem.PayType,
-            Tags = modItem.Tags.ToList(),
+            Tags = [.. modItem.Tags.Select(t => t.Value)],
             PreviewMedia = modItem.PreviewMedia?.ToIndexPreviewMedia(),
             Submitter = modItem.Submitter?.ToIndexSubmitter(),
             Game = null,                          // Not present in ModItem
