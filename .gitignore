@@ -1,47 +1,33 @@
-```
 # Build artifacts
-bin/
-obj/
-*.dll
+*.obj
 *.exe
-*.pdb
+*.dll
 *.so
-*.dylib
-*.jar
-*.war
-*.class
+*.a
+*.out
 
 # Dependencies
 packages/
-node_modules/
-bower_components/
-vendor/
+bin/
+obj/
 
 # Logs
 *.log
 
-# Environment specific
+# Environment
 .env
 .env.local
 *.env.*
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# IDE files
-.vs/
+# Editors
+.vscode/
 .idea/
 *.swp
 *.swo
 
-# User-specific
-*.userprefs
-*.suo
-*.user
-*.aps
+# OS
+.DS_Store
+Thumbs.db
 
-# Testing
-TestResults/
+# Coverage
 coverage/
-```
