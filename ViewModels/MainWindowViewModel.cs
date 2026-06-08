@@ -291,14 +291,23 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                        """;
         
         // If the snapshot returns true, there's a difference to be solved.
-        if (await _dialogService.GenerateLoadingProcess(
+        var result = await _dialogService.GenerateReturningLoadingProcess(
                 null,
                 null,
                 "Updating Environment", "Checking for snapshot differences...",
                 (Delegate)_gameEnvironmentController.UpdateEnvironmentSnapshot
-            ) && raiseQuestionIfDifferencesDetected)
-            return !await _dialogService.PromptUserQuestion(Constants.WarningDialog, question,
-                DialogServiceUtils.QuestionAnswerType.AdaptOrIgnore);
+            );
+        
+        if (result.Result is SnapshotChangeReport report && report.HasChanges && raiseQuestionIfDifferencesDetected)
+        {
+            // Show the snapshot changes in a dialog with TreeDataGrid
+            var logContainer = report.ToLogContainer();
+            var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
+            confirmViewModel.Prepare(false, Constants.WarningDialog, question, "Adapt", "Ignore", default, logContainer);
+            await _dialogService.ShowDialog(confirmViewModel);
+            
+            return confirmViewModel.Confirmed; // True = Adapt, False = Ignore
+        }
         
         return true;
     }

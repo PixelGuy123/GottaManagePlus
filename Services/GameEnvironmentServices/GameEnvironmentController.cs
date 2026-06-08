@@ -1,5 +1,6 @@
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.UI;
 using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Services.GameEnvironmentServices;
@@ -104,9 +105,8 @@ public sealed class GameEnvironmentController(
     /// <summary>
     /// Updates the snapshot of the current environment.
     /// </summary>
-    /// <returns><see langword="true"/> if the snapshot has any changes; otherwise, <see langword="false"/>.</returns>
-    public async Task<bool> UpdateEnvironmentSnapshot() // TODO: Turn boolean return type into a specialized class with a detailed report of the snapshot changes.
-                                                        // Check this TODO above when the implementation of a "list" dialog is completed.
+    /// <returns>A <see cref="SnapshotChangeReport"/> with a detailed report of the snapshot changes.</returns>
+    public async Task<SnapshotChangeReport> UpdateEnvironmentSnapshot()
     {
         // Get the path for the snapshot.
         var pathForSnapshot = this.SearchAbsolutePath(Constants.App_RootFolder, Constants.App_IndexFile);
@@ -120,13 +120,14 @@ public sealed class GameEnvironmentController(
             await _gameEnvironmentSnapshotWriter.WriteSnapshotAsync(CurrentEnvironment!.RootPath, pathForSnapshot);
             CurrentSnapshot = _gameEnvironmentSnapshotReader.ReadSnapshot(pathForSnapshot);
             
-            return false;
+            return new SnapshotChangeReport(false);
         }
         
         // Writes a new snapshot and update in memory.
         await _gameEnvironmentSnapshotWriter.WriteSnapshotAsync(CurrentEnvironment!.RootPath, pathForSnapshot);
         CurrentSnapshot = _gameEnvironmentSnapshotReader.ReadSnapshot(pathForSnapshot);
 
-        return _gameEnvironmentSnapshotComparer.Compare(CurrentSnapshot!, oldSnapshot);
+        var hasChanges = _gameEnvironmentSnapshotComparer.Compare(CurrentSnapshot!, oldSnapshot);
+        return new SnapshotChangeReport(hasChanges, CurrentSnapshot!, oldSnapshot);
     }
 }

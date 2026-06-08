@@ -5,29 +5,38 @@
 *.so
 *.a
 *.out
+*.pyc
+__pycache__/
 
 # Dependencies
-packages/
-bin/
-obj/
-
-# Logs
-*.log
-
-# Environment
+node_modules/
+venv/
+.venv/
 .env
 .env.local
 *.env.*
 
-# Editors
+# Build directories
+dist/
+build/
+target/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+
+# Editors/IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
+*.log
 
 # Coverage
 coverage/

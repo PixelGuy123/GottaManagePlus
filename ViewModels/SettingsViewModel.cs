@@ -74,11 +74,15 @@ public partial class SettingsViewModel : PageViewModel
 
     [ObservableProperty] public partial string? Theme { get; set; } = "Light";
 
+    [ObservableProperty] public partial bool CancelOnSecurityIssues { get; set; }
+
     // Property changes
     partial void OnNumberOfRowsPerModIndexChanged(int value) =>
         CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
 
     partial void OnThemeChanged(string? value) { CurrentSaveState.Theme = value!; } // Update the settings to show the new theme
+
+    partial void OnCancelOnSecurityIssuesChanged(bool value) => CurrentSaveState.CancelOnSecurityIssues = value;
 
 
 // Commands
@@ -142,6 +146,8 @@ public partial class SettingsViewModel : PageViewModel
             settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
             // Saving theme
             settings.Theme = CurrentSaveState.Theme;
+            // Saving cancel on security issues setting
+            settings.CancelOnSecurityIssues = CurrentSaveState.CancelOnSecurityIssues;
 
             // Saving executable path to the folder validator
             _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
@@ -189,5 +195,8 @@ public partial class SettingsViewModel : PageViewModel
         
         // Update Theme
         Theme = CurrentSaveState.Theme;
+        
+        // Update CancelOnSecurityIssues
+        CancelOnSecurityIssues = CurrentSaveState.CancelOnSecurityIssues;
     }
 }

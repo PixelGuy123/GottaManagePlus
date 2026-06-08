@@ -17,7 +17,8 @@ public sealed class ModInstaller(
     SecurityScanner securityScanner,
     ResourceInstaller resourceInstaller,
     ProfileManager profileManager,
-    GameEnvironmentController controller)
+    GameEnvironmentController controller,
+    SettingsService settingsService)
 {
     // ---- Private ----
     private readonly ILogger _logger = logger;
@@ -27,6 +28,7 @@ public sealed class ModInstaller(
     private readonly ResourceInstaller _resourceInstaller = resourceInstaller;
     private readonly ProfileManager _profileManager = profileManager;
     private readonly GameEnvironmentController _controller = controller;
+    private readonly SettingsService _settingsService = settingsService;
 
     // ---- Public ----
     /// <summary>
@@ -78,14 +80,20 @@ public sealed class ModInstaller(
             
             // 4. After the manifest is scanned, we can start by checking the plugins and assets:
             // do they contain any suspicious files?
-            // TODO: Add a global option to forcefully cancel the installation in case security scan gets something weird.
             var isSafeToLoad = await _securityScanner.ScanAsync(temporaryDirectory, _controller, results, progress, manifest, cancellationToken);
 
-            // If the manifest is unsafe, cancel it.
+            // If the manifest is unsafe, check settings to see if we should forcefully cancel
             if (!isSafeToLoad)
             {
-                _logger.Warning("The manifest is unsafe! Canceling installation...");
-                return results;
+                // Check if the user has enabled the setting to forcefully cancel on security issues
+                if (_settingsService.CurrentSettings.CancelOnSecurityIssues)
+                {
+                    _logger.Warning("The manifest is unsafe and CancelOnSecurityIssues is enabled! Canceling installation...");
+                    return results;
+                }
+                
+                // Otherwise, log the warning but continue (user will be prompted later)
+                _logger.Warning("The manifest has security issues, but installation will continue. User will be prompted.");
             }
 
             // 5. After scanning, after getting manifest, we have everything ready;

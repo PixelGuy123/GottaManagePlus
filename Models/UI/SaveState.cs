@@ -26,6 +26,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
         state.GameExecutablePath = currentSettings.BaldiPlusExecutablePath;
         state.NumberOfModsPerRow = currentSettings.NumberOfRowsPerMod;
         state.Theme = currentSettings.Theme;
+        state.CancelOnSecurityIssues = currentSettings.CancelOnSecurityIssues;
         
         // Serialize last saved state
         state._savedState = JsonSerializer.Serialize(state, SaveStateContext.Default.SaveState);
@@ -68,6 +69,17 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
             OnPropertyChanged(nameof(HasChanged));
         }
     } = "Dark";
+
+    public bool CancelOnSecurityIssues
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(CancelOnSecurityIssues));
+            OnPropertyChanged(nameof(HasChanged));
+        }
+    } = false;
 
     [JsonIgnore]
     public SaveState LastSavedState {
