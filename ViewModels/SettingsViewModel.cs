@@ -45,9 +45,9 @@ public partial class SettingsViewModel : PageViewModel
         Dispatcher.UIThread.InvokeAsync(async () =>
         {
             await _dialogService.NotifyUser(Constants.WarningDialog, """
-                                                                     Looks like the Baldi's Basics Plus (BB+) folder is not set or is not valid.
-                                                                     If this is your first time using the tool, just select the executable of BB+ inside Settings.
-                                                                     You cannot go to the Home Page while under this condition.
+                                                                     The Baldi's Basics Plus (BB+) folder is not set.
+                                                                     If this is your first time using the tool, proceed by selecting the game's executable file.
+                                                                     You cannot go to the Home Page while the path is unset.
                                                                      """);
         });
     }

@@ -11,6 +11,7 @@
     <StyleInclude Source="Labels.axaml"/>
     <StyleInclude Source="Separator.axaml"/>
     <StyleInclude Source="ComboBox.axaml"/>
+    <StyleInclude Source="ToolTip.axaml"/>
     
     <!-- MISC styling that's way too specific to get its own .axaml -->
 

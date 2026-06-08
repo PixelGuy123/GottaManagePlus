@@ -35,6 +35,7 @@
         <entry key="Styles/Themes/LightTheme/Menus.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Themes/LightTheme/MiscColors.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/Themes/LightThemeResources.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Styles/ToolTip.axaml" value="GottaManagePlus.csproj" />
         <entry key="Styles/style.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/AddModDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/AppInfoDialogView.axaml" value="GottaManagePlus.csproj" />

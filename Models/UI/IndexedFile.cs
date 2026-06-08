@@ -94,7 +94,7 @@ public class IndexedFile
         var fileName = paths[^1];
         return _collectedPaths.Find(p => 
             p.FullPath.Equals(fullPath, StringComparison.OrdinalIgnoreCase) &&
-            p.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase)).FileName;
+            p.FileName.StartsWith(fileName, StringComparison.OrdinalIgnoreCase)).FileName;
     }
 
     // ---- Public Constructor ----

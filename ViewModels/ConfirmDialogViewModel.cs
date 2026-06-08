@@ -2,13 +2,12 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models.UI;
-using Microsoft.Extensions.DependencyInjection;
+using GottaManagePlus.ViewModels;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class ConfirmDialogViewModel : DialogViewModel
 {
-
     [ObservableProperty]
     public partial string Title { get; set; } = "Confirm?";
 
@@ -27,30 +26,30 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     [ObservableProperty]
     public partial TextAlignment DescriptionAlignment { get; set; } = TextAlignment.Center;
 
-    [ObservableProperty] 
-    private bool _confirmed;
+    [ObservableProperty]
+    public partial bool Confirmed { get; set; }
 
     /// <summary>
     /// The log container holding categorized logs (Warnings, Errors, Information).
     /// When set, updates the TreeDataGrid source for hierarchical display.
     /// </summary>
     [ObservableProperty]
-    private LogContainer? _logContainer;
+    public partial LogContainer? LogContainer { get; set; }
 
     /// <summary>
-    /// The view model for the logs tree. Provides the TreeDataGrid source.
-    /// Created via DI container to follow the ViewLocator pattern.
+    /// The container for the logs tree. Provides the TreeDataGrid source.
+    /// This is a simple data container, not a view model.
     /// </summary>
     [ObservableProperty]
-    private LogsTreeViewModel? _logsTreeViewModel;
-    
+    public partial LogsTreeContainer? LogsTreeContainer { get; set; }
+
     [RelayCommand]
     public void Confirm()
     {
         Confirmed = true;
         Close();
     }
-    
+
     [RelayCommand]
     public void Cancel()
     {
@@ -62,7 +61,7 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     /// Gets the TreeDataGrid source for displaying logs hierarchically.
     /// Returns null if no LogContainer is set or if it has no logs.
     /// </summary>
-    public object? LogsTreeSource => LogsTreeViewModel?.Source;
+    public object? LogsTreeSource => LogsTreeContainer?.Source;
 
     /// <summary>
     /// Set up the dialog with the following parameters:
@@ -81,10 +80,10 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     {
         // Reset this to false
         Confirmed = false;
-        
+
         // Get the optional parameters ready
         if (args == null) return;
-        
+
         // OnlyConfirmButton
         OnlyConfirmButton = TryGetValue(args, 0, out bool? isOkDialog) && isOkDialog.Value;
         // Title
@@ -111,25 +110,14 @@ public partial class ConfirmDialogViewModel : DialogViewModel
 
     /// <summary>
     /// Partial method called when LogContainer property changes.
-    /// Creates or updates the LogsTreeViewModel via DI to reflect the new log container.
+    /// Creates a new LogsTreeContainer instance to reflect the new log container.
     /// </summary>
     partial void OnLogContainerChanged(LogContainer? value)
     {
-        // Use DI container to create LogsTreeViewModel following the ViewLocator pattern
-        var logsTreeViewModel = App.Current?.Services?.GetService<LogsTreeViewModel>();
-        
-        if (logsTreeViewModel != null)
-        {
-            logsTreeViewModel.Prepare(value);
-            LogsTreeViewModel = logsTreeViewModel;
-        }
-        else
-        {
-            // Fallback: create directly if DI is not available
-            LogsTreeViewModel = new LogsTreeViewModel();
-            LogsTreeViewModel.Prepare(value);
-        }
-        
+        // Create a new instance directly here
+        LogsTreeContainer ??= new LogsTreeContainer();
+        LogsTreeContainer.Prepare(value);
+
         OnPropertyChanged(nameof(LogsTreeSource));
     }
 }

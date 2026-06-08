@@ -101,7 +101,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public async Task OpenGamebananaModSelector()
     {
         var selectModDialog = _dialogService.GetDialog<ModSelectionDialogViewModel>();
-        selectModDialog.Prepare(_dialogService, _gamebananaApiService);
+        selectModDialog.Prepare(_dialogService, _gamebananaApiService, _gameEnvironmentController);
         await _dialogService.ShowDialog(selectModDialog);
     }
 
