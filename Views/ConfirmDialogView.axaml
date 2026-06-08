@@ -9,14 +9,14 @@
              MinWidth="350"
              MinHeight="200"
              >
-    
+
     <Design.DataContext><vm:ConfirmDialogViewModel/></Design.DataContext>
-    
+
     <UserControl.Styles>
         <StyleInclude Source="/Styles/TextBlock.axaml"/>
         <StyleInclude Source="/Styles/Buttons.axaml"/>
     </UserControl.Styles>
-    
+
     <Border
         CornerRadius="10"
         Margin="10 20"
@@ -28,7 +28,7 @@
             <Grid RowDefinitions="Auto, *, Auto, Auto"> <!-- Title | Description | Logs | Buttons -->
                 <!-- Title -->
                 <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
-                    <TextBlock 
+                    <TextBlock
                         Text="{CompiledBinding Title, Mode=OneWay}"
                         MaxWidth="650"
                         HorizontalAlignment="Center"
@@ -38,10 +38,10 @@
                         FontWeight="ExtraLight"
                         FontFamily="{StaticResource WorkSans}"/>
                 </Border>
-                
+
                 <!-- Description -->
                 <Border Grid.Row="1" Padding="10">
-                    <TextBlock 
+                    <TextBlock
                         Text="{CompiledBinding Message, Mode=OneWay}"
                         MaxWidth="650"
                         TextWrapping="Wrap"
@@ -50,34 +50,34 @@
                         FontFamily="{StaticResource ComicRelief}"
                         />
                 </Border>
-                
+
                 <!-- Logs TreeDataGrid (only visible if LogContainer has logs) -->
-                <Border Grid.Row="2" 
+                <Border Grid.Row="2"
                         Padding="10,0,10,10"
-                        IsVisible="{CompiledBinding LogContainer.HasLogs, Mode=OneWay}">
-                    <TreeDataGrid 
+                        IsVisible="{CompiledBinding LogContainer.HasLogs, FallbackValue=False, Mode=OneWay}">
+                    <TreeDataGrid
                         Source="{CompiledBinding LogsTreeSource, Mode=OneWay}"
                         MaxHeight="300"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Top"/>
                 </Border>
-                
+
                 <!-- Buttons -->
-                <StackPanel 
-                    Orientation="Horizontal" 
+                <StackPanel
+                    Orientation="Horizontal"
                     Grid.Row="3"
                     HorizontalAlignment="Center"
                     Spacing="20"
                     Margin="10">
                     <Button
                         IsVisible="{CompiledBinding !OnlyConfirmButton, Mode=OneWay}"
-                        Content="{CompiledBinding CancelText, Mode=OneWay}" 
+                        Content="{CompiledBinding CancelText, Mode=OneWay}"
                         Classes="DialogBtn DangerDialogBtn"
                         IsCancel="True"
                         Command="{Binding Cancel}"/>
                     <Button
                         IsDefault="True"
-                        Content="{CompiledBinding ConfirmText, Mode=OneWay}" 
+                        Content="{CompiledBinding ConfirmText, Mode=OneWay}"
                         Classes="DialogBtn GenericDialogBtn"
                         Command="{Binding Confirm}"/>
                 </StackPanel>
