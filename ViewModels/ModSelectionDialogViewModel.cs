@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -9,6 +10,7 @@ using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 using GottaManagePlus.Services.APIServices;
 using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Services.ModServices;
 using GottaManagePlus.Utils;
 using Serilog;
 
@@ -50,6 +52,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     private DialogService _dialogService = null!;
     private GamebananaApiService _gamebananaApiService = null!;
     private GameEnvironmentController _gameEnvironmentController = null!;
+    private ModInstaller _modInstaller = null!;
     private string? _lastSearchedTerm;
     private int _incrementalPageCounter = 1;
     private readonly SemaphoreSlim _loadSemaphore = new(1, 1); // For limiting the IncrementModsList concurrent calls
@@ -148,6 +151,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             _dialogService = GetValueOrException<DialogService>(args, 0);
             _gamebananaApiService = GetValueOrException<GamebananaApiService>(args, 1);
             _gameEnvironmentController = GetValueOrException<GameEnvironmentController>(args, 2);
+            _modInstaller = GetValueOrException<ModInstaller>(args, 3);
 
             // If the counter is not 1, then this is not the first time that this dialog loads.
             if (_incrementalPageCounter != 1) return;
@@ -216,19 +220,24 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     public async Task AddModBunch() => await IncrementModsList(null);
 
     [RelayCommand]
-    public async Task InstallAsync()
+    public async Task InstallPromptAsync()
     {
         if (EnqueuedModsToInstall.Count == 0) return;
 
         // Close this dialog before anything
         Close();
         
-        // TODO: Implement an actual installation process.
+
+        // Preview the files that will be installed.
+        var logContainer = new LogContainer();
+        foreach (var (mod, file) in EnqueuedModsToInstall)
+            logContainer.AddInformation(mod.ToString(), file.ToString());
 
         if (await _dialogService.PromptUserQuestion(
                 "Confirm Installation",
                 $"You are about to install {EnqueuedModsToInstall.Count} mod(s). Proceed?",
-                DialogServiceUtils.QuestionAnswerType.ProceedOrCancel))
+                DialogServiceUtils.QuestionAnswerType.ProceedOrCancel, 
+                logContainer))
         {
             // Install asynchronously (install)
             if (await _dialogService.GenerateLoadingProcess(
@@ -236,7 +245,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                     $"{EnqueuedModsToInstall.Count} mod(s) have been installed successfully.",
                     "Installing Mods",
                     null,
-                    (Delegate)MockInstallAsync))
+                    (Delegate)InstallAsync))
             {
                 // Installation completed successfully
             }
@@ -497,36 +506,50 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     }
 
     /// <summary>
-    /// Mock installation task simulating download and installation of queued mods.
+    /// Installs all mods stored in <see cref="EnqueuedModsToInstall"/> through multi-tasking.
     /// </summary>
-    private async Task<bool> MockInstallAsync(CancellationToken ct, IProgress<ProgressReport>? progress)
+    private async Task<Result<LogContainer>> InstallAsync(CancellationToken ct, IProgress<ProgressReport>? progress)
     {
         var total = EnqueuedModsToInstall.Count;
-        var completed = 0;
+        ConcurrentBag<ModInstallationResult> installationResults = [];
 
-        foreach (var (mod, file) in EnqueuedModsToInstall)
+        // Enqueue the tasks.
+        var enqueuedTasks = EnqueuedModsToInstall.Select(kvp => Task.Run(async () =>
         {
-            ct.ThrowIfCancellationRequested();
+            var (_, file) = kvp;
+            
+            // Create a temporary directory for the file.
+            using var tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger);
+            
+            // Download the file.
+            var result = await _gamebananaApiService.DownloadFile(file, tempDir.DirectoryInfo.FullName, _gameEnvironmentController,
+                progress, Log.Logger, ct);
 
-            progress?.Report(new ProgressReport(completed++, total, currentStatus: $"Downloading {mod.Name}"));
+            // Cancel if result is failure.
+            if (result.IsFailure)
+                return;
 
-            // Simulate download
-            await Task.Delay(1000, ct);
+            // Install the mod individually.
+            installationResults.Add(await _modInstaller.InstallModArchiveAsync(result.Value, progress, ct));
+        }, ct));
 
-            progress?.Report(new ProgressReport(completed, total, currentStatus: $"Installing {mod.Name}"));
+        // Wait all tasks.
+        await Task.WhenAll(enqueuedTasks);
+        
+        // Sum up all containers into one.
+        var finalContainer = installationResults
+            .Select(res => res.SecurityIssues.ToLogContainer("Security Issue", LogType.Warning))
+            .MergeAll();
 
-            // Simulate install
-            await Task.Delay(800, ct);
-        }
+        progress?.Report(new ProgressReport(currentStatus: "Installed all mods successfully!"));
 
-        progress?.Report(new ProgressReport(total, total, currentStatus: "Installed all mods successfully!"));
-
-        return true;
+        return Result<LogContainer>.Success(finalContainer);
     }
 
     #endregion
 }
 
+#if DEBUG
 /// <summary>
 /// Temporary mock data generator (to be replaced with API call).
 /// </summary>
@@ -675,3 +698,4 @@ internal static class MockModsGenerator
         return items;
     }
 }
+#endif

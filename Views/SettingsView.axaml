@@ -100,6 +100,10 @@
                                 SelectFileCommand="{Binding SetFilePathForPlusFolder}"/>
                             
                             <!-- Security Issue Checkbox -->
+                            <StackPanel ToolTip.Tip="When enabled, automatically cancels installation of any mod flagged as 'suspicious' to protect your system.">
+                                <Label Content="Prevent Suspicious Mods Installation"/>
+                                <CheckBox IsChecked="{CompiledBinding CancelOnSecurityIssues, Mode=TwoWay}"/>
+                            </StackPanel>
                             <!-- TODO: implement checkbox -->
                         </StackPanel>
                         <!-- END OF FIRST COLUMN -->
@@ -112,15 +116,18 @@
                             Spacing="10"
                             Orientation="Vertical">
                             <!-- Mod Grid Settings -->
-                            <StackPanel Orientation="Vertical">
-                                <Label Content="Number of mods per row:"/>
+                            <StackPanel>
+                                <Label Target="NumOfModsPerRowCombo" Content="Number of mods per row:"/>
                                 <ComboBox
                                     FontFamily="{StaticResource WorkSans}"
                                     Name="NumOfModsPerRowCombo"
                                     SelectedIndex="{CompiledBinding NumberOfRowsPerModIndex}"
                                     ItemsSource="{CompiledBinding PossibleRowsPerModStates, Mode=OneTime}"/>
-                                <Label Content="Theme:"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <Label Target="ThemeComboBox" Content="Theme:"/>
                                 <ComboBox
+                                    Name="ThemeComboBox"
                                     FontFamily="{StaticResource WorkSans}"
                                     SelectedValue="{CompiledBinding Theme}"
                                     ItemsSource="{CompiledBinding PossibleThemes, Mode=OneTime}"/>

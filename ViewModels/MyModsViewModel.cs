@@ -101,7 +101,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public async Task OpenGamebananaModSelector()
     {
         var selectModDialog = _dialogService.GetDialog<ModSelectionDialogViewModel>();
-        selectModDialog.Prepare(_dialogService, _gamebananaApiService, _gameEnvironmentController);
+        selectModDialog.Prepare(_dialogService, _gamebananaApiService, _gameEnvironmentController, _modInstaller);
         await _dialogService.ShowDialog(selectModDialog);
     }
 
@@ -356,12 +356,8 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                 // Display security issues if any are present
                 if (installationResult.HasSecurityIssues)
                 {
-                    var logContainer = new LogContainer();
-                    for (var i = 0; i < installationResult.SecurityIssues.Count; i++)
-                    {
-                        var issue = installationResult.SecurityIssues[i];
-                        logContainer.AddWarning($"Security Issue ({i + 1})", issue);
-                    }
+                    var logContainer =
+                        installationResult.SecurityIssues.ToLogContainer("Security Issue", LogType.Warning);
 
                     // If this wasn't intentional (cancel), show message.
                     if (!installationResult.Cancelled && !installationFailed)

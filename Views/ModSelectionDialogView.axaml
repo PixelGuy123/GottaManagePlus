@@ -627,7 +627,7 @@
                     <Button Name="InstallButton"
                             Content="Install (0)"
                             Classes="DialogBtn GenericDialogBtn"
-                            Command="{Binding InstallAsync}"
+                            Command="{Binding InstallPromptAsync}"
                             Opacity="{CompiledBinding !!EnqueuedModsToInstall.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
                             IsHitTestVisible="{CompiledBinding !!EnqueuedModsToInstall.Count, Mode=OneWay}" />
                 </StackPanel>

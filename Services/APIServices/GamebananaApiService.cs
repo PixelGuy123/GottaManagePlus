@@ -2,6 +2,8 @@ using System.Text.Json;
 using Avalonia.Media.Imaging;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
 using Serilog;
 
 namespace GottaManagePlus.Services.APIServices;
@@ -12,6 +14,7 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
         ClientName = "GameBanana",
         apiVersion = "apiv12"; // Current API Version
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private const int defaultStreamAllocationBuffer = 81920;
 
     // ----- Public ------
     /// <summary>
@@ -82,6 +85,90 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     }
 
     /// <summary>
+    /// Downloads a file from the specified URL to a temporary directory and returns a <see cref="FileStream"/> for reading the downloaded content.
+    /// </summary>
+    /// <param name="file">The mod file containing download metadata, including <see cref="ModItem.ModFile.DownloadUrl"/> and <see cref="ModItem.ModFile.FileName"/>.</param>
+    /// <param name="fileDestinationPath">The intended final destination path for the file (DIRECTORY-ONLY).</param>
+    /// <param name="controller">The game environment controller used to create a temporary download directory.</param>
+    /// <param name="progress">Optional progress reporter that receives download progress updates when content length is available.</param>
+    /// <param name="cancellationToken">A token to cancel the asynchronous download operation.</param>
+    /// <param name="logger">Optional logger for error reporting.</param>
+    /// <returns>
+    /// A <see cref="Result"/> containing a path (<see langword="string"/>) of the downloaded file. 
+    /// or a failure result with an error message if the download fails.
+    /// </returns>
+    /// <remarks>
+    /// The returned <see cref="FileStream"/> is opened for reading and must be disposed by the caller.
+    /// The temporary directory will be cleaned up when the stream is disposed and the temp directory handle is released.
+    /// </remarks>
+    public async Task<Result<string>> DownloadFile(ModItem.ModFile file, string fileDestinationPath, GameEnvironmentController controller, IProgress<ProgressReport>? progress = null,
+        ILogger? logger = null, CancellationToken cancellationToken = default)
+    {
+        if (!File.GetAttributes(fileDestinationPath).HasFlag(FileAttributes.Directory))
+            return Result<string>.Failure("Destination Path is not a directory.");
+        
+        // HTTP Request
+        var httpClient = _httpClientFactory.CreateClient(ClientName);
+
+        using var response = await httpClient.GetAsync(
+            file.DownloadUrl,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+            return Result<string>.Failure($"HTTP Error: {response.StatusCode}");
+        
+        // Prepare Temporary Download Location
+        using var tempDir = controller.CreateTempSubdirectory(logger);
+        
+        // Create file for writing (disposed manually in finally block)
+        var tempFilePath = Path.Combine(tempDir.DirectoryInfo.FullName, file.FileName);
+        var destinationPath = Path.Combine(fileDestinationPath, file.FileName);
+        
+        logger?.Information("Initialized download of file ({file})", file.ToString());
+
+        try
+        {
+            // Download file to temp folder
+            await using (var fileStream = File.OpenWrite(tempFilePath))
+            {
+                // Download with Progress Reporting
+                var contentLength = response.Content.Headers.ContentLength;
+                await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+                var buffer = new byte[defaultStreamAllocationBuffer];
+                var totalBytesRead = 0L;
+
+                int bytesRead;
+                while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                    totalBytesRead += bytesRead;
+
+                    // Report progress if provider is set and content length is known
+                    if (progress == null || !contentLength.HasValue) continue;
+                    progress.Report(
+                        new ProgressReport(totalBytesRead, contentLength.Value * 100,
+                            currentStatus: "Retrieving image from URL...", usePercentage: true));
+                    logger?.Information("Download Progress: {bytes}/{left} bytes", totalBytesRead, contentLength.Value);
+                }
+            }
+            
+            // Move the written file it to the right destination.
+            File.Move(tempFilePath, destinationPath);
+            logger?.Information("Moved file to {path}", destinationPath);
+            
+            return Result<string>.Success(fileDestinationPath);
+        }
+        catch (Exception e)
+        {
+            // Error Handling
+            logger?.Error(e, "Failed to download file ('{file}')", file.FileName);
+            return Result<string>.Failure($"Download Failure: {e.Message}");
+        }
+    }
+
+    /// <summary>
     /// Attempts to retrieve an image from Gamebanana.
     /// </summary>
     /// <param name="uri">The URL for the image (absolute or relative).</param>
@@ -101,24 +188,21 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
             cancellationToken);
 
         if (!response.IsSuccessStatusCode)
-        {
             return Result<Bitmap>.Failure($"HTTP Error: {response.StatusCode}");
-        }
+        
 
         var contentLength = response.Content.Headers.ContentLength;
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        var buffer = new byte[8192]; // 8KB chunks
+        var buffer = new byte[defaultStreamAllocationBuffer];
         var totalBytesRead = 0L;
         using var memoryStream = new MemoryStream();
 
         int bytesRead;
         while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
         {
-            memoryStream.Write(buffer, 0, bytesRead);
+            await memoryStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
             totalBytesRead += bytesRead;
-
-            cancellationToken.ThrowIfCancellationRequested();
 
             // Report progress if provider is set and content length is known
             if (progress == null || !contentLength.HasValue) continue;
@@ -127,7 +211,6 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
                     currentStatus: "Retrieving image from URL...", usePercentage: true));
         }
 
-        memoryStream.Position = 0;
         return Result<Bitmap>.Success(new Bitmap(memoryStream));
     }
 }

@@ -509,8 +509,8 @@ public partial class ModItem : ObservableObject, IDisposable
 
         public override string ToString() => 
             string.IsNullOrEmpty(Version) 
-                ? $"{FileName} ({ByteSize.FromBytes(FileSize).ToString("MB")})" 
-                : $"{FileName} ({ByteSize.FromBytes(FileSize).ToString("MB")} | {Version})";
+                ? $"{FileName} ({ByteSize.FromBytes(FileSize).ToString()})" 
+                : $"{FileName} ({ByteSize.FromBytes(FileSize).ToString()} | {Version})";
         
         [JsonIgnore]
         public string? FormattedAnalysisWarnings {
