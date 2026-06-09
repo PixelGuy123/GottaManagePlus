@@ -57,7 +57,7 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
             }
 
             // Load the metadata from disk.
-            _ = await manifest.LoadMetadataFromDiskAsync(controller, logger, cancellationToken);
+            _ = await manifest.LoadMetadataFromDiskAsync(_controller, _logger, cancellationToken);
 
             // Look for supported versions file
             var dir = Path.GetDirectoryName(manifestPath);

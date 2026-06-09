@@ -1,3 +1,4 @@
+using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 using GottaManagePlus.ViewModels;
 
@@ -95,17 +96,18 @@ public static class DialogServiceUtils
         /// <param name="title">The title displayed at the top of the confirmation dialog.</param>
         /// <param name="question">The primary question text presented to the user.</param>
         /// <param name="answerType">The answers available for the user.</param>
+        /// <param name="container">The container for log display.</param>
         /// <returns>
         /// <see langword="true"/> if the user confirms the action (selects "Yes"); otherwise, <see langword="false"/>.
         /// </returns>
-        public async Task<bool> PromptUserQuestion(string title, string question, QuestionAnswerType answerType = QuestionAnswerType.YesOrNo)
+        public async Task<bool> PromptUserQuestion(string title, string question, QuestionAnswerType answerType = QuestionAnswerType.YesOrNo, LogContainer? container = null)
         {
             // Get the dialog.
             var confirmViewModel = dialogService.GetDialog<ConfirmDialogViewModel>();
 
             // Prepare and display.
             var answer = answerType.AnswerToString();
-            confirmViewModel.Prepare(null, title, question, answer.Yes, answer.No);
+            confirmViewModel.Prepare(null, title, question, answer.Yes, answer.No, null, container);
             await dialogService.ShowDialog(confirmViewModel);
 
             // Return confirmation.
@@ -118,10 +120,11 @@ public static class DialogServiceUtils
         /// <param name="title">The title displayed at the top of the confirmation dialog.</param>
         /// <param name="message">The message displayed at the middle of the confirmation dialog.</param>
         /// <param name="confirmationButton">The label for the confirmation button.</param>
-        public async Task NotifyUser(string title, string message, string? confirmationButton = null)
+        /// <param name="container">The container for displaying logs.</param>
+        public async Task NotifyUser(string title, string message, string? confirmationButton = null, LogContainer? container = null)
         {
             var messageDialog = dialogService.GetDialog<ConfirmDialogViewModel>();
-            messageDialog.Prepare(true, title, message, confirmationButton);
+            messageDialog.Prepare(true, title, message, confirmationButton, null, null, container);
             await dialogService.ShowDialog(messageDialog);
         }
     }

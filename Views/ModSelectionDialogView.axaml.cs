@@ -138,8 +138,8 @@ public partial class ModSelectionDialogView : DisposableUserControl
         }
 
         SelectInstallModButton.Content = InstallButtonFileUnavailability;
-        ToolTip.SetTip(SelectInstallModButton, SelectInstallModButton);
-        ToolTip.SetTip(SelectVersionModBox, SelectInstallModButton);
+        ToolTip.SetTip(SelectInstallModButton, NoFileWarning);
+        ToolTip.SetTip(SelectVersionModBox, NoFileWarning);
     }
 
     // --- Mod visualizer (no mod text font sizing) ---

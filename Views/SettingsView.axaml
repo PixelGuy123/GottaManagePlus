@@ -98,6 +98,9 @@
                                 Foreground="White"
                                 OpenFileCommand="{Binding OpenExecutablePath}"
                                 SelectFileCommand="{Binding SetFilePathForPlusFolder}"/>
+                            
+                            <!-- Security Issue Checkbox -->
+                            <!-- TODO: implement checkbox -->
                         </StackPanel>
                         <!-- END OF FIRST COLUMN -->
                         

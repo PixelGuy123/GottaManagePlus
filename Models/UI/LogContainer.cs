@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 namespace GottaManagePlus.Models.UI;
 
 /// <summary>
-/// Represents the type of a log entry.
+/// Represents the type of log entry.
 /// </summary>
 public enum LogType
 {
@@ -17,7 +17,7 @@ public enum LogType
 /// Can be a category header, a log entry, or a log message.
 /// The node generates its own display text based on its type by overriding ToString().
 /// </summary>
-public partial class LogTreeNode
+public class LogTreeNode
 {
     /// <summary>
     /// The type of this log node (used for log entries only).
@@ -88,9 +88,9 @@ public partial class LogTreeNode
         {
             var typeName = LogType.Value switch
             {
-                LogType.Warning => "Warnings",
-                LogType.Error => "Errors",
-                LogType.Information => "Information",
+                GottaManagePlus.Models.UI.LogType.Warning => "Warnings",
+                GottaManagePlus.Models.UI.LogType.Error => "Errors",
+                GottaManagePlus.Models.UI.LogType.Information => "Information",
                 _ => "Unknown"
             };
             return $"({Count}) {typeName}";
@@ -99,11 +99,11 @@ public partial class LogTreeNode
         // Log entry node (has Title)
         if (!string.IsNullOrEmpty(Title))
         {
-            var prefix = LogType.Value switch
+            var prefix = LogType!.Value switch
             {
-                LogType.Warning => "(WARNING)",
-                LogType.Error => "(ERROR)",
-                LogType.Information => "(INFO)",
+                GottaManagePlus.Models.UI.LogType.Warning => "(WARNING)",
+                GottaManagePlus.Models.UI.LogType.Error => "(ERROR)",
+                GottaManagePlus.Models.UI.LogType.Information => "(INFO)",
                 _ => "(UNKNOWN)"
             };
             return $"{prefix} {Title}";
@@ -123,7 +123,7 @@ public class LogContainer
     /// <summary>
     /// The collection of all log entries.
     /// </summary>
-    public ObservableCollection<LogTreeNode> Logs { get; } = new();
+    public ObservableCollection<LogTreeNode> Logs { get; } = [];
 
     /// <summary>
     /// Adds a log entry to the container.
@@ -131,48 +131,33 @@ public class LogContainer
     /// <param name="type">The type of log (Warning, Error, or Information).</param>
     /// <param name="title">The title of the log entry.</param>
     /// <param name="message">Optional detailed message.</param>
-    public void AddLog(LogType type, string title, string? message = null)
-    {
-        Logs.Add(new LogTreeNode(type, title, message));
-    }
+    public void AddLog(LogType type, string title, string? message = null) => Logs.Add(new LogTreeNode(type, title, message));
 
     /// <summary>
     /// Adds a warning log entry.
     /// </summary>
     /// <param name="title">The title of the warning.</param>
     /// <param name="message">Optional detailed message.</param>
-    public void AddWarning(string title, string? message = null)
-    {
-        AddLog(LogType.Warning, title, message);
-    }
+    public void AddWarning(string title, string? message = null) => AddLog(LogType.Warning, title, message);
 
     /// <summary>
     /// Adds an error log entry.
     /// </summary>
     /// <param name="title">The title of the error.</param>
     /// <param name="message">Optional detailed message.</param>
-    public void AddError(string title, string? message = null)
-    {
-        AddLog(LogType.Error, title, message);
-    }
+    public void AddError(string title, string? message = null) => AddLog(LogType.Error, title, message);
 
     /// <summary>
     /// Adds an information log entry.
     /// </summary>
     /// <param name="title">The title of the information.</param>
     /// <param name="message">Optional detailed message.</param>
-    public void AddInformation(string title, string? message = null)
-    {
-        AddLog(LogType.Information, title, message);
-    }
+    public void AddInformation(string title, string? message = null) => AddLog(LogType.Information, title, message);
 
     /// <summary>
     /// Clears all logs from the container.
     /// </summary>
-    public void Clear()
-    {
-        Logs.Clear();
-    }
+    public void Clear() => Logs.Clear();
 
     /// <summary>
     /// Gets the total count of all logs.
@@ -189,18 +174,12 @@ public class LogContainer
     /// </summary>
     /// <param name="type">The log type to count.</param>
     /// <returns>The number of logs of the specified type.</returns>
-    public int GetCountByType(LogType type)
-    {
-        return Logs.Count(log => log.LogType == type);
-    }
+    public int GetCountByType(LogType type) => Logs.Count(log => log.LogType == type);
 
     /// <summary>
     /// Gets all logs of a specific type.
     /// </summary>
     /// <param name="type">The log type to filter by.</param>
     /// <returns>An enumerable of log nodes matching the specified type.</returns>
-    public IEnumerable<LogTreeNode> GetLogsByType(LogType type)
-    {
-        return Logs.Where(log => log.LogType == type);
-    }
+    public IEnumerable<LogTreeNode> GetLogsByType(LogType type) => Logs.Where(log => log.LogType == type);
 }

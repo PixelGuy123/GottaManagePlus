@@ -1,3 +1,4 @@
+using ByteSizeLib;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using Tomlyn.Serialization;
 // ReSharper disable NonReadonlyMemberInGetHashCode
@@ -36,7 +37,7 @@ public class EnvironmentSnapshot : IEquatable<EnvironmentSnapshot>
         public SnapshotFileEntry()
         {
         }
-
+        
         /// <summary>
         /// Path relative to <see cref="IGameEnvironment.RootPath"/>.
         /// </summary>
@@ -50,7 +51,7 @@ public class EnvironmentSnapshot : IEquatable<EnvironmentSnapshot>
         /// <summary>
         /// File size in bytes.
         /// </summary>
-        public long SizeBytes { get; set; } = 0;
+        public ByteSize SizeBytes { get; set; } = new(0);
 
         // ---- Equality API -----
         public override bool Equals(object? obj) => Equals(obj as SnapshotFileEntry?);

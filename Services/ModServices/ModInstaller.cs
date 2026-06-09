@@ -49,7 +49,7 @@ public sealed class ModInstaller(
         
         // Create a temporary dir
         string? temporaryDirectory = null;
-        var results = new ModInstallationResult();
+        var results = new ModInstallationResult(cancellationToken);
         
         try
         {
@@ -92,8 +92,8 @@ public sealed class ModInstaller(
                     return results;
                 }
                 
-                // Otherwise, log the warning but continue (user will be prompted later)
-                _logger.Warning("The manifest has security issues, but installation will continue. User will be prompted.");
+                // Otherwise, log the warning but continue
+                _logger.Warning("The manifest has security issues, but installation will continue.");
             }
 
             // 5. After scanning, after getting manifest, we have everything ready;

@@ -352,30 +352,29 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
             if (result is ModInstallationResult installationResult)
             {
+                var installationFailed = !installationResult.Success || installationResult.Metadata == null;
                 // Display security issues if any are present
                 if (installationResult.HasSecurityIssues)
                 {
                     var logContainer = new LogContainer();
-                    foreach (var issue in installationResult.SecurityIssues)
+                    for (var i = 0; i < installationResult.SecurityIssues.Count; i++)
                     {
-                        logContainer.AddWarning("Security Issue", issue);
+                        var issue = installationResult.SecurityIssues[i];
+                        logContainer.AddWarning($"Security Issue ({i + 1})", issue);
                     }
 
-                    var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
-                    confirmViewModel.Prepare(false, Constants.WarningDialog,
-                        "The mod you're installing contains potential security issues. Do you want to continue?",
-                        "Continue", "Cancel", default, logContainer);
-                    await _dialogService.ShowDialog(confirmViewModel);
-
-                    // If user cancels, don't proceed with installation
-                    if (!confirmViewModel.Confirmed)
+                    // If this wasn't intentional (cancel), show message.
+                    if (!installationResult.Cancelled && !installationFailed)
                     {
-                        return;
+                        // If security issues are found, don't proceed with installation
+                        await _dialogService.NotifyUser(Constants.WarningDialog,
+                            "The mod you're installing contains potential security issues. The installation has been cancelled.\nTo disable this security measure, check Settings.",
+                            container: logContainer);
                     }
                 }
 
                 // If it fails to be installed, warn first.
-                if (!installationResult.Success || installationResult.Metadata == null)
+                if (installationFailed)
                     await _dialogService.NotifyUser(Constants.FailDialog,
                         "Failed to install the mod!");
                 else
@@ -393,7 +392,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                     
                     // Then, notify.
                     await _dialogService.NotifyUser(Constants.SuccessDialog,
-                        $"Successfully installed '{installationResult.Metadata.Name}'!");
+                        $"Successfully installed '{installationResult.Metadata?.Name}'!");
                 }
             }
             else

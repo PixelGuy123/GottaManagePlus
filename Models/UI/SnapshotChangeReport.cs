@@ -89,21 +89,24 @@ public class SnapshotChangeReport
             var hasCurrent = currentFiles.TryGetValue(path, out var currentFile);
             var hasPrevious = previousFiles.TryGetValue(path, out var previousFile);
 
-            if (hasCurrent && !hasPrevious)
+            switch (hasCurrent)
             {
-                AddedFiles.Add(currentFile!);
-            }
-            else if (!hasCurrent && hasPrevious)
-            {
-                RemovedFiles.Add(previousFile!);
-            }
-            else if (hasCurrent && hasPrevious)
-            {
-                // Check if file was modified
-                if (currentFile!.LastWriteTimeUtc != previousFile!.LastWriteTimeUtc ||
-                    currentFile.SizeBytes != previousFile.SizeBytes)
+                case true when !hasPrevious:
+                    AddedFiles.Add(currentFile!);
+                    break;
+                case false when hasPrevious:
+                    RemovedFiles.Add(previousFile!);
+                    break;
+                case true when hasPrevious:
                 {
-                    ModifiedFiles.Add(currentFile);
+                    // Check if file was modified
+                    if (currentFile!.LastWriteTimeUtc != previousFile!.LastWriteTimeUtc ||
+                        currentFile.SizeBytes != previousFile.SizeBytes)
+                    {
+                        ModifiedFiles.Add(currentFile);
+                    }
+
+                    break;
                 }
             }
         }
@@ -124,30 +127,21 @@ public class SnapshotChangeReport
 
         // Add directory changes
         foreach (var dir in AddedDirectories)
-        {
             logContainer.AddInformation("Directory Added", dir);
-        }
 
         foreach (var dir in RemovedDirectories)
-        {
             logContainer.AddWarning("Directory Removed", dir);
-        }
+        
 
         // Add file changes
         foreach (var file in AddedFiles)
-        {
-            logContainer.AddInformation("File Added", $"{file.RelativePath} ({file.SizeBytes} bytes)");
-        }
+            logContainer.AddInformation("File Added", $"{file.RelativePath} ({file.SizeBytes.ToString()})");
 
         foreach (var file in RemovedFiles)
-        {
             logContainer.AddWarning("File Removed", $"{file.RelativePath}");
-        }
-
+        
         foreach (var file in ModifiedFiles)
-        {
-            logContainer.AddInformation("File Modified", $"{file.RelativePath} (Size: {file.SizeBytes} bytes)");
-        }
+            logContainer.AddInformation("File Modified", $"{file.RelativePath} (Size: {file.SizeBytes.ToString()})");
 
         return logContainer;
     }

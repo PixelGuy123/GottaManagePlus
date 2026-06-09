@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.ExplorerServices;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
@@ -39,8 +40,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     [ObservableProperty]
     public partial DialogViewModel? Dialog { get; set; }
 
-    [ObservableProperty] private bool _sideMenuOpen = Design.IsDesignMode,
-        _executablePathSet = Design.IsDesignMode;
+    [ObservableProperty] 
+    public partial bool SideMenuOpen { get; set; } = Design.IsDesignMode;
+    [ObservableProperty]
+
+    public partial bool ExecutablePathSet { get; set; } = Design.IsDesignMode;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteProfileUiCommand))]
@@ -282,13 +286,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     // False means no changes needed; True means user wants to overwrite profile.
     private async Task<bool> UpdateEnvironmentSnapshot(bool raiseQuestionIfDifferencesDetected)
     {
-        var question = """
-                       Conflict detected between GMP's working directory's settings and the current profile's settings. The content inside the loaded profile differs from what the current working directory has stored.
-                       
-                       How would you like to proceed?
-                       ADAPT: Merge the profile's data with the active mods (keep the current mods, adds any missing ones from the profile).
-                       IGNORE: Ignore the working directory's settings and potentially overwrite with the profile's content.
-                       """;
+        // TODO: Localization here
+        const string question = """
+                                Conflict detected between GMP's working directory's settings and the current profile's settings. The content inside the loaded profile differs from what the current working directory has stored.
+
+                                How would you like to proceed?
+                                ADAPT: Merge the profile's data with the active mods (keep the current mods, adds any missing ones from the profile).
+                                IGNORE: Ignore the working directory's settings and potentially overwrite with the profile's content.
+                                """;
         
         // If the snapshot returns true, there's a difference to be solved.
         var result = await _dialogService.GenerateReturningLoadingProcess(
@@ -297,19 +302,17 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 "Updating Environment", "Checking for snapshot differences...",
                 (Delegate)_gameEnvironmentController.UpdateEnvironmentSnapshot
             );
-        
-        if (result.Result is SnapshotChangeReport report && report.HasChanges && raiseQuestionIfDifferencesDetected)
-        {
-            // Show the snapshot changes in a dialog with TreeDataGrid
-            var logContainer = report.ToLogContainer();
-            var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            confirmViewModel.Prepare(false, Constants.WarningDialog, question, "Adapt", "Ignore", default, logContainer);
-            await _dialogService.ShowDialog(confirmViewModel);
+
+        if (result.Result is not SnapshotChangeReport report || !report.HasChanges ||
+            !raiseQuestionIfDifferencesDetected) return true;
+        // Show the snapshot changes in a dialog with TreeDataGrid
+        var logContainer = report.ToLogContainer();
+        var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
+        confirmViewModel.Prepare(false, Constants.WarningDialog, question, "Adapt", "Ignore", null, logContainer);
+        await _dialogService.ShowDialog(confirmViewModel);
             
-            return confirmViewModel.Confirmed; // True = Adapt, False = Ignore
-        }
-        
-        return true;
+        return confirmViewModel.Confirmed; // True = Adapt, False = Ignore
+
     }
 
     #endregion

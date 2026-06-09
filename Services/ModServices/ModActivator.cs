@@ -69,7 +69,7 @@ public sealed class ModActivator(ILogger logger, GameEnvironmentController contr
             manifest.Metadata.Activated = activate;
 
             // Saves the metadata now.
-            manifest.SaveMetadataToDisk(controller, _logger);
+            manifest.SaveMetadataToDisk(_controller, _logger);
 
             _logger.Information("Successfully {Action} mod '{ModName}'", activate ? "activated" : "deactivated", manifest.Name);
         }

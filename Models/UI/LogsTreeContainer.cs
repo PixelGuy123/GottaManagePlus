@@ -1,15 +1,15 @@
 using System.Collections.ObjectModel;
+using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using GottaManagePlus.Models.UI;
 
-namespace GottaManagePlus.ViewModels;
+namespace GottaManagePlus.Models.UI;
 
 /// <summary>
 /// Container for the logs TreeDataGrid in ConfirmDialogView.
 /// Transforms a LogContainer into a hierarchical tree structure.
 /// This is a simple data container, not a view model.
 /// </summary>
-public partial class LogsTreeContainer
+public class LogsTreeContainer
 {
     /// <summary>
     /// The hierarchical tree data source for the TreeDataGrid.
@@ -19,7 +19,7 @@ public partial class LogsTreeContainer
     /// <summary>
     /// The root nodes of the tree (categories with logs).
     /// </summary>
-    public ObservableCollection<LogTreeNode> RootNodes { get; } = new();
+    public ObservableCollection<LogTreeNode> RootNodes { get; } = [];
 
     /// <summary>
     /// Creates a new LogsTreeContainer with an empty tree.
@@ -33,10 +33,12 @@ public partial class LogsTreeContainer
             Columns =
             {
                 new HierarchicalExpanderColumn<LogTreeNode>(
-                    new TextColumn<LogTreeNode, string>("", x => x.ToString()!),
-                    x => x.Children),
+                    new TextColumn<LogTreeNode, string>(string.Empty, x => x.ToString()),
+                    x => x.Children)
             },
         };
+        
+        Source.ExpandAll(); // Expanded by default
     }
 
     /// <summary>
@@ -48,10 +50,8 @@ public partial class LogsTreeContainer
     {
         RootNodes.Clear();
 
-        if (logContainer != null && logContainer.HasLogs)
-        {
+        if (logContainer is { HasLogs: true })
             BuildTree(logContainer);
-        }
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using ByteSizeLib;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.SourceGenerators;
@@ -57,7 +58,7 @@ public sealed class GameEnvironmentSnapshotWriter(ILogger logger) : IGameEnviron
                     {
                         RelativePath = Path.GetRelativePath(rootPath, filePath),
                         LastWriteTimeUtc = fileInfo.LastWriteTimeUtc,
-                        SizeBytes = fileInfo.Length
+                        SizeBytes = ByteSize.FromBytes(fileInfo.Length)
                     });
                 }
             }

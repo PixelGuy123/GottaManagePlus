@@ -1,13 +1,34 @@
+using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models.UI;
-using GottaManagePlus.ViewModels;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class ConfirmDialogViewModel : DialogViewModel
 {
+    public ConfirmDialogViewModel()
+    {
+        if (!Design.IsDesignMode) return;
+    
+        // Set defaults for the dialog
+        Title = "Design Preview";
+        Message = "This is how the dialog will appear with log entries.\nThis\nUssss\nText";
+
+        // Create a sample log container
+        var sampleLogs = new LogContainer();
+        sampleLogs.AddWarning("Low disk space", "Only 500 MB left on drive C:");
+        sampleLogs.AddWarning("Deprecated API usage", "Method 'OldMethod' will be removed in v3.0");
+        sampleLogs.AddError("Database connection failed", "Connection timeout after 30 seconds");
+        sampleLogs.AddError("Missing configuration key", "Key 'ApiKey' not found in AppSettings.json");
+        sampleLogs.AddInformation("User logged in", "User 'admin' logged in at 10:32 AM");
+        sampleLogs.AddInformation("Background sync completed", "Synced 150 records successfully");
+
+        // Assign the container
+        LogContainer = sampleLogs;
+    }
+    
     [ObservableProperty]
     public partial string Title { get; set; } = "Confirm?";
 
@@ -61,7 +82,7 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     /// Gets the TreeDataGrid source for displaying logs hierarchically.
     /// Returns null if no LogContainer is set or if it has no logs.
     /// </summary>
-    public object? LogsTreeSource => LogsTreeContainer?.Source;
+    public HierarchicalTreeDataGridSource<LogTreeNode>? LogsTreeSource => LogsTreeContainer?.Source;
 
     /// <summary>
     /// Set up the dialog with the following parameters:
@@ -115,8 +136,9 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     partial void OnLogContainerChanged(LogContainer? value)
     {
         // Create a new instance directly here
-        LogsTreeContainer ??= new LogsTreeContainer();
+        LogsTreeContainer = new LogsTreeContainer();
         LogsTreeContainer.Prepare(value);
+        LogsTreeSource?.ExpandAll();
 
         OnPropertyChanged(nameof(LogsTreeSource));
     }
