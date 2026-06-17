@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             x:DataType="vm:MultiLoadingDialogViewModel"
+             x:Class="GottaManagePlus.Views.MultiLoadingDialogView"
+             Width="600"
+             Height="450"
+             MinWidth="350"
+             MinHeight="200">
+    
+    <Design.DataContext><vm:MultiLoadingDialogViewModel/></Design.DataContext>
+    
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/Buttons.axaml"/>
+    </UserControl.Styles>
+    
+    <Border
+        CornerRadius="10"
+        Margin="10 0"
+        VerticalAlignment="Center"
+        BoxShadow="0 5 25 1.5 Black">
+        <Border
+            Background="{DynamicResource MainMenus-Bg}"
+            CornerRadius="10"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Content | (no buttons) -->
+                <!-- Title -->
+                <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}" >
+                    <TextBlock 
+                        Foreground="{DynamicResource BlackColor}"
+                        Text="{CompiledBinding Title, Mode=OneWay}"
+                        MaxWidth="650"
+                        HorizontalAlignment="Center"
+                        Padding="10"
+                        FontSize="25"
+                        TextTrimming="CharacterEllipsis"
+                        FontWeight="ExtraLight"
+                        FontFamily="{StaticResource WorkSans}"/>
+                </Border>
+                
+                <!-- Content (summary + child items) -->
+                <Border Grid.Row="1" Padding="10">
+                    <StackPanel Orientation="Vertical" Spacing="5">
+                        <!-- Summary status -->
+                        <TextBlock
+                            Name="Status"
+                            Text="{CompiledBinding Status, Mode=OneWay}"
+                            FontFamily="{StaticResource WorkSans}"
+                            FontSize="16"
+                            MaxLines="2"
+                            MaxWidth="620"
+                            VerticalAlignment="Bottom"
+                            TextWrapping="Wrap"
+                            TextAlignment="Center"
+                            />
+                        
+                        <!-- Summary progress bar -->
+                        <ProgressBar
+                            Foreground="{DynamicResource ProgressBar-Foreground}"
+                            MinHeight="15"
+                            Margin="0 5"
+                            FontFamily="{StaticResource WorkSans}"
+                            Minimum="0"
+                            Maximum="{CompiledBinding ProgressMax, Mode=OneWay}"
+                            Value="{CompiledBinding ProgressValue, Mode=OneWay}"/>
+                        
+                        <!-- List of child loading items (simplified) -->
+                        <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                            <ItemsRepeater
+                                ItemsSource="{CompiledBinding LoadingDialogs}"
+                                HorizontalAlignment="Stretch">
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate DataType="vm:LoadingDialogViewModel">
+                                        <!-- Compact card for each child -->
+                                        <Border CornerRadius="5"
+                                                Background="{DynamicResource SecondaryBackground}"
+                                                Margin="0,3"
+                                                Padding="8,5">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="2">
+                                                    <TextBlock Text="{CompiledBinding Title}"
+                                                               FontWeight="DemiBold"
+                                                               FontSize="14"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{CompiledBinding Status}"
+                                                               FontSize="12"
+                                                               Opacity="0.8"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <ProgressBar 
+                                                        IsIndeterminate="{CompiledBinding HideProgressBar}"
+                                                        Minimum="0"
+                                                        Maximum="{CompiledBinding ProgressMax}"
+                                                        Value="{CompiledBinding ProgressValue}"
+                                                        Height="8"
+                                                        Margin="0,2,0,0"
+                                                        Foreground="{DynamicResource ProgressBar-Foreground}"/>
+                                                </StackPanel>
+                                                <!-- Optional: show a small checkmark or spinner if needed -->
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+                
+                <!-- No buttons row – cancellation is handled per child if needed, but not shown here -->
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

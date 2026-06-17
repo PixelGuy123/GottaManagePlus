@@ -87,6 +87,10 @@
       <DependentUpon>LoadingDialogView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\MultiLoadingDialogView.axaml.cs">
+      <DependentUpon>MultiLoadingDialogView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

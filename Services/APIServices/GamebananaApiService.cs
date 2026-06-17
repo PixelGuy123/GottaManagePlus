@@ -8,6 +8,7 @@ using Serilog;
 
 namespace GottaManagePlus.Services.APIServices;
 
+// TODO: Split this class into two: GamebananaApiRetriever (for retrieving data from API only) and GamebananaApiDownloader (for Image and File downloads).
 public class GamebananaApiService(IHttpClientFactory httpClientFactory)
 {
     private const string
@@ -37,8 +38,6 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
         return Result<ModItem>.Failure($"API Error: {response.StatusCode}");
     }
     
-    // TODO: Integrate a Result<T> pattern for safe exception handling of all Gamebanana API service calls.
-    // Then, include a "Failed to Load" indicator to the ModSelectionDialogView.axaml file, located exactly where the loading indicator is.
     /// <summary>
     /// Attempts to search through Gamebanana API.
     /// </summary>
@@ -77,7 +76,9 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
             .GetAsync($"{apiVersion}/File/{id}");
 
         // If successful, get the document.
-        if (response.IsSuccessStatusCode) return Result<IndexedFile>.Success(IndexedFile.CreateOrGetIndexedFile(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
+        if (response.IsSuccessStatusCode)
+            return Result<IndexedFile>.Success(
+                IndexedFile.CreateOrGetIndexedFile(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
         
         // Otherwise, return failure.
         Log.Logger.Error("Failed to retrieve the data from file id ({id}).", id);

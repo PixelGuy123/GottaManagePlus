@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
@@ -226,28 +227,58 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
 
         // Close this dialog before anything
         Close();
-        
+
+        // TODO: Add dependencies to the process before installation.
+        // Instead of using EnqueuedModsToInstall, allow InstallAsync to receive an IEnumerable for the ModFiles.
+        // var modsToInstall = new Dictionary<ModItem, ModFile>(EnqueuedModsToInstall);
 
         // Preview the files that will be installed.
-        var logContainer = new LogContainer();
+        var previewLogContainer = new LogContainer();
         foreach (var (mod, file) in EnqueuedModsToInstall)
-            logContainer.AddInformation(mod.ToString(), file.ToString());
+            previewLogContainer.AddInformation(mod.ToString(), file.ToString());
+
+        // TODO: Log dependencies as well (if they support GMP, otherwise just mention as a WARNING).
 
         if (await _dialogService.PromptUserQuestion(
                 "Confirm Installation",
                 $"You are about to install {EnqueuedModsToInstall.Count} mod(s). Proceed?",
-                DialogServiceUtils.QuestionAnswerType.ProceedOrCancel, 
-                logContainer))
+                DialogServiceUtils.QuestionAnswerType.ProceedOrCancel,
+                previewLogContainer))
         {
-            // Install asynchronously (install)
-            if (await _dialogService.GenerateLoadingProcess(
-                    null,
-                    $"{EnqueuedModsToInstall.Count} mod(s) have been installed successfully.",
-                    "Installing Mods",
-                    null,
-                    (Delegate)InstallAsync))
+            // Create a shared log container for the installation process.
+            var installationLogContainer = new LogContainer();
+
+            // Generate the loading view models for each mod installation.
+            var loadingViewModels = CreateInstallationTasks(
+                new Dictionary<ModItem, ModItem.ModFile>(EnqueuedModsToInstall),
+                installationLogContainer);
+
+            // Execute all tasks concurrently using the multi-loading dialog.
+            var results = await _dialogService.GenerateBooleanMultiLoadingProcess(
+                failDialogDescription: null, // Let the dialog handle failure messages.
+                successDialogDescription: $"{EnqueuedModsToInstall.Count} mod(s) have been installed successfully.",
+                title: "Installing Mods",
+                status: null,
+                loadingViewModels);
+
+            // Check if any task failed.
+            if (results.Any(b => b == false))
             {
-                // Installation completed successfully
+                // Show the log container with details about failures/warnings.
+                await _dialogService.NotifyUser(
+                    "Installation Completed with Issues",
+                    "Some mods failed to install. Check the logs for details.",
+                    confirmationButton: "View Logs",
+                    container: installationLogContainer);
+            }
+            else if (installationLogContainer.HasLogs)
+            {
+                // Optionally show a summary log if there were warnings or informational messages.
+                await _dialogService.NotifyUser(
+                    "Installation Details",
+                    "All mods installed successfully, but some warnings were generated.",
+                    confirmationButton: "View Logs",
+                    container: installationLogContainer);
             }
         }
     }
@@ -505,45 +536,92 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         });
     }
 
-    /// <summary>
-    /// Installs all mods stored in <see cref="EnqueuedModsToInstall"/> through multi-tasking.
-    /// </summary>
-    private async Task<Result<LogContainer>> InstallAsync(CancellationToken ct, IProgress<ProgressReport>? progress)
+    // Creates installation tasks for InstallAsync
+    private LoadingDialogViewModel[] CreateInstallationTasks(
+        Dictionary<ModItem, ModItem.ModFile> modsToInstall,
+        LogContainer logContainer)
     {
-        var total = EnqueuedModsToInstall.Count;
-        ConcurrentBag<ModInstallationResult> installationResults = [];
+        var tasks = new List<LoadingDialogViewModel>();
 
-        // Enqueue the tasks.
-        var enqueuedTasks = EnqueuedModsToInstall.Select(kvp => Task.Run(async () =>
+        foreach (var (mod, file) in modsToInstall)
         {
-            var (_, file) = kvp;
-            
-            // Create a temporary directory for the file.
-            using var tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger);
-            
-            // Download the file.
-            var result = await _gamebananaApiService.DownloadFile(file, tempDir.DirectoryInfo.FullName, _gameEnvironmentController,
-                progress, Log.Logger, ct);
+            // Create a LoadingDialogViewModel for this specific mod.
+            var loadingVm = _dialogService.GetDialog<LoadingDialogViewModel>();
 
-            // Cancel if result is failure.
-            if (result.IsFailure)
-                return;
+            // Prepare the loading dialog with a title, status, and a delegate that installs the mod.
+            // The delegate must accept IProgress<ProgressReport> and CancellationToken.
+            loadingVm.Prepare(
+                $"Installing {mod.Name}",
+                "Downloading and installing...",
+                new Func<IProgress<ProgressReport>, CancellationToken, Task<bool>>(
+                    async (progress, ct) =>
+                    {
+                        try
+                        {
+                            // Create a temporary directory.
+                            using var tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger);
 
-            // Install the mod individually.
-            installationResults.Add(await _modInstaller.InstallModArchiveAsync(result.Value, progress, ct));
-        }, ct));
+                            // Download the file.
+                            var downloadResult = await _gamebananaApiService.DownloadFile(
+                                file,
+                                tempDir.DirectoryInfo.FullName,
+                                _gameEnvironmentController,
+                                progress,
+                                Log.Logger,
+                                ct);
 
-        // Wait all tasks.
-        await Task.WhenAll(enqueuedTasks);
-        
-        // Sum up all containers into one.
-        var finalContainer = installationResults
-            .Select(res => res.SecurityIssues.ToLogContainer("Security Issue", LogType.Warning))
-            .MergeAll();
+                            if (downloadResult.IsFailure)
+                            {
+                                logContainer.AddError(
+                                    $"Download failed for {mod.Name}",
+                                    downloadResult.Error);
+                                return false;
+                            }
 
-        progress?.Report(new ProgressReport(currentStatus: "Installed all mods successfully!"));
+                            // Install the mod.
+                            var installResult = await _modInstaller.InstallModArchiveAsync(
+                                downloadResult.Value,
+                                progress,
+                                ct);
 
-        return Result<LogContainer>.Success(finalContainer);
+                            // Log any security issues from the installation.
+                            if (installResult.SecurityIssues.Count != 0)
+                            {
+                                // Merge security issues into the shared log container.
+                                foreach (var issue in installResult.SecurityIssues)
+                                    logContainer.AddWarning(issue);
+                            }
+
+                            // Log success.
+                            logContainer.AddInformation(
+                                $"Successfully installed {mod.Name}",
+                                $"File: {file.FileName}");
+
+                            return true;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            logContainer.AddWarning(
+                                $"Installation of {mod.Name} was cancelled.",
+                                "The user cancelled the operation.");
+                            return false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Logger.Error(ex, "Failed to install {ModName}", mod.Name);
+                            logContainer.AddError(
+                                $"Installation failed for {mod.Name}",
+                                ex.Message);
+                            return false;
+                        }
+                    }
+                )
+            );
+
+            tasks.Add(loadingVm);
+        }
+
+        return [.. tasks];
     }
 
     #endregion

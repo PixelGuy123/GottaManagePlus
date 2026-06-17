@@ -12,13 +12,9 @@ public sealed class DialogService
     
     private IDialogProvider? _dialogProvider;
 
-    public void RegisterProvider(IDialogProvider provider)
-    {
-        _dialogProvider = provider;
-    }
+    public void RegisterProvider(IDialogProvider provider) => _dialogProvider = provider;
 
     // Basic pooling system
-    // Uses thread-safety since it might get called in multiple threads
     public TDialogViewModel GetDialog<TDialogViewModel>()
         where TDialogViewModel : DialogViewModel, new()
     {
@@ -38,7 +34,7 @@ public sealed class DialogService
         return tDialog;
     }
     
-    public async Task<bool> ShowDialog<TDialogViewModel>(TDialogViewModel dialogViewModel) 
+    public async Task<bool> ShowDialog<TDialogViewModel>(TDialogViewModel dialogViewModel, Func<TDialogViewModel, Task<bool>>? onShowAction = null) 
         where TDialogViewModel : DialogViewModel
     {
         if (_dialogProvider == null)
@@ -48,9 +44,9 @@ public sealed class DialogService
         _dialogProvider.Dialog = dialogViewModel;
         dialogViewModel.Show();
         
-        // If the view model is LoadingDialogViewModel, load it with a task instead
-        if (dialogViewModel is LoadingDialogViewModel loadingDialogViewModel)
-            return await loadingDialogViewModel.StartTask(); // Wait for dialog to close after loading
+        // If there's an action on show, use it
+        if (onShowAction != null)
+            return await onShowAction(dialogViewModel);
         
         // Wait for dialog to close
         await dialogViewModel.WaitAsync();

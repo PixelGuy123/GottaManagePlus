@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 
@@ -77,7 +78,8 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 else if (typeof(IProgress<ProgressReport>).IsAssignableFrom(pType))
                 {
                     finalArgs[i] = Progress;
-                } // Below them, just use these as arguments
+                } 
+                // Below them, just use these as arguments
                 else if (providedArgIndex < _providedArgs.Length)
                 {
                     finalArgs[i] = _providedArgs[providedArgIndex++];
@@ -162,8 +164,10 @@ public partial class LoadingDialogViewModel : DialogViewModel
     {
         // Throw if null, since there are two required arguments afterward
         ArgumentNullException.ThrowIfNull(args);
+        
         // If there are optional arguments in the beginning, increment this value by the amount of optional parameters
         const int delegateHandlingOffset = 2;
+        
         // Reset state
         _hasAlreadyInitiated = false;
         Result = null;
@@ -193,10 +197,10 @@ public partial class LoadingDialogViewModel : DialogViewModel
         // Dynamic UI State Detection
         AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
         HideProgressBar = !parameters.Any(p => typeof(IProgress<ProgressReport>).IsAssignableFrom(p.ParameterType));
-        
+
         if (!HideProgressBar) // If there's progress bar, there's progress instance
             Progress = new Progress<ProgressReport>();
-        
+
         // Update UI Elements
         Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
         Status = TryGetValue(args, 1, out text) ? text : "Loading...";

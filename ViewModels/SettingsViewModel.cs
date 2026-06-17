@@ -154,7 +154,7 @@ public partial class SettingsViewModel : PageViewModel
         });
         
         // Saving dialog
-        await _dialogService.GenerateLoadingProcess(
+        await _dialogService.GenerateBooleanLoadingProcess(
             $"""
              Failed to save the settings. You can try again.
              If it doesn't work, you can try:

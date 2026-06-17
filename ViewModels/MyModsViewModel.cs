@@ -252,7 +252,6 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
 
     private async Task AddModUiAsync(bool lookForDllFileOnly)
     {
-        TemporaryDirectoryInfo? tempDir = null;
         try
         {
             // If looking for DLL only, we're expecting a plugin and a single asset folder.
@@ -302,11 +301,11 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                 }).ToArray();
 
                 // Get a temporary location for the to-be-generated archive.
-                using (tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger));
+                using var tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger);
                 archiveToInstall = Path.Combine(tempDir.DirectoryInfo.FullName, Path.GetFileNameWithoutExtension(dllFile) + ".bin");
 
                 // Now, actually wrap the files in a temporary zip file.
-                if (!await _dialogService.GenerateLoadingProcess(
+                if (!await _dialogService.GenerateBooleanLoadingProcess(
                         "Failed to generate an archive for the mod!",
                         null,
                         "Generating Archive for Plugin",
@@ -341,7 +340,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             }
 
             // Install archive generated here.
-            var result = (await _dialogService.GenerateReturningLoadingProcess(
+            var result = (await _dialogService.GenerateGenericLoadingProcess(
                 null,
                 null,
                 "Installing Mod",
@@ -379,7 +378,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                     FillUpAllMods(_profileManager.ActiveProfile?.ModDataFiles);
                     
                     // Save profile first.
-                    await _dialogService.GenerateLoadingProcess(
+                    await _dialogService.GenerateBooleanLoadingProcess(
                         null,
                         null,
                         "Saving Profile",
@@ -428,7 +427,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             }
         }
 
-        await _dialogService.GenerateLoadingProcess(
+        await _dialogService.GenerateBooleanLoadingProcess(
             $"Failed to save the changes. If this issue persists, try:\n{Constants.CommonIssuesSolution}",
             null,
             "Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);

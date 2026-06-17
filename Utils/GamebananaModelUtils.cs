@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.APIServices;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -11,7 +9,7 @@ namespace GottaManagePlus.Utils;
 /// Provides conversion extensions between the detailed <see cref="ModItem"/> model
 /// and the summary <see cref="GameBananaIndex"/> model (including nested types).
 /// </summary>
-public static class GamebananaModelConversionUtils
+public static class GamebananaModelUtils
 {
     // ========== Top-level conversions ==========
 
@@ -60,7 +58,7 @@ public static class GamebananaModelConversionUtils
             SingularTitle = string.Empty,
             IconClasses = string.Empty,
             Name = modItem.Name,
-            ProfileUrl = string.Empty,            // Not directly in ModItem
+            ProfileUrl = string.Empty,
             DateAdded = modItem.DateAdded,
             DateModified = modItem.DateModified,
             HasFiles = modItem.Files.Any(f => !f.IsArchived),
@@ -68,7 +66,7 @@ public static class GamebananaModelConversionUtils
             Tags = [.. modItem.Tags.Select(t => t.Value)],
             PreviewMedia = modItem.PreviewMedia?.ToIndexPreviewMedia(),
             Submitter = modItem.Submitter?.ToIndexSubmitter(),
-            Game = null,                          // Not present in ModItem
+            Game = null,
             RootCategory = null,
             SubCategory = null,
             Version = modItem.Version,
@@ -133,7 +131,7 @@ public static class GamebananaModelConversionUtils
 
         return new ModItem.ModPreviewMedia
         {
-            Images = indexMedia.Images?.Select(img => img.ToModItemImage()).ToList() ?? []
+            Images = indexMedia.Images.Select(img => img.ToModItemImage()).ToList() ?? []
         };
     }
 
@@ -146,7 +144,7 @@ public static class GamebananaModelConversionUtils
             return null!;
         return new ModPreviewMedia
         {
-            Images = modMedia.Images?.Select(img => img.ToIndexImage()).ToList() ?? []
+            Images = modMedia.Images.Select(img => img.ToIndexImage()).ToList() ?? []
         };
     }
 
@@ -198,5 +196,47 @@ public static class GamebananaModelConversionUtils
             Height800 = null,
             Width800 = null
         };
+    }
+    
+    /// <summary>
+    /// Gathers dependency files from GameBanana by parsing requirement URLs from the specified mod item,
+    /// fetching the corresponding submission data, and converting each valid file into an indexed file.
+    /// </summary>
+    /// <param name="modItem">The mod item containing requirement URLs to process.</param>
+    /// <param name="gamebananaApiService">The API service used to fetch submission data and indexed files from GameBanana.</param>
+    /// <returns>A task that represents the asynchronous operation, containing a dictionary of results of mods with their respective indexed files for all valid dependencies.</returns>
+    public static async Task<Dictionary<ModItem, List<Result<IndexedFile>>>> GatherDependencyFiles(this ModItem modItem, GamebananaApiService gamebananaApiService)
+    {
+        // Look up for Gamebanana.
+        const string gamebanana_lookup_string = "https://gamebanana.com/mods/";
+        Dictionary<ModItem, List<Result<IndexedFile>>> dependencies = [];
+        var allRequirementURls = modItem.Requirements.ConvertAll(r => r[1]); // Index 1 is always the link
+        
+        // Look for GameBanana links.
+        foreach (var id in 
+                 from url in allRequirementURls
+                 where url.StartsWith(gamebanana_lookup_string) 
+                 select url.Substring(gamebanana_lookup_string.Length, url.Length - gamebanana_lookup_string.Length))
+        {
+            // Search the mod item in gamebanana and get the files from it.
+            var searchedModItem = await gamebananaApiService.GetSubmissionDataAsync(int.Parse(id));
+
+            // Skip if this fails to be loaded.
+            if (searchedModItem.IsFailure) continue;
+
+            var indexFiles = new List<Result<IndexedFile>>();
+            
+            // For each ModFile, add a converted IndexFile.
+            foreach (var file in searchedModItem.Value.AllEnvironmentallyValidFiles)
+            {
+                var indexFile = await gamebananaApiService.GetIndexedFileFromFileId(file.Id);
+                indexFiles.Add(indexFile);
+            }
+            
+            // Add to the dictionary.
+            dependencies.Add(searchedModItem.Value, indexFiles);
+        }
+        
+        return dependencies;
     }
 }

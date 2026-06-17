@@ -46,6 +46,7 @@
         <entry key="Views/ModPreviewPanelView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/ModSelectionDIalogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/ModSelectionDialogView.axaml" value="GottaManagePlus.csproj" />
+        <entry key="Views/MultiLoadingDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/MyModsView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/PreviewProfileDialogView.axaml" value="GottaManagePlus.csproj" />
         <entry key="Views/ProfilesView.axaml" value="GottaManagePlus.csproj" />

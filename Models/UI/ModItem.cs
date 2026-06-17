@@ -132,7 +132,7 @@ public partial class ModItem : ObservableObject, IDisposable
     /// <summary>Indicates whether advanced requirements exist (from _bAdvancedRequirementsExist).</summary>
     [JsonPropertyName("_bAdvancedRequirementsExist")] public bool AdvancedRequirementsExist { get; set; }
 
-    /// <summary>Gets or sets the list of requirements as pairs of [name, url] (from _aRequirements).</summary>
+    /// <summary>Gets or sets the list of requirements as pairs of [0: name, 1: url, 2:... are the types] (from _aRequirements).</summary>
     [JsonPropertyName("_aRequirements")] public List<List<string>> Requirements { get; set; } = [];
 
     /// <summary>Gets or sets the list of active (non‑archived) files (from _aFiles).</summary>

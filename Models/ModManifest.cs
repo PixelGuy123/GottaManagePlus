@@ -45,6 +45,7 @@ public class ModMetadata
     public string? Thumbnail = null;
     public string? InstallationUrl { get; set; } // Supports Gamebanana and GitHub for now
     public List<string> DependenciesUrls { get; set; } = [];
+    // TODO: Make dependencies URLs actually visible in the mod display.
     public AutoSortedList<WrappedGameVersion> SupportedPlusVersions { get; set; } = []; // Automatically sorted by high order
     public DateOnly LastUpdateDate { get; set; }
     

@@ -196,7 +196,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         
         // Loading dialog for saving active profile
         if (!(_profileRepository.IsEmpty || // Or, if there are no profiles to save, skip this dialog
-              await _dialogService.GenerateLoadingProcess(
+              await _dialogService.GenerateBooleanLoadingProcess(
                   "Failed to save the active profile!",
                   null,
                   "Saving current active profile...", null,
@@ -211,7 +211,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         }
 
         // Then, one for saving settings
-        return promptCancelOption | await _dialogService.GenerateLoadingProcess(
+        return promptCancelOption | await _dialogService.GenerateBooleanLoadingProcess(
             !promptCancelOption ? null : "Failed to save the settings. You can try again.",
             null,
             "Saving settings...", null, (Delegate)_settingsService.SaveAsync
@@ -257,7 +257,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         while (true)
         {
             // If the update fails, prompt the user a question.
-            if (!await _dialogService.GenerateLoadingProcess(
+            if (!await _dialogService.GenerateBooleanLoadingProcess(
                     null,
                     null,
                     "Profile Repository Update", "Updating Profile Repository...",
@@ -296,7 +296,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                                 """;
         
         // If the snapshot returns true, there's a difference to be solved.
-        var result = await _dialogService.GenerateReturningLoadingProcess(
+        var result = await _dialogService.GenerateGenericLoadingProcess(
                 null,
                 null,
                 "Updating Environment", "Checking for snapshot differences...",
@@ -325,7 +325,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 $"Export '{profile.Name}'?",
                 $"Are you sure you want to export '{profile.Name}'?")) return;
 
-        if (!await _dialogService.GenerateLoadingProcess(
+        if (!await _dialogService.GenerateBooleanLoadingProcess(
                 failDialogDescription:
                 $"Failed to export the profile! If you're still having issues, try this:\n{Constants.CommonIssuesSolution}",
                 successDialogDescription: null,
@@ -346,7 +346,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             return;
 
         // Attempts to delete the profile.
-        await _dialogService.GenerateLoadingProcess(
+        await _dialogService.GenerateBooleanLoadingProcess(
             $"Failed to delete the profile '{profile.Name}'.",
             $"Successfully deleted the profile '{profile.Name}'.",
             "Deleting profile...", null, (Delegate)_profileDestructor.DeleteProfile, profile
@@ -368,7 +368,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         {
             case 0: // Create New
             {
-                await _dialogService.GenerateLoadingProcess(
+                await _dialogService.GenerateBooleanLoadingProcess(
                     "Failed to create the profile!",
                     $"Created \'{creatingPfDialog.ProfileName}\' successfully!",
                     "Creating new profile...", null, (Delegate)_profileCreator.CreateProfile,
@@ -386,7 +386,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 if (sourceProfile == null) return;
 
                 // Clone profile.
-                await _dialogService.GenerateLoadingProcess(
+                await _dialogService.GenerateBooleanLoadingProcess(
                     "Failed to clone the profile!",
                     $"Cloned to \'{creatingPfDialog.CloneProfileName}\' successfully!",
                     "Cloning profile...", "Selecting profile and cloning it...",
@@ -395,7 +395,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             }
             case 2: // Import
             {
-                await _dialogService.GenerateLoadingProcess(
+                await _dialogService.GenerateBooleanLoadingProcess(
                     "Failed to import the profile!",
                     $"Imported \'{Path.GetFileName(creatingPfDialog.ProfileImportPath)}\' successfully!",
                     "Importing profile...", "Selecting profile and importing it...",
@@ -419,7 +419,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             return;
 
         // Loading process
-        await _dialogService.GenerateLoadingProcess(
+        await _dialogService.GenerateBooleanLoadingProcess(
             $"Failed to switch the profile \'{profile.Name}\' due to an unknown reason.\nIf this issue persists, you can try:\n{Constants.CommonIssuesSolution}",
             $"Successfully switched to \'{profile.Name}\'.",
             null, null, (Delegate)_profileManager.SetActiveProfile, profile
