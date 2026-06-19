@@ -1,4 +1,3 @@
-using System.IO;
 using FileTypeChecker.Extensions;
 using FileTypeChecker.Types;
 using GottaManagePlus.Models.FileTypes;
@@ -7,16 +6,19 @@ namespace GottaManagePlus.Utils;
 
 public static class FileCheckerUtils
 {
-    public static bool IsAudio(Stream fileContent)
-        => fileContent.Is<Mp3>()
-        || fileContent.Is<WaveformAudioFileFormat>()
-        || fileContent.Is<M4V>()
-        || fileContent.Is<WindowsAudio>()
-        || fileContent.Is<MpegAudio>()
-        || fileContent.Is<AudioVideoInterleaveVideoFormat>()
-        || fileContent.Is<Ogg>();
+    extension(Stream fileContent)
+    {
+        public async Task<bool> IsAudio(CancellationToken cancellationToken = default)
+            => await fileContent.IsAsync<Mp3>(cancellationToken)
+               || await fileContent.IsAsync<WaveformAudioFileFormat>(cancellationToken)
+               || await fileContent.IsAsync<M4V>(cancellationToken)
+               || await fileContent.IsAsync<WindowsAudio>(cancellationToken)
+               || await fileContent.IsAsync<MpegAudio>(cancellationToken)
+               || await fileContent.IsAsync<AudioVideoInterleaveVideoFormat>(cancellationToken)
+               || await fileContent.IsAsync<Ogg>(cancellationToken);
 
-    public static bool IsVideo(Stream fileContent)
-        => fileContent.Is<Mp4>()
-           || fileContent.Is<AudioVideoInterleaveVideoFormat>();
+        public async Task<bool> IsVideo(CancellationToken cancellationToken = default)
+            => await fileContent.IsAsync<Mp4>(cancellationToken)
+               || await fileContent.IsAsync<AudioVideoInterleaveVideoFormat>(cancellationToken);
+    }
 }

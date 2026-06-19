@@ -1,37 +1,36 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
+using GottaManagePlus.Services.ExplorerServices;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class CreateProfileDialogViewModel : DialogViewModel
 {
+    // Constants
+    private static readonly char[] InvalidPathChars = [.. Path.GetInvalidFileNameChars(), '_'];
+    private const int profileNameLengthLimit = 48;
+    
     // Observables
     [ObservableProperty]
     private string _title = "Creating a new profile...", _cancelText = "Cancel", _createText = "Create Profile",
-        _errorText = $"This name already exists or contains one of the invalid characters ({string.Join(", ", Path.GetInvalidFileNameChars()
+        _errorText = $"This name must be unique (not duplicate), below or equal to {profileNameLengthLimit} characters and shall not contain one of these invalid symbols ({string.Join(", ", InvalidPathChars
             .Where(c => !char.IsControl(c))
             .Select(c => $"'{c}'"))}).";
-    
+
     [ObservableProperty]
-    private bool _confirmed;
+    public partial bool Confirmed { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-    private bool _canCreateProfile;
+    public partial bool CanCreateProfile { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
-    private int _selectedTabIndex; // This field will help know what mode the user is on for the data provided
+    public partial int SelectedTabIndex { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
@@ -39,19 +38,20 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
-    private string? _profileImportPath;
+    public partial string? ProfileImportPath { get; set; }
 
     [ObservableProperty]
-    private int? _profileIndexToClone = 0;
+    public partial int? ProfileIndexToClone { get; set; } = 0;
 
-    [ObservableProperty] private ObservableCollection<string> _existingProfiles = [];
+    [ObservableProperty]
+    public partial ObservableCollection<string> ExistingProfiles { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreateProfile))]
-    private string? _selectedExistingProfile;
-    
+    public partial string? SelectedExistingProfile { get; set; }
+
     // private members
-    private IFilesService _filesService = null!;
+    private FilePicker _filesService = null!;
     
     // Constructors
     public CreateProfileDialogViewModel()
@@ -71,9 +71,9 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         // If the value exists, add _Clone to it
         if (!string.IsNullOrEmpty(value))
         {
-            var newName = $"{value}_Clone";
+            var newName = $"{value}-Clone";
             while (ExistingProfiles.Contains(newName))
-                newName += "_Clone";
+                newName += "-Clone";
             CloneProfileName = newName;
             ProfileIndexToClone = ExistingProfiles.IndexOf(value);
         }
@@ -84,9 +84,9 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
     public async Task BrowseFile()
     {
         // Try to get the file
-        var file = await _filesService.OpenFileAsync(
+        var file = await _filesService.OpenSingleFileAsync(
             "Import Profile",
-                fileChoices: Constants.ExportedProfileFilter
+                filterChoices: Constants.ExportedProfileFilter
         );
         
         // Set as import path
@@ -124,17 +124,17 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
 
     private static bool IsValidFilename([NotNullWhen(true)] string? name) // Annotation to make compiler happy
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(name) || name.Length > profileNameLengthLimit)
             return false;
         
-        return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+        return name.IndexOfAny(InvalidPathChars) < 0;
     }
     
     // Setup method
     /// <summary>
     /// Set up the dialog with the following parameters:
     /// <list type="number">
-    ///     <item><description><see cref="IFilesService"/> filesService</description></item>
+    ///     <item><description><see cref="FilePicker"/> filesService</description></item>
     ///     <item><description><see cref="IEnumerable{string}"/> Existing Profiles</description></item>
     /// </list>
     /// </summary>
@@ -144,7 +144,7 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         Confirmed = false;
         
         // _filesService
-        _filesService = GetValueOrException<IFilesService>(args, 0);
+        _filesService = GetValueOrException<FilePicker>(args, 0);
         // _existingProfiles
         ExistingProfiles = new ObservableCollection<string>(GetValueOrException<IEnumerable<string>>(args, 1));
         

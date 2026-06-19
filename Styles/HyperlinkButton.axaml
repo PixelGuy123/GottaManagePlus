@@ -1,0 +1,42 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <HyperlinkButton HorizontalAlignment="Left" NavigateUri="">
+                <!-- Negative margin for correcting alignment -->
+                <Image 
+                    Source="/Assets/UI/Button_Kofi.webp"
+                    Stretch="Uniform"
+                />
+            </HyperlinkButton>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="HyperlinkButton">
+        <Setter Property="MaxWidth" Value="156"/>
+        <Setter Property="Padding" Value="0"/> <!-- Remove default padding -->
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition
+                    Property="RenderTransform"
+                    Duration="0:0:0.25"
+                    Easing="QuadraticEaseOut"
+                />
+            </Transitions>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.1)"/>
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="RenderTransform" Value="scale(1.06)"/>
+        </Style>
+        <!-- Background Changes -->
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+    </Style>
+</Styles>

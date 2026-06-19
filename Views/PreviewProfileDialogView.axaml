@@ -3,8 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
-             xmlns:models="clr-namespace:GottaManagePlus.Models"
              xmlns:controls="using:GottaManagePlus.Styles.Controls"
+             xmlns:models="clr-namespace:GottaManagePlus.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="GottaManagePlus.Views.PreviewProfileDialogView"
              x:DataType="vm:PreviewProfileDialogViewModel"
@@ -64,7 +64,7 @@
                     CornerRadius="8 8 0 0">
                 <TextBlock 
                     Foreground="{DynamicResource BlackColor}"
-                    Text="{CompiledBinding Profile.ProfileName, Mode=OneWay}"
+                    Text="{CompiledBinding Profile.Name, Mode=OneWay}"
                     MaxWidth="650"
                     HorizontalAlignment="Center"
                     Padding="10"
@@ -91,9 +91,9 @@
                                 Margin="5">
                                 <ItemsRepeater
                                     VerticalAlignment="Stretch"
-                                    ItemsSource="{CompiledBinding Profile.ModMetaDataList, Mode=OneWay}">
+                                    ItemsSource="{CompiledBinding Profile.ModDataFiles, Mode=OneWay}">
                                     <ItemsRepeater.ItemTemplate>
-                                        <DataTemplate DataType="models:ModItem">
+                                        <DataTemplate DataType="models:ModManifest">
                                             <Panel>
                                                 <StackPanel Margin="0 2" Orientation="Vertical">
                                                     <Border
@@ -108,7 +108,7 @@
                                                             </Border>
                                                             <TextBlock
                                                                 Margin="8"
-                                                                Text="{CompiledBinding ModName, Mode=OneWay}"
+                                                                Text="{CompiledBinding Name, Mode=OneWay}"
                                                                 TextTrimming="CharacterEllipsis"
                                                                 Classes="ModLabel"/>
                                                         </Panel>
@@ -122,7 +122,7 @@
                         </Border>
                         <TextBlock Grid.Row="2" FontWeight="Bold"> <!-- Mod Count -->
                             <Run Text="Mod Count:"/>
-                            <Run Text="{CompiledBinding Profile.ModMetaDataList.Count, Mode=OneWay}"/>
+                            <Run Text="{CompiledBinding Profile.ModDataFiles.Count, Mode=OneWay}"/>
                         </TextBlock>
                     </Grid>
                     <!-- Metadata Displayer -->
@@ -141,26 +141,14 @@
                             
                             <!-- Creation date -->
                             <Label Content="Created at:"/>
-                            <TextBlock Text="{CompiledBinding Profile.CreationDate, Mode=OneWay}"/>
                             <!-- Update date -->
                             <Label Content="Last modified:"/>
-                            <TextBlock Text="{CompiledBinding Profile.UpdateDate, Mode=OneWay}"/>
                             <!-- Profile Path -->
-                            <Label Content="Profile Path:"/>
-                            <DockPanel>
-                                <Button
-                                    Margin="5 0 0 0"
-                                    Classes="YCTPButton SmallYCTPButton"
-                                    Command="{CompiledBinding OpenProfilePath}"
-                                    DockPanel.Dock="Right">
-                                    <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
-                                </Button>
-                                <controls:TrimmableTextBox
-                                    TextTrimming="LeadingCharacterEllipsis"
-                                    Text="{CompiledBinding Profile.FullOsPath, Mode=OneWay}"
-                                    Watermark="Path missing!"/>
-                            </DockPanel>
-
+                            <controls:FileBrowser
+                                LabelFontFamily="{StaticResource WorkSans}"
+                                SelectFileCommand="{Binding OpenProfilePath}"
+                                Placeholder="File missing"
+                                Label="Profile Path:"/>
                         </StackPanel>
                     </Panel>
                     <!-- Configs Displayer -->
@@ -176,9 +164,9 @@
                                 <ScrollViewer
                                     Margin="5">
                                     <ItemsRepeater
-                                        ItemsSource="{CompiledBinding Profile.ConfigsMetaDataList, Mode=OneWay}">
+                                        ItemsSource="{CompiledBinding Profile.ConfigurationFiles, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
-                                            <DataTemplate DataType="models:ItemWithPath">
+                                            <DataTemplate>
                                                 <Panel>
                                                     <StackPanel Margin="0 2" Orientation="Vertical">
                                                         <Border
@@ -199,7 +187,7 @@
                                                                     </Border>
                                                                     <TextBlock
                                                                         Margin="8"
-                                                                        Text="{CompiledBinding FileName, Mode=OneWay}"
+                                                                        Text="{CompiledBinding ., Mode=OneWay}"
                                                                         FontSize="11"
                                                                         TextTrimming="CharacterEllipsis"
                                                                         Classes="ModLabel"/>
@@ -215,7 +203,7 @@
                             </Border>
                             <TextBlock Grid.Row="2" FontWeight="Bold"> <!-- Mod Count -->
                                 <Run Text="Configs Count:"/>
-                                <Run Text="{CompiledBinding Profile.ConfigsMetaDataList.Count, Mode=OneWay}"/>
+                                <Run Text="{CompiledBinding Profile.ConfigurationFiles.Count, Mode=OneWay}"/>
                             </TextBlock>
                         </Grid>
                 </UniformGrid>
@@ -234,16 +222,16 @@
                     Classes="DialogBtn DangerDialogBtn"
                     IsHitTestVisible="{CompiledBinding AllowProfileDeletion, Mode=OneWay}"
                     Opacity="{CompiledBinding AllowProfileDeletion, Mode=OneWay}"
-                    Command="{CompiledBinding CloseAndDeleteProfile}"/>
+                    Command="{Binding CloseAndDeleteProfile}"/>
                 <Button
                     Content="{CompiledBinding CloseText, Mode=OneWay}" 
                     Classes="DialogBtn GenericDialogBtn"
-                    Command="{CompiledBinding CloseWithoutChanges}"/>
+                    Command="{Binding CloseWithoutChanges}"/>
                 <Button
                     Name="ExportButton"
                     Content="{CompiledBinding ExportText, Mode=OneWay}" 
                     Classes="DialogBtn GenericDialogBtn"
-                    Command="{CompiledBinding ExportProfile}"/>
+                    Command="{Binding ExportProfile}"/>
             </StackPanel>
         </Grid>
     </Border>

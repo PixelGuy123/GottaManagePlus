@@ -1,14 +1,14 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
+﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
-using GottaManagePlus.Models;
+using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
+using GottaManagePlus.Services.ExplorerServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Utils;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -19,59 +19,77 @@ public partial class SettingsViewModel : PageViewModel
         // For designer
     }
 
-    public SettingsViewModel(FilesService filesService, SettingsService settingsService,
-        PlusFolderViewer gameFolderViewer, DialogService dialogService) : base(PageNames.Settings)
+    public SettingsViewModel(FilePicker filePicker, FileLauncher fileLauncher, SettingsService settingsService,
+        GameEnvironmentController gameEnvironmentController, DialogService dialogService, ApplicationManager appManager,
+        ILogger logger) : base(PageNames.Settings)
     {
-        _filesService = filesService;
+        if (Design.IsDesignMode) return;
+
+        _filePicker = filePicker;
+        _fileLauncher = fileLauncher;
         _settingsService = settingsService;
+        _gameEnvironmentController = gameEnvironmentController;
         _dialogService = dialogService;
-        CurrentSaveState = Models.SaveState.InitializeState(settingsService);
-        _gameFolderViewer = gameFolderViewer;
+        _appManager = appManager;
+        _logger = logger;
+        CurrentSaveState = Models.UI.SaveState.InitializeState(settingsService);
 
         // Update this index
-        UpdateNumberOfRowsPerIndex();
+        UpdateSettingsDisplays();
     }
 
 
     internal void DisplayGameFolderRequirementFolder()
     {
         // Display the warning dialog to remind the user
-        Dispatcher.UIThread.InvokeAsync(() =>
+        Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            dialog.Prepare(true, Constants.WarningDialog, """
-                      Looks like the BB+ folder is not set or is not valid.
-                      If this is your first time using the tool, just select the executable of Baldi's Basics Plus inside Settings.
-                      You cannot interact with "My Mods" section while under this condition.
-                      """);
-            return _dialogService.ShowDialog(dialog);
+            await _dialogService.NotifyUser(Constants.WarningDialog, """
+                                                                     The Baldi's Basics Plus (BB+) folder is not set.
+                                                                     If this is your first time using the tool, proceed by selecting the game's executable file.
+                                                                     You cannot go to the Home Page while the path is unset.
+                                                                     """);
         });
     }
-    
+
     // Private members
-    private readonly FilesService _filesService = null!;
+    private readonly FilePicker _filePicker = null!;
+    private readonly FileLauncher _fileLauncher = null!;
     private readonly SettingsService _settingsService = null!;
+    private readonly GameEnvironmentController _gameEnvironmentController = null!;
     private readonly DialogService _dialogService = null!;
-    private readonly IGameFolderViewer _gameFolderViewer = null!;
-    
+    private readonly ApplicationManager _appManager = null!;
+    private readonly ILogger _logger = null!;
+
     // Readonly collections
     public int[] PossibleRowsPerModStates { get; } = [4, 5, 6];
-    
+    public string[] PossibleThemes { get; } = ["Light", "Dark", "System Default"];
+
     // Observable Members
-    [ObservableProperty] 
-    private SaveState _currentSaveState = null!;
-    [ObservableProperty] 
-    private int _numberOfRowsPerModIndex;
-    
+    [ObservableProperty] public partial SaveState CurrentSaveState { get; set; } = null!;
+
+    [ObservableProperty] public partial int NumberOfRowsPerModIndex { get; set; }
+
+    [ObservableProperty] public partial string? ExecutablePath { get; set; }
+
+    [ObservableProperty] public partial string? Theme { get; set; } = "Light";
+
+    [ObservableProperty] public partial bool CancelOnSecurityIssues { get; set; }
+
     // Property changes
-    partial void OnNumberOfRowsPerModIndexChanged(int value) => CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
-    
-    
-    // Commands
+    partial void OnNumberOfRowsPerModIndexChanged(int value) =>
+        CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
+
+    partial void OnThemeChanged(string? value) { CurrentSaveState.Theme = value!; } // Update the settings to show the new theme
+
+    partial void OnCancelOnSecurityIssuesChanged(bool value) => CurrentSaveState.CancelOnSecurityIssues = value;
+
+
+// Commands
     [RelayCommand]
     public async Task SetFilePathForPlusFolder()
     {
-        var file = await _filesService.OpenFileAsync(title: "Select BB+ executable file:",
+        var file = await _filePicker.OpenSingleFileAsync(title: "Select BB+ executable file:",
             preselectedPath: Constants.BaldiPlusFolderSteamPath);
 
         // If the file is null, leave
@@ -81,62 +99,73 @@ public partial class SettingsViewModel : PageViewModel
         var fileLocalPath = file.TryGetLocalPath();
 
         // The path must obviously not be null
-        if (!string.IsNullOrEmpty(fileLocalPath) &&
-            _gameFolderViewer.ValidateFolder(fileLocalPath,
-                setPathIfTrue: false)) // Do not set path until confirmed by Save action
+        if (!string.IsNullOrEmpty(fileLocalPath)) // Do not set path until confirmed by Save action
         {
+            if (!_gameEnvironmentController.IsEnvironmentValid(fileLocalPath))
+            {
+                _logger.Warning("Failed to set '{FileLocalPath}' as executable path.", fileLocalPath);
+                await _dialogService.NotifyUser("File Not Found", "The executable file is invalid or hasn't been found!");
+                return;
+            }
             CurrentSaveState.GameExecutablePath = fileLocalPath;
+            ExecutablePath = fileLocalPath;
             return;
         }
 
-        var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-        dialog.Prepare(true, Constants.FailDialog, "Failed to locate the executable file or the directory, where this executable may be located, is invalid.");
-        await _dialogService.ShowDialog(dialog);
-        Debug.WriteLine("Failed to set the folder!", Constants.DebugWarning);
+        // Fail Dialog
+        await _dialogService.NotifyUser(Constants.FailDialog, "Failed to locate the executable file or the directory, where this executable may be located, is invalid.");
+        _logger.Warning("Failed to set the folder!");
     }
 
     [RelayCommand]
     public async Task OpenExecutablePath()
     {
         if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath) && 
-            !_filesService.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
+            !_fileLauncher.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
         {
-            var dialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-            dialog.Prepare(true, Constants.FailDialog, $"Failed to open the path to the executable due to an unknown error!");
-            await _dialogService.ShowDialog(dialog);
+            await _dialogService.NotifyUser(Constants.FailDialog, "Failed to open the path to the executable due to an unknown error!");
         }
     }
 
     [RelayCommand]
     public async Task SaveState()
     {
+        // Gets the snapshot for the end script.
+        var previousSettings = _settingsService.CurrentSettings;
+        
         // Serialize saved state
         CurrentSaveState.UpdateSavedState();
 
-        var settings = _settingsService.CurrentSettings;
-        // Saving executable path
-        if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath))
-            settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
-        // Saving number of rows
-        settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
+        // Update through mutable settings
+        _settingsService.Update(settings =>
+        {
+            // Saving executable path
+            if (!string.IsNullOrEmpty(CurrentSaveState.GameExecutablePath))
+                settings.BaldiPlusExecutablePath = CurrentSaveState.GameExecutablePath;
+            // Saving number of rows
+            settings.NumberOfRowsPerMod = CurrentSaveState.NumberOfModsPerRow;
+            // Saving theme
+            settings.Theme = CurrentSaveState.Theme;
+            // Saving cancel on security issues setting
+            settings.CancelOnSecurityIssues = CurrentSaveState.CancelOnSecurityIssues;
 
-        // Saving executable path to the folder validator
-        _gameFolderViewer.ValidateFolder(settings.BaldiPlusExecutablePath);
-
-        // Saving dialog
-        var loadingDialog = _dialogService.GetDialog<LoadingDialogViewModel>();
-        loadingDialog.Prepare("Saving settings...", "Saving...", (Delegate)_settingsService.Save);
+            // Saving executable path to the folder validator
+            _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
+        });
         
-        var status = await _dialogService.ShowLoadingDialog(loadingDialog);
-        if (status) return;
-
-        var confirmDialog = _dialogService.GetDialog<ConfirmDialogViewModel>();
-        confirmDialog.Prepare(true, Constants.FailDialog, $"""
-                       Failed to save the settings. You can try again.
-                       If it doesn't work, you can try:
-                       {Constants.SolutionFilePermissions}
-                       """);
-        await _dialogService.ShowDialog(confirmDialog);
+        // Saving dialog
+        await _dialogService.GenerateBooleanLoadingProcess(
+            $"""
+             Failed to save the settings. You can try again.
+             If it doesn't work, you can try:
+             {Constants.CommonIssuesSolution}
+             """,
+            null,
+            "Saving settings...", "Saving...", (Delegate)_settingsService.SaveAsync);
+        
+        // Quit if necessary dialog
+        if (CurrentSaveState.HasChangesThatRequiresRestart(previousSettings) && await _dialogService.PromptUserQuestion("Restart Required", "To see the changes, you'll need to restart the application.\nYou can still use the mod manager normally.", DialogServiceUtils.QuestionAnswerType.ProceedOrCancel))
+            _appManager.Exit();
     }
 
     [RelayCommand]
@@ -145,20 +174,29 @@ public partial class SettingsViewModel : PageViewModel
         CurrentSaveState = CurrentSaveState.LastSavedState; // Revert to a previous reference
         
         // Update manually a few values
-        UpdateNumberOfRowsPerIndex();
+        UpdateSettingsDisplays();
     }
     
     // Private members
-    private void UpdateNumberOfRowsPerIndex()
+    private void UpdateSettingsDisplays()
     {
+        // Update number oof rows
+        NumberOfRowsPerModIndex = 0;
         for (var i = 0; i < PossibleRowsPerModStates.Length; i++)
         {
             if (PossibleRowsPerModStates[i] != CurrentSaveState.NumberOfModsPerRow) continue;
             
             NumberOfRowsPerModIndex = i;
-            return;
+            break;
         }
-
-        NumberOfRowsPerModIndex = 0;
+        
+        // Update Executable's Path
+        ExecutablePath = CurrentSaveState.GameExecutablePath;
+        
+        // Update Theme
+        Theme = CurrentSaveState.Theme;
+        
+        // Update CancelOnSecurityIssues
+        CancelOnSecurityIssues = CurrentSaveState.CancelOnSecurityIssues;
     }
 }

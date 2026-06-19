@@ -1,41 +1,88 @@
+using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Models.UI;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class ConfirmDialogViewModel : DialogViewModel
 {
+    public ConfirmDialogViewModel()
+    {
+        if (!Design.IsDesignMode) return;
+    
+        // Set defaults for the dialog
+        Title = "Design Preview";
+        Message = "This is how the dialog will appear with log entries.\nThis\nUssss\nText";
+
+        // Create a sample log container
+        var sampleLogs = new LogContainer();
+        sampleLogs.AddWarning("Low disk space", "Only 500 MB left on drive C:");
+        sampleLogs.AddWarning("Deprecated API usage", "Method 'OldMethod' will be removed in v3.0");
+        sampleLogs.AddError("Database connection failed", "Connection timeout after 30 seconds");
+        sampleLogs.AddError("Missing configuration key", "Key 'ApiKey' not found in AppSettings.json");
+        sampleLogs.AddInformation("User logged in", "User 'admin' logged in at 10:32 AM");
+        sampleLogs.AddInformation("Background sync completed", "Synced 150 records successfully");
+
+        // Assign the container
+        LogContainer = sampleLogs;
+    }
     
     [ObservableProperty]
-    private string _title = "Confirm?";
+    public partial string Title { get; set; } = "Confirm?";
+
     [ObservableProperty]
-    private string _message = "Are you sure?";
+    public partial string Message { get; set; } = "Are you sure?";
+
     [ObservableProperty]
-    private string _confirmText = "Confirm";
+    public partial string ConfirmText { get; set; } = "Confirm";
+
     [ObservableProperty]
-    private string _cancelText = "Cancel";
-    [ObservableProperty] 
-    private bool _onlyConfirmButton;
-    [ObservableProperty] 
-    private TextAlignment _descriptionAlignment = TextAlignment.Center;
-    
-    [ObservableProperty] 
-    private bool _confirmed;
-    
+    public partial string CancelText { get; set; } = "Cancel";
+
+    [ObservableProperty]
+    public partial bool OnlyConfirmButton { get; set; }
+
+    [ObservableProperty]
+    public partial TextAlignment DescriptionAlignment { get; set; } = TextAlignment.Center;
+
+    [ObservableProperty]
+    public partial bool Confirmed { get; set; }
+
+    /// <summary>
+    /// The log container holding categorized logs (Warnings, Errors, Information).
+    /// When set, updates the TreeDataGrid source for hierarchical display.
+    /// </summary>
+    [ObservableProperty]
+    public partial LogContainer? LogContainer { get; set; }
+
+    /// <summary>
+    /// The container for the logs tree. Provides the TreeDataGrid source.
+    /// This is a simple data container, not a view model.
+    /// </summary>
+    [ObservableProperty]
+    public partial LogsTreeContainer? LogsTreeContainer { get; set; }
+
     [RelayCommand]
     public void Confirm()
     {
         Confirmed = true;
         Close();
     }
-    
+
     [RelayCommand]
     public void Cancel()
     {
         Confirmed = false;
         Close();
     }
+
+    /// <summary>
+    /// Gets the TreeDataGrid source for displaying logs hierarchically.
+    /// Returns null if no LogContainer is set or if it has no logs.
+    /// </summary>
+    public HierarchicalTreeDataGridSource<LogTreeNode>? LogsTreeSource => LogsTreeContainer?.Source;
 
     /// <summary>
     /// Set up the dialog with the following parameters:
@@ -46,6 +93,7 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     ///     <item><description><see cref="string"/> Confirm Text (Optional)</description></item>
     ///     <item><description><see cref="string"/> Cancel Text (Optional)</description></item>
     ///     <item><description><see cref="TextAlignment"/> DescriptionAlignment (Optional)</description></item>
+    ///     <item><description><see cref="LogContainer"/> LogContainer (Optional)</description></item>
     /// </list>
     /// </summary>
     /// <param name="args">The positional arguments as defined in the summary.</param>
@@ -53,10 +101,10 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     {
         // Reset this to false
         Confirmed = false;
-        
+
         // Get the optional parameters ready
         if (args == null) return;
-        
+
         // OnlyConfirmButton
         OnlyConfirmButton = TryGetValue(args, 0, out bool? isOkDialog) && isOkDialog.Value;
         // Title
@@ -76,5 +124,22 @@ public partial class ConfirmDialogViewModel : DialogViewModel
         // Text Alignment
         if (TryGetValue(args, 5, out TextAlignment? textAlignment))
             DescriptionAlignment = textAlignment.Value;
+        // LogContainer
+        if (TryGetValue(args, 6, out LogContainer? logContainer))
+            LogContainer = logContainer;
+    }
+
+    /// <summary>
+    /// Partial method called when LogContainer property changes.
+    /// Creates a new LogsTreeContainer instance to reflect the new log container.
+    /// </summary>
+    partial void OnLogContainerChanged(LogContainer? value)
+    {
+        // Create a new instance directly here
+        LogsTreeContainer = new LogsTreeContainer();
+        LogsTreeContainer.Prepare(value);
+        LogsTreeSource?.ExpandAll();
+
+        OnPropertyChanged(nameof(LogsTreeSource));
     }
 }

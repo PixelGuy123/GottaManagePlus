@@ -1,5 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+        xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles">
     
     <Design.PreviewWith>
         <Border Background="Black" MinWidth="500" MinHeight="400" Padding="20">
@@ -26,9 +28,31 @@
                     </Border>
                     
                     <Border>
-                        <Button Classes="YCTPButton">
-                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
-                        </Button>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Classes="YCTPButton Miniature">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <Border Background="Yellow"
+                                                Padding="12" 
+                                                CornerRadius="4">
+                                            </Border>
+                                        </Flyout>
+                                </Button.Flyout>
+                                <Svg Path="/Assets/UI/delete-search.svg"/>
+                            </Button>
+                            <Button Classes="YCTPButton">
+                                <Svg Path="/Assets/UI/Inspect.svg"/>
+                            </Button>
+                            <Button Classes="YCTPButton">
+                                <Svg Path="/Assets/UI/exit.svg"/>
+                            </Button>
+                            <Button Classes="YCTPButton" Width="175">
+                                <TextBlock Text="This is a text block."></TextBlock>
+                            </Button>
+                            <Button Foreground="White" Classes="clickable-text">
+                                <TextBlock Text="Click this text" />
+                            </Button>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Grid>
@@ -38,95 +62,111 @@
     <!-- Default Button -->
     <Style Selector="Button">
         <Setter Property="Padding" Value="0"/>
-        
-        <!--BUTTON STYLING-->
+        <!-- YCTP BUTTON -->
         <Style Selector="^.YCTPButton">
-            <Setter Property="Background">
-                <Setter.Value>
-                    <ImageBrush
-                        Source="/Assets/UI/Button_Normal_48x48.png"
-                        Stretch="Uniform"
-                    />
-                </Setter.Value>
-            </Setter>
-            <Style Selector="^ Image">
+            <Setter Property="Width" Value="64"/>
+            <Setter Property="Height" Value="64"/>
+            <Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="#8c0d93"/>
+                <Setter Property="CornerRadius" Value="15"/>
                 <Setter Property="Margin" Value="5"/>
-                <Setter Property="MaxWidth" Value="48"/>
-                <Setter Property="MaxHeight" Value="48"/>
+                <Setter Property="Padding" Value="6"/>
+                <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #3f043e"/>
             </Style>
-            <!--Disable click sizing from Pressed-->
-            <Style Selector="^:pressed">
+            <Style Selector="^ /template/ Border#PART_RootBorder">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="BoxShadow" Value=","/> <!-- Add an empty BoxShadows collection -->
+            </Style>
+            <Style Selector="^ FlyoutPresenter /template/ controls|Card#LayoutRoot">
+                <Setter Property="Background" Value="Transparent"/>
+            </Style>
+            
+                <!-- Icon Definitions -->
+            <Style Selector="^ Svg">
+                <Setter Property="IsHitTestVisible" Value="False"/>
+                <Setter Property="Opacity" Value="{Binding Opacity, RelativeSource={RelativeSource FindAncestor, AncestorType=Button}}"/>
+                <Setter Property="Margin" Value="3 0 2.5 2"/>
+                <Setter Property="Css" Value="
+                    .usesStroke { stroke: #FFFFFF; }
+                    .usesFill { fill: #FFFFFF; }
+                "/>
+            </Style>
+            
+            <!-- Text Update -->
+            <Style Selector="^ TextBlock">
+                <Setter Property="IsHitTestVisible" Value="False"/>
+                <Setter Property="Opacity" Value="{Binding Opacity, RelativeSource={RelativeSource FindAncestor, AncestorType=Button}}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontFamily" Value="{StaticResource ComicRelief}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="5"/>
+            </Style>
+            
+            <!-- Event Definitions -->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #bef0c0"/>
+                <Setter Property="Background" Value="#75e170"/>
+            </Style>
+            <!-- Svg Color Update -->
+            <Style Selector="^:pointerover Svg">
+                <Setter Property="Css" Value="
+                    .usesFill { fill: #949794; }
+                    .usesStroke { stroke: #949794; }
+                "/>
+            </Style>
+            <!--- Text Update -->
+            <Style Selector="^:pointerover TextBlock">
+                <Setter Property="Foreground" Value="#949794"></Setter>
+            </Style>
+            <!-- Default Animation Disable -->
+            <Setter Property="Transitions" Value="{x:Null}" />
+            <Setter Property="RenderTransform" Value="none" />
+            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter"> 
+                <Setter Property="RenderTransform" Value="none" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter"> 
                 <Setter Property="RenderTransform" Value="none" />
             </Style>
-            <!-- Image Update -->
-            <Style Selector="^:pointerover Image">
-                <Setter Property="BlendMode" Value="Hue"/>
-            </Style>
-            <Style Selector="^:pressed Image">
-                <Setter Property="BlendMode" Value="Hue"/>
-            </Style>
-            <!--Pointer over style consistency-->
-            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_Selected_48x48.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-            </Style>
             
-            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_Selected_48x48.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            
-            <!-- YCTP 32x32 -->
-            <Style Selector="^.SmallYCTPButton">
-                <Setter Property="Background">
-                    <Setter.Value>
-                        <ImageBrush
-                            Source="/Assets/UI/Button_Normal_32x32.png"
-                            Stretch="Uniform"
-                        />
-                    </Setter.Value>
-                </Setter>
-                <Style Selector="^ Image">
-                    <Setter Property="Margin" Value="5"/>
-                    <Setter Property="MaxWidth" Value="16"/>
-                    <Setter Property="MaxHeight" Value="16"/>
+            <!-- Small Version -->
+            <!-- YCTP BUTTON OVERRIDE -->
+            <Style Selector="^.Miniature">
+                <Setter Property="Height" Value="48"/>
+                <Setter Property="Width" Value="48"/>
+                <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter"> 
+                    <Setter Property="CornerRadius" Value="12"/>
+                    <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #3f043e"/>
                 </Style>
-                <!--Pointer over style consistency-->
                 <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <ImageBrush
-                                Source="/Assets/UI/Button_Normal_Selected_32x32.png"
-                                Stretch="Uniform"
-                            />
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-                <!--Pointer pressed style consistency-->
-                <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <ImageBrush
-                                Source="/Assets/UI/Button_Normal_Selected_32x32.png"
-                                Stretch="Uniform"
-                            />
-                        </Setter.Value>
-                    </Setter>
+                    <Setter Property="BoxShadow" Value="-2.5 2.5 0 2 #bef0c0"/>
                 </Style>
             </Style>
         </Style>
+    </Style>
+    
+    <Style Selector="Button.clickable-text">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Padding="{TemplateBinding Padding}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     
     

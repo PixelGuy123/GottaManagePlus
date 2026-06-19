@@ -1,23 +1,13 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Threading.Tasks;
-using Avalonia;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
 public abstract partial class DialogViewModel : ViewModelBase
 {
-    // To display app version if required (static to be run once)
-    private static readonly Version ConstAppVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version("0.0.0.0"),
-        ConstAvaloniaVersion = typeof(AvaloniaObject).Assembly.GetName().Version ?? new Version("0.0.0.0");
-
-    [ObservableProperty] 
-    private Version _appVersion = ConstAppVersion,
-                             _avaloniaVersion = ConstAvaloniaVersion;
     [ObservableProperty]
-    private bool _isDialogOpen;
+    public partial bool IsDialogOpen { get; set; }
 
     private TaskCompletionSource _closeTask = new();
     private bool _isDialogPrepared;
@@ -38,11 +28,15 @@ public abstract partial class DialogViewModel : ViewModelBase
 
     protected void Close()
     {
+        OnClose();
+        
         IsDialogOpen = false;
         _isDialogPrepared = false;
 
         _closeTask.TrySetResult();
     }
+    
+    protected virtual void OnClose() { }
 
     /// <summary>
     /// A method that must be called before displaying a dialog to prepare it.
@@ -53,11 +47,22 @@ public abstract partial class DialogViewModel : ViewModelBase
     public void Prepare(params object?[]? args)
     {
         if (_isDialogPrepared)
-            throw new InvalidOperationException("Dialog is already prepared.");
-        
+        {
+            Log.Logger.Warning("Dialog ('{dialog}') is already prepared!", this);
+            return;
+        }
+
         // Setup abstraction
-        Setup(args);
-        
+        try
+        {
+            Setup(args);
+        }
+        catch (Exception e)
+        {
+            Log.Logger.Error(e, "Failed to open dialog ('{dialogType}').", this);
+            throw;
+        }
+
         // Dialog is prepared by default
         _isDialogPrepared = true;
     }

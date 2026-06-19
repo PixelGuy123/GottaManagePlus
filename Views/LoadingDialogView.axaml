@@ -18,7 +18,8 @@
     
     <Border
         CornerRadius="10"
-        Margin="10 20"
+        Margin="10 0"
+        VerticalAlignment="Center"
         BoxShadow="0 5 25 1.5 Black">
         <Border
             Background="{DynamicResource MainMenus-Bg}"
@@ -42,27 +43,28 @@
                 <!-- Description -->
                 <Border Grid.Row="1" Padding="10">
                     <StackPanel Orientation="Vertical">
+                        <!-- "Progressable" Bar -->
                         <ProgressBar
-                            IsVisible="{CompiledBinding !HideProgressBar, Mode=OneWay}"
+                            Name="DeterminateProgressBar"
                             Foreground="{DynamicResource ProgressBar-Foreground}"
-                            MinHeight="15"
+                            IsIndeterminate="{CompiledBinding HideProgressBar}"
+                            MinHeight="20"
+                            Margin="0 5"
+                            ShowProgressText="{CompiledBinding !HideProgressBar}"
+                            ProgressTextFormat="{CompiledBinding ProgressTextFormat}"
+                            FontFamily="{StaticResource WorkSans}"
                             Minimum="0"
                             Maximum="{CompiledBinding ProgressMax, Mode=OneWay}"
                             Value="{CompiledBinding ProgressValue, Mode=OneWay}"/>
+                        <!-- Status -->
                         <TextBlock
-                            Name="ProgressText"
-                            IsVisible="{CompiledBinding !HideProgressBar, Mode=OneWay}"
-                            Text="{CompiledBinding ProgressPercentageText, Mode=OneWay}"
-                            FontFamily="{StaticResource WorkSans}"
-                            FontWeight="ExtraBlack"
-                            FontSize="14"
-                            TextAlignment="Center"/>
-                        <TextBlock
+                            Name="Status"
                             Text="{CompiledBinding Status, Mode=OneWay}"
                             FontFamily="{StaticResource WorkSans}"
-                            FontWeight="Bold"
-                            FontSize="16"
+                            FontSize="18"
+                            MaxLines="2"
                             MaxWidth="620"
+                            VerticalAlignment="Bottom"
                             TextWrapping="Wrap"
                             TextAlignment="Center"
                             />
@@ -74,8 +76,9 @@
                     IsVisible="{CompiledBinding AllowCancellation, Mode=OneWay}"
                     Content="{CompiledBinding CancelText, Mode=OneWay}" 
                     Classes="DialogBtn DangerDialogBtn"
-                    Command="{CompiledBinding Cancel}"
+                    Command="{Binding Cancel}"
                     VerticalAlignment="Center"
+                    IsCancel="True"
                     HorizontalAlignment="Center"
                     Margin="10"/>
             </Grid>

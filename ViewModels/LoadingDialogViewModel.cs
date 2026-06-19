@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Interfaces;
+using GottaManagePlus.Models;
+using GottaManagePlus.Models.ModManagement;
+using GottaManagePlus.Models.UI;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -22,14 +21,34 @@ public partial class LoadingDialogViewModel : DialogViewModel
     private bool _hasAlreadyInitiated;
 
     // Observable properties
-    [ObservableProperty] private string _title = "Loading...";
-    [ObservableProperty] private string? _status = "Loading...";
-    [ObservableProperty] private string? _progressPercentageText;
-    [ObservableProperty] private int _progressMax = 1;
-    [ObservableProperty] private int _progressValue;
-    [ObservableProperty] private string _cancelText = "Cancel";
-    [ObservableProperty] private bool _allowCancellation, _hideProgressBar;
-    [ObservableProperty] private Progress<(int, int, string?)>? _progress;
+    [ObservableProperty]
+    public partial string Title { get; set; } = "Loading...";
+
+    [ObservableProperty]
+    public partial string? Status { get; set; } = "Loading...";
+    
+    [ObservableProperty]
+    public partial string ProgressTextFormat { get; set; } = "{1:0}%";
+
+    [ObservableProperty]
+    public partial long ProgressMax { get; set; } = 1;
+
+    [ObservableProperty]
+    public partial long ProgressValue { get; set; }
+
+    [ObservableProperty]
+    public partial string CancelText { get; set; } = "Cancel";
+
+    [ObservableProperty] 
+    public partial bool AllowCancellation { get; set; }
+    
+    [ObservableProperty] 
+    public partial bool HideProgressBar { get; set; }
+    
+    [ObservableProperty]
+    public partial Progress<ProgressReport>? Progress { get; set; }
+    
+    public object? Result { get; private set; }
 
     public async Task<bool> StartTask()
     {
@@ -47,7 +66,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
             var parameters = MethodCache[_loadingDelegate.Method];
             var finalArgs = new object?[parameters.Length];
             var providedArgIndex = 0;
-
             for (var i = 0; i < parameters.Length; i++)
             {
                 // Get the param type
@@ -58,10 +76,11 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 {
                     finalArgs[i] = _cts.Token;
                 } // Otherwise, check if it is a IProgress
-                else if (typeof(IProgress<(int, int, string?)>).IsAssignableFrom(pType))
+                else if (typeof(IProgress<ProgressReport>).IsAssignableFrom(pType))
                 {
                     finalArgs[i] = Progress;
-                } // Below them, just use these as arguments
+                } 
+                // Below them, just use these as arguments
                 else if (providedArgIndex < _providedArgs.Length)
                 {
                     finalArgs[i] = _providedArgs[providedArgIndex++];
@@ -78,12 +97,22 @@ public partial class LoadingDialogViewModel : DialogViewModel
             
             switch (result)
             {
+                // Installation Result check
+                case Task<ModInstallationResult> installTask:
+                    var installResult = await installTask;
+                    Result = installResult;
+                    cancellationDone = _cts.IsCancellationRequested;
+                    return !cancellationDone;
+                
+                // Check for the boolean result
                 case Task<bool> boolTask:
                 {
                     var success = await boolTask;
                     cancellationDone = _cts.IsCancellationRequested;
                     return success && !cancellationDone;
                 }
+                
+                // Check for a default task
                 case Task task:
                     await task;
                     cancellationDone = _cts.IsCancellationRequested;
@@ -110,12 +139,13 @@ public partial class LoadingDialogViewModel : DialogViewModel
         }
     }
 
-    private void OnProgressChanged(object? sender, (int, int, string?) e)
+    private void OnProgressChanged(object? sender, ProgressReport e)
     {
-        ProgressPercentageText = $"{e.Item1}/{e.Item2} ";
-        ProgressMax = e.Item2;
-        ProgressValue = e.Item1;
-        Status = e.Item3;
+        ProgressMax = e.TasksTotal;
+        ProgressValue = e.TasksCompleted;
+        Status = e.CurrentStatus;
+        HideProgressBar = !e.HasTaskProgression;
+        ProgressTextFormat = e.UsePercentage ? "{1:0}%" : "{0}/{3}";
     }
 
     [RelayCommand]
@@ -135,13 +165,15 @@ public partial class LoadingDialogViewModel : DialogViewModel
     {
         // Throw if null, since there are two required arguments afterward
         ArgumentNullException.ThrowIfNull(args);
+        
         // If there are optional arguments in the beginning, increment this value by the amount of optional parameters
         const int delegateHandlingOffset = 2;
+        
         // Reset state
         _hasAlreadyInitiated = false;
+        Result = null;
         _cts = new CancellationTokenSource();
         Progress = null;
-        ProgressPercentageText = null;
         ProgressValue = 0;
         ProgressMax = 1;
 
@@ -165,11 +197,11 @@ public partial class LoadingDialogViewModel : DialogViewModel
 
         // Dynamic UI State Detection
         AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
-        HideProgressBar = !parameters.Any(p => typeof(IProgress<(int, int, string?)>).IsAssignableFrom(p.ParameterType));
-        
+        HideProgressBar = !parameters.Any(p => typeof(IProgress<ProgressReport>).IsAssignableFrom(p.ParameterType));
+
         if (!HideProgressBar) // If there's progress bar, there's progress instance
-            Progress = new Progress<(int, int, string?)>();
-        
+            Progress = new Progress<ProgressReport>();
+
         // Update UI Elements
         Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
         Status = TryGetValue(args, 1, out text) ? text : "Loading...";

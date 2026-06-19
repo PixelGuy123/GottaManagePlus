@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Main Menus Background -->
+    <RadialGradientBrush x:Key="MainMenus-Bg"
+                         Center="150%, -25%"
+                         GradientOrigin="150%, -25%"
+                         RadiusX="375%"
+                         RadiusY="285%">
+        <RadialGradientBrush.GradientStops>
+            <GradientStop Color="#68e29b" Offset="0"/>
+            <GradientStop Color="#286554" Offset="0.85"/>
+        </RadialGradientBrush.GradientStops>
+    </RadialGradientBrush>
+
+    <!-- Top Menu Background -->
+    <RadialGradientBrush x:Key="TopMenu-Bg"
+                         Center="11%, 5%"
+                         GradientOrigin="11%, 5%"
+                         RadiusX="100%"
+                         RadiusY="135%">
+        <RadialGradientBrush.GradientStops>
+            <GradientStop Color="#46bb77" Offset="0"/>
+            <GradientStop Color="#3ba065" Offset="0.12"/>
+            <GradientStop Color="#3b9665" Offset="0.185"/>
+            <GradientStop Color="#36945d" Offset="0.25"/>
+            <GradientStop Color="#287347" Offset="0.5"/>
+            <GradientStop Color="#286447" Offset="0.59"/>
+            <GradientStop Color="#285f47" Offset="0.65"/>
+            <GradientStop Color="#285847" Offset="0.75"/>
+            <GradientStop Color="#164d42" Offset="0.85"/>
+        </RadialGradientBrush.GradientStops>
+    </RadialGradientBrush>
+
+    <!-- Other Menu Resources -->
+    <SolidColorBrush x:Key="Menu-Header-Bg" Color="#2f6441"/>
+    <SolidColorBrush x:Key="Generic-Border" Color="#1E443A"/>
+    <SolidColorBrush x:Key="Generic-Border-Shadow" Color="#1C272B"/>
+</ResourceDictionary>

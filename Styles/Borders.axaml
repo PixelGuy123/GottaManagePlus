@@ -10,22 +10,15 @@
     <Style Selector="Border">
         <!-- Menu Header Borders -->
         <Style Selector="^.Menu_Header">
+            <Setter Property="MinHeight" Value="60"/> 
             <Setter Property="MaxHeight" Value="96"/> 
+            <Setter Property="HorizontalAlignment" Value="Stretch"/> 
+            <Setter Property="VerticalAlignment" Value="Stretch"/> 
         </Style>
         
         <!-- Menu Border -->
         <Style Selector="^.Menu_Border">
             <Setter Property="Background" Value="{DynamicResource MainMenus-Bg}" />
-        </Style>
-    </Style>
-    
-    <!-- Corner Radius Feature for Borders -->
-    <Style Selector="Border">
-        <Style Selector="^.AllCornerRadius">
-            <Setter Property="CornerRadius" Value="15" />
-        </Style>
-        <Style Selector="^.RightCornerRadius">
-            <Setter Property="CornerRadius" Value="0 15 15 0" />
         </Style>
     </Style>
 </Styles>

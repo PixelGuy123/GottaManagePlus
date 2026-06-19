@@ -1,0 +1,58 @@
+using Tomlyn.Serialization;
+
+namespace GottaManagePlus.Models;
+
+/// <summary>
+/// An object that represents the basic data inside a compressed profile.
+/// </summary>
+public class ProfileMetadata()
+{
+    [TomlIgnore] public const string DefaultName = "Default";
+    
+    // Default instance
+    /// <summary>
+    /// Returns a default instance of <see cref="ProfileMetadata"/> with filled data.
+    /// </summary>
+    [TomlIgnore]
+    public static ProfileMetadata Default => new();
+
+    /// <summary>
+    /// A constructor to deep-copy the <see cref="ProfileMetadata"/>.
+    /// </summary>
+    /// <param name="toCopy">The metadata to be copied as a new instance.</param>
+    /// <param name="excludeProfileContent">
+    /// <see langword="true"/> means the configs, patchers and mods will be empty
+    /// regardless of current value.
+    /// </param>
+    public ProfileMetadata(ProfileMetadata toCopy, bool excludeProfileContent) : this()
+    {
+        Name = toCopy.Name;
+
+        // If true, exclude the lists
+        if (excludeProfileContent) return;
+
+        ConfigurationFiles = new List<string>(toCopy.ConfigurationFiles);
+        PatcherFiles = new List<string>(toCopy.PatcherFiles);
+        ModDataFiles = new List<ModManifest>(toCopy.ModDataFiles);
+    }
+    
+    // [Basic Info]
+    [TomlRequired] public string Name { get; set; } = DefaultName;
+    
+    // [Profile Content]
+    /*
+     * What should the profile expect from this data?
+     * CONFIGS & PATCHERS: the profile should expect the direct path to them (the destination path).
+     * In this case, the profile itself should always update and scan for new configuration files and patcher files (handled by ProfileStorage).
+     * PLUGINS & ASSETS: These are special.
+     * The profile should expect the direct path to the DLL files (plugins).
+     * For assets, they should expect the LocalPath and Destination to remain the same (immutable data).
+     * However, the destination must always be used to localize the folders.
+     */
+    public List<string> ConfigurationFiles { get; set; } = [];
+    public List<string> PatcherFiles { get; set; } = [];
+    public List<ModManifest> ModDataFiles { get; set; } = [];
+    
+    // Overriden Methods
+    public override string ToString() => Name;
+}

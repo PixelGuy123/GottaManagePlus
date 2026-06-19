@@ -68,7 +68,7 @@
                                     <TextBox 
                                         FontFamily="{StaticResource WorkSans}" 
                                         Text="{CompiledBinding ProfileName}" 
-                                        Watermark="Enter profile name..."/>
+                                        PlaceholderText="Enter profile name..."/>
                                     <TextBlock 
                                         Text="{CompiledBinding ErrorText, Mode=OneWay}"
                                         Opacity="{Binding !CanCreateProfile, Mode=OneWay}"
@@ -101,7 +101,7 @@
                                                 
                                                 <!-- Select YCTPs -->
                                                 <Style Selector="^:selected Border.YCTP">
-                                                    <Setter Property="Background" Value="{DynamicResource YctpBg-Selected}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource YctpBg-Warning}"/>
                                                 </Style>
                                             </Style>
                                         </ListBox.Styles>
@@ -139,7 +139,7 @@
                                         <TextBox 
                                             Text="{CompiledBinding CloneProfileName}"
                                             FontFamily="{StaticResource WorkSans}"
-                                            Watermark="Enter profile name..."
+                                            PlaceholderText="Enter profile name..."
                                             />
                                         <TextBlock 
                                             Text="{CompiledBinding ErrorText, Mode=OneWay}"
@@ -153,26 +153,13 @@
                         <!-- Import a profile locally -->
                         <TabItem Header="Import locally...">
                             <Border Padding="10">
-                                <StackPanel Orientation="Vertical">
-                                    <TextBlock
-                                        Text="Select a profile package:"
-                                        FontFamily="{StaticResource Baskerville}"
-                                        />
-                                    <DockPanel>
-                                        <Button
-                                            DockPanel.Dock="Right"
-                                            Margin="5 0 0 0"
-                                            Classes="YCTPButton SmallYCTPButton"
-                                            Command="{CompiledBinding BrowseFile}">
-                                            <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
-                                        </Button>
-                                        <controls:TrimmableTextBox Text="{CompiledBinding ProfileImportPath}"
-                                                 Watermark="No package selected!"
-                                                 TextTrimming="PrefixCharacterEllipsis"
-                                                 FontFamily="{StaticResource WorkSans}"/>
-                                    </DockPanel>
-                                </StackPanel>
+                                <controls:FileBrowser
+                                    Label="Select a profile package:"
+                                    Placeholder="No package selected!"
+                                    FilePath="{CompiledBinding ProfileImportPath}"
+                                    SelectFileCommand="{Binding BrowseFile}"/>
                             </Border>
+                            <!-- TODO: Add a display for the metadata of the profile (such as what configs, patchers or mods it has) -->
                         </TabItem>
                     </TabControl>
                     <!-- Buttons -->
@@ -185,14 +172,16 @@
                         <Button
                             Content="{CompiledBinding CancelText, Mode=OneWay}" 
                             Classes="DialogBtn DangerDialogBtn"
-                            Command="{CompiledBinding Cancel}"/>
+                            IsCancel="True"
+                            Command="{Binding Cancel}"/>
                         <Button
                             Name="CreateProfileBtn"
                             Opacity="{Binding CanCreateProfile, Mode=OneWay}"
                             IsHitTestVisible="{Binding CanCreateProfile, Mode=OneWay}"
                             Content="{CompiledBinding CreateText, Mode=OneWay}" 
                             Classes="DialogBtn GenericDialogBtn"
-                            Command="{CompiledBinding Confirm}">
+                            IsDefault="True"
+                            Command="{Binding Confirm}">
                             <Button.Transitions>
                                 <Transitions>
                                     <DoubleTransition

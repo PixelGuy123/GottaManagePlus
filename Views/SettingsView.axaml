@@ -19,6 +19,7 @@
         <Style Selector="Label">
             <Setter Property="FontFamily" Value="{StaticResource Baskerville}"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
         </Style>
         <Style Selector="controls|TrimmableTextBox">
             <Setter Property="FontFamily" Value="{StaticResource WorkSans}"/>
@@ -37,15 +38,11 @@
      <!-- START of Settings-->
      <Border
          Name="BodyBorder"
-         Classes="Menu_Border AllCornerRadius"
-         BoxShadow="0 3 10 2 #7D000000">
+         Classes="Menu_Border">
         <Border
-            Classes="Menu_Border AllCornerRadius"
-            ClipToBounds="True">
+            Classes="Menu_Border">
             <Grid RowDefinitions="Auto, *">
                 <Border Grid.Row="0"
-                        HorizontalAlignment="Stretch" 
-                        VerticalAlignment="Stretch"
                         Classes="Menu_Header">
                     <Border.Background>
                         <ImageBrush
@@ -58,27 +55,11 @@
                     </Border.Background>
                 </Border>
                 <!-- Settings Header -->
-                <StackPanel
-                Grid.Row="0"
-                Margin="0 5"
-                HorizontalAlignment="Stretch"
-                Orientation="Horizontal">
-                    <Panel>
-                        <TextBlock 
-                            Text="Settings" 
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Foreground="White"
-                            FontWeight="UltraBold"
-                            Classes="SideMenu-Label RightHeader GlowShadow"/>
-                        <TextBlock 
-                            Text="Settings" 
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Classes="SideMenu-Label RightHeader"/>
-                    </Panel>
-                </StackPanel>
-
+                    <!-- TODO: Language support here -->
+                    <TextBlock
+                        Grid.Row="0"
+                        Name="HeaderTitle"
+                        Text="Settings" />
                 <!-- Settings Body -->   
                 <Border Grid.Row="1" 
                         Background="{DynamicResource SettingsBg}">
@@ -107,30 +88,23 @@
                             Spacing="10"
                             Orientation="Vertical">
                             <!-- Executable Path Selection -->
-                            <StackPanel Orientation="Vertical">
-                                <Label Content="Baldi's Basics Plus' Executable Path:"/>
-                                <DockPanel HorizontalSpacing="2">
-                                    <!-- Select file Dialog -->
-                                    <Button
-                                        Classes="YCTPButton SmallYCTPButton"
-                                        DockPanel.Dock="Right"
-                                        Command="{CompiledBinding SetFilePathForPlusFolder}">
-                                        <Image Source="/Assets/UI/Icon_OpenModFolder.png"/>
-                                    </Button>
-                                    <!-- Open folder -->
-                                    <Button
-                                        IsVisible="{CompiledBinding CurrentSaveState.GameExecutablePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}, Mode=OneWay}"
-                                        Classes="YCTPButton SmallYCTPButton"
-                                        DockPanel.Dock="Right"
-                                        Command="{CompiledBinding OpenExecutablePath}">
-                                        <Image Source="/Assets/UI/Icon_SelectFolder.png"/>
-                                    </Button>
-                                    <controls:TrimmableTextBox
-                                        Text="{CompiledBinding CurrentSaveState.GameExecutablePath, Mode=OneWay}"
-                                        Watermark="Select a path"
-                                        TextTrimming="PrefixCharacterEllipsis"/>
-                                </DockPanel>
+                            <controls:FileBrowser
+                                Margin="0 5"
+                                Label="Baldi's Basics Plus Executable Path:"
+                                Placeholder="No executable selected..."
+                                PlaceholderFontFamily="{StaticResource WorkSans}"
+                                FilePath="{CompiledBinding ExecutablePath}"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                OpenFileCommand="{Binding OpenExecutablePath}"
+                                SelectFileCommand="{Binding SetFilePathForPlusFolder}"/>
+                            
+                            <!-- Security Issue Checkbox -->
+                            <StackPanel ToolTip.Tip="When enabled, automatically cancels installation of any mod flagged as 'suspicious' to protect your system.">
+                                <Label Content="Prevent Suspicious Mods Installation"/>
+                                <CheckBox IsChecked="{CompiledBinding CancelOnSecurityIssues, Mode=TwoWay}"/>
                             </StackPanel>
+                            <!-- TODO: implement checkbox -->
                         </StackPanel>
                         <!-- END OF FIRST COLUMN -->
                         
@@ -142,12 +116,21 @@
                             Spacing="10"
                             Orientation="Vertical">
                             <!-- Mod Grid Settings -->
-                            <StackPanel Orientation="Vertical">
-                                <Label Content="Number of mods per row:"/>
+                            <StackPanel>
+                                <Label Target="NumOfModsPerRowCombo" Content="Number of mods per row:"/>
                                 <ComboBox
+                                    FontFamily="{StaticResource WorkSans}"
                                     Name="NumOfModsPerRowCombo"
                                     SelectedIndex="{CompiledBinding NumberOfRowsPerModIndex}"
                                     ItemsSource="{CompiledBinding PossibleRowsPerModStates, Mode=OneTime}"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <Label Target="ThemeComboBox" Content="Theme:"/>
+                                <ComboBox
+                                    Name="ThemeComboBox"
+                                    FontFamily="{StaticResource WorkSans}"
+                                    SelectedValue="{CompiledBinding Theme}"
+                                    ItemsSource="{CompiledBinding PossibleThemes, Mode=OneTime}"/>
                             </StackPanel>
                         </StackPanel>
                         <!-- END OF SECOND COLUMN -->
@@ -176,11 +159,11 @@
                             <Button
                                 Classes="DialogBtn DangerDialogBtn"
                                 Content="Cancel"
-                                Command="{CompiledBinding CancelSaveState}"/>
+                                Command="{Binding CancelSaveState}"/>
                             <Button
                                 Classes="DialogBtn GenericDialogBtn"
                                 Content="Save"
-                                Command="{CompiledBinding SaveState}"/>
+                                Command="{Binding SaveState}"/>
                         </StackPanel>
                         <!-- END of Bottom Row -->
                     </Grid>

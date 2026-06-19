@@ -1,10 +1,14 @@
-using System;
+using System.Text.Json.Serialization;
 
 namespace GottaManagePlus.Models;
 
-public class WrappedGameVersion
+public class WrappedGameVersion : IComparable, IComparable<WrappedGameVersion>
 {
-    public Version WrappedVersion { get; }
+    public Version WrappedVersion { get; set; } = new();
+    
+    // Private parameterless constructor used only for deserialization
+    [JsonConstructor]
+    public WrappedGameVersion() { }
 
     public WrappedGameVersion(string version)
     {
@@ -51,4 +55,20 @@ public class WrappedGameVersion
         };
 
     public override int GetHashCode() => WrappedVersion.GetHashCode();
+
+    public int CompareTo(object? obj) =>
+        obj switch
+        {
+            null => 1,
+            Version ver => WrappedVersion.CompareTo(ver),
+            WrappedGameVersion wrapVer => WrappedVersion.CompareTo(wrapVer.WrappedVersion),
+            _ => throw new ArgumentException($"Cannot compare WrappedGameVersion with {obj.GetType().Name}")
+        };
+
+    public int CompareTo(WrappedGameVersion? other) =>
+        other switch
+        {
+            null => 1,
+            _ => WrappedVersion.CompareTo(other.WrappedVersion)
+        };
 }

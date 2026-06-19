@@ -7,66 +7,83 @@
              x:DataType="vm:ConfirmDialogViewModel"
              x:Class="GottaManagePlus.Views.ConfirmDialogView"
              MinWidth="350"
-             MinHeight="200"
-             >
-    
+             MinHeight="250">
+
     <Design.DataContext><vm:ConfirmDialogViewModel/></Design.DataContext>
-    
+
     <UserControl.Styles>
+        <StyleInclude Source="/Styles/TextBlock.axaml"/>
         <StyleInclude Source="/Styles/Buttons.axaml"/>
     </UserControl.Styles>
-    
+
     <Border
         CornerRadius="10"
-        Margin="10 20"
+        Margin="10 10"
         BoxShadow="0 5 25 1.5 Black">
         <Border
             Background="{DynamicResource MainMenus-Bg}"
             CornerRadius="10"
             ClipToBounds="True">
-            <Grid RowDefinitions="Auto, *, Auto"> <!-- Title | Description | Buttons -->
+            <Grid RowDefinitions="Auto, Auto, Auto"> <!-- Title | Description + Logs | Buttons -->
                 <!-- Title -->
-                <Border Grid.Row="0" Background="{DynamicResource Menu-Header-Bg}">
-                    <TextBlock 
-                        Foreground="{DynamicResource BlackColor}"
-                        Text="{CompiledBinding Title, Mode=OneWay}"
-                        MaxWidth="650"
-                        HorizontalAlignment="Center"
-                        Padding="10"
-                        FontSize="25"
-                        TextTrimming="CharacterEllipsis"
-                        FontWeight="ExtraLight"
-                        FontFamily="{StaticResource WorkSans}"/>
-                </Border>
-                
+                <TextBlock
+                    Grid.Row="0"
+                    Background="{DynamicResource Menu-Header-Bg}"
+                    Text="{CompiledBinding Title, Mode=OneWay}"
+                    MaxWidth="650"
+                    HorizontalAlignment="Stretch"
+                    TextAlignment="Center"
+                    Padding="10"
+                    FontSize="25"
+                    TextTrimming="CharacterEllipsis"
+                    FontWeight="ExtraLight"
+                    FontFamily="{StaticResource WorkSans}"/>
+
                 <!-- Description -->
-                <Border Grid.Row="1" Padding="10">
-                    <TextBlock 
+                <StackPanel Grid.Row="1">
+                    <!-- Description Text -->
+                    <TextBlock
+                        Padding="10"
                         Text="{CompiledBinding Message, Mode=OneWay}"
                         MaxWidth="650"
                         TextWrapping="Wrap"
                         TextAlignment="{CompiledBinding DescriptionAlignment, Mode=OneWay}"
                         FontSize="18"
                         FontFamily="{StaticResource ComicRelief}"
-                        />
-                </Border>
-                
+                    />
+
+                    <!-- Logs TreeDataGrid (only visible if LogContainer has logs) -->
+                    <TreeDataGrid
+                        MaxHeight="125"
+                        Background="{DynamicResource Generic-Border}"
+                        BorderBrush="{DynamicResource Generic-Border-Shadow}"
+                        BorderThickness="0 2"
+                        IsVisible="{CompiledBinding LogContainer.HasLogs, FallbackValue=False, Mode=OneWay}"
+                        ShowColumnHeaders="False"
+                        FontFamily="{StaticResource WorkSans}"
+                        Source="{CompiledBinding LogsTreeSource, Mode=OneWay}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"/>
+                </StackPanel>
+
                 <!-- Buttons -->
-                <StackPanel 
-                    Orientation="Horizontal" 
+                <StackPanel
+                    Orientation="Horizontal"
                     Grid.Row="2"
                     HorizontalAlignment="Center"
                     Spacing="20"
                     Margin="10">
                     <Button
                         IsVisible="{CompiledBinding !OnlyConfirmButton, Mode=OneWay}"
-                        Content="{CompiledBinding CancelText, Mode=OneWay}" 
+                        Content="{CompiledBinding CancelText, Mode=OneWay}"
                         Classes="DialogBtn DangerDialogBtn"
-                        Command="{CompiledBinding Cancel}"/>
+                        IsCancel="True"
+                        Command="{Binding Cancel}"/>
                     <Button
-                        Content="{CompiledBinding ConfirmText, Mode=OneWay}" 
+                        IsDefault="True"
+                        Content="{CompiledBinding ConfirmText, Mode=OneWay}"
                         Classes="DialogBtn GenericDialogBtn"
-                        Command="{CompiledBinding Confirm}"/>
+                        Command="{Binding Confirm}"/>
                 </StackPanel>
             </Grid>
         </Border>
