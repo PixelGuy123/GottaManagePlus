@@ -1,4 +1,4 @@
-namespace GottaManagePlus.Models.UI;
+namespace GottaManagePlus.Models.ModManagement;
 
 public class ModInstallationResult(CancellationToken cancellationToken)
 {

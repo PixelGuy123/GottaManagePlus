@@ -58,6 +58,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     private int _incrementalPageCounter = 1;
     private readonly SemaphoreSlim _loadSemaphore = new(1, 1); // For limiting the IncrementModsList concurrent calls
     private readonly Queue<IndexMod> _failedRecordsQueue = new();
+    private readonly CancellationTokenSource _cancellationTokenForClosing = new(); // Cancels any Task inside this dialog if it is promptly closed
 
     #endregion
 
@@ -188,6 +189,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     protected override void OnClose()
     {
         base.OnClose();
+        _cancellationTokenForClosing.Cancel(); // Immediately cancel here.
         #if DEBUG
         Log.Logger.Information("---- Enqueued Mods ----");
         foreach (var mod in EnqueuedModsToInstall)
@@ -227,21 +229,30 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
 
         // Close this dialog before anything
         Close();
-
-        // TODO: Add dependencies to the process before installation.
-        // Instead of using EnqueuedModsToInstall, allow InstallAsync to receive an IEnumerable for the ModFiles.
-        // var modsToInstall = new Dictionary<ModItem, ModFile>(EnqueuedModsToInstall);
-
-        // Preview the files that will be installed.
+        
+        // Create a copy of the mods to include dependencies.
+        var modsToInstall = new List<(ModItem, ModItem.ModFile)>();
         var previewLogContainer = new LogContainer();
+        
+        // Populate list with enqueued mods.
+        foreach (var (mod, file) in EnqueuedModsToInstall) modsToInstall.Add((mod, file));
+        
+        // Populate again with dependencies.
         foreach (var (mod, file) in EnqueuedModsToInstall)
+        {
             previewLogContainer.AddInformation(mod.ToString(), file.ToString());
+            foreach (var (dependency, dependencyFile) in await mod.GatherDependencyFiles(_gamebananaApiService,
+                         _cancellationTokenForClosing.Token))
+            {
+                modsToInstall.Add((dependency, dependencyFile));
+                previewLogContainer.AddInformation($"\tDEPENDENCY: {dependency}", dependencyFile.ToString());
+            }
+        }
 
-        // TODO: Log dependencies as well (if they support GMP, otherwise just mention as a WARNING).
 
         if (await _dialogService.PromptUserQuestion(
                 "Confirm Installation",
-                $"You are about to install {EnqueuedModsToInstall.Count} mod(s). Proceed?",
+                $"You are about to install {modsToInstall.Count} mod(s). Proceed?",
                 DialogServiceUtils.QuestionAnswerType.ProceedOrCancel,
                 previewLogContainer))
         {
@@ -250,36 +261,27 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
 
             // Generate the loading view models for each mod installation.
             var loadingViewModels = CreateInstallationTasks(
-                new Dictionary<ModItem, ModItem.ModFile>(EnqueuedModsToInstall),
+                modsToInstall,
                 installationLogContainer);
 
             // Execute all tasks concurrently using the multi-loading dialog.
             var results = await _dialogService.GenerateBooleanMultiLoadingProcess(
                 failDialogDescription: null, // Let the dialog handle failure messages.
-                successDialogDescription: $"{EnqueuedModsToInstall.Count} mod(s) have been installed successfully.",
+                successDialogDescription: $"{modsToInstall.Count} mod(s) have been installed successfully.",
                 title: "Installing Mods",
                 status: null,
                 loadingViewModels);
 
             // Check if any task failed.
-            if (results.Any(b => b == false))
-            {
-                // Show the log container with details about failures/warnings.
-                await _dialogService.NotifyUser(
-                    "Installation Completed with Issues",
-                    "Some mods failed to install. Check the logs for details.",
-                    confirmationButton: "View Logs",
-                    container: installationLogContainer);
-            }
-            else if (installationLogContainer.HasLogs)
-            {
-                // Optionally show a summary log if there were warnings or informational messages.
-                await _dialogService.NotifyUser(
-                    "Installation Details",
-                    "All mods installed successfully, but some warnings were generated.",
-                    confirmationButton: "View Logs",
-                    container: installationLogContainer);
-            }
+            var postInstallationMsg = results.Any(b => b == false)
+                ? "Some mods failed to install. Check the logs for details."
+                : "All mods installed successfully.";
+            
+            await _dialogService.NotifyUser(
+                "Installation Completed",
+                postInstallationMsg,
+                confirmationButton: "View Logs",
+                container: installationLogContainer);
         }
     }
 
@@ -385,7 +387,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             
             // Parallel Conversion.
             var conversionTasks = toRetry.Select(record =>
-                record.ToModItem(_gamebananaApiService, _gameEnvironmentController)
+                record.ToModItem(_gamebananaApiService, _gameEnvironmentController, _cancellationTokenForClosing.Token)
             ).ToList();
             
             
@@ -410,7 +412,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                     LoadingErrorText = ModLoadFail;
                     continue;
                 }
-                var modItem = await record.ToModItem(_gamebananaApiService, _gameEnvironmentController);
+                var modItem = await record.ToModItem(_gamebananaApiService, _gameEnvironmentController, _cancellationTokenForClosing.Token);
                 if (allModsMirror.Contains(modItem)) continue;
                 
 #if RELEASE
@@ -426,7 +428,8 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
 
             // ====== Normal Submission Retrieval ======
             // Get a list of submissions with the current counter.
-            var result = await _gamebananaApiService.GetSubmissionListAsync(_incrementalPageCounter++, searchTerm);
+            var result = await _gamebananaApiService.GetSubmissionListAsync(_incrementalPageCounter++, searchTerm,
+                _cancellationTokenForClosing.Token);
 
             // If the result failed, show the error.
             if (result.IsFailure)
@@ -440,7 +443,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
 
             // Start all record tasks in parallel.
             conversionTasks = index.Records.Select(record =>
-                record.ToModItem(_gamebananaApiService, _gameEnvironmentController)
+                record.ToModItem(_gamebananaApiService, _gameEnvironmentController, _cancellationTokenForClosing.Token)
             ).ToList();
 
             // Wait for the result of all tasks.
@@ -538,7 +541,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
 
     // Creates installation tasks for InstallAsync
     private LoadingDialogViewModel[] CreateInstallationTasks(
-        Dictionary<ModItem, ModItem.ModFile> modsToInstall,
+        IEnumerable<(ModItem, ModItem.ModFile)> modsToInstall,
         LogContainer logContainer)
     {
         var tasks = new List<LoadingDialogViewModel>();

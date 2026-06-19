@@ -228,8 +228,9 @@ public partial class ModItem : ObservableObject, IDisposable
                     StringComparer.FromComparison(StringComparison.OrdinalIgnoreCase)))
                 envValidFiles.Add(file);
         }
-        
-        AllEnvironmentallyValidFiles = new ObservableCollection<ModFile>(envValidFiles);
+
+        AllEnvironmentallyValidFiles = new ObservableCollection<ModFile>(
+            envValidFiles.OrderBy(f => System.Version.TryParse(f.Version, out var v) ? v : new Version("0.0.0")));
     }
 
     public override bool Equals(object? obj) =>
@@ -351,13 +352,13 @@ public partial class ModItem : ObservableObject, IDisposable
     /// Tries to load the images established in the stored URLs inside this object.
     /// </summary>
     public async Task AttemptToLoadImagesFromURLs(GamebananaApiService apiService, bool reloadIfAlreadySet,
-        IProgress<ProgressReport>? progress)
+        IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
         if (ValidateString(ThumbnailUrl, ThumbnailUrlAsImage))
-            ThumbnailUrlAsImage = (await apiService.GetImageAsync(ThumbnailUrl, progress)).Value;
+            ThumbnailUrlAsImage = (await apiService.GetImageAsync(ThumbnailUrl, progress, cancellationToken)).Value;
 
         if (ValidateString(ImageUrl, ImageUrlAsImage))
-            ImageUrlAsImage = (await apiService.GetImageAsync(ImageUrl, progress)).Value;
+            ImageUrlAsImage = (await apiService.GetImageAsync(ImageUrl, progress, cancellationToken)).Value;
         return;
 
         bool ValidateString([NotNullWhen(true)] string? url, Bitmap? img) =>

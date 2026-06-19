@@ -8,7 +8,6 @@ using Serilog;
 
 namespace GottaManagePlus.Services.APIServices;
 
-// TODO: Split this class into two: GamebananaApiRetriever (for retrieving data from API only) and GamebananaApiDownloader (for Image and File downloads).
 public class GamebananaApiService(IHttpClientFactory httpClientFactory)
 {
     private const string
@@ -22,16 +21,17 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     /// Attempts to retrieve the Gamebanana submission data.
     /// </summary>
     /// <param name="id">The id of the submission.</param>
+    /// <param name="cancellationToken">Token to cancel this request.</param>
     /// <returns>A <see cref="Result{T}"/> containing the <see cref="ModItem"/> if successful, or an error message if failed.</returns>
-    public async Task<Result<ModItem>> GetSubmissionDataAsync(int id)
+    public async Task<Result<ModItem>> GetSubmissionDataAsync(int id, CancellationToken cancellationToken = default)
     {
         // Try to request to GB.
         // URL: https://gamebanana.com/apiv12/Mod/{ModID}/ProfilePage
         var response = await _httpClientFactory.CreateClient(ClientName)
-            .GetAsync($"{apiVersion}/Mod/{id}/ProfilePage");
+            .GetAsync($"{apiVersion}/Mod/{id}/ProfilePage", cancellationToken);
 
         // If successful, get the document.
-        if (response.IsSuccessStatusCode) return Result<ModItem>.Success(ModItem.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
+        if (response.IsSuccessStatusCode) return Result<ModItem>.Success(ModItem.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken))));
         
         // Otherwise, return failure.
         Log.Logger.Error("Failed to retrieve the data from Mod/{id}", id);
@@ -43,9 +43,10 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     /// </summary>
     /// <param name="page">The page to follow up.</param>
     /// <param name="searchTerm">The term to be used for filtering the search.</param>
+    /// <param name="cancellationToken">Token to cancel this request.</param>
     /// <returns>A <see cref="GameBananaIndex"/> with the data from the request.</returns>
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
-    public async Task<Result<GameBananaIndex>> GetSubmissionListAsync(int page, string? searchTerm = null)
+    public async Task<Result<GameBananaIndex>> GetSubmissionListAsync(int page, string? searchTerm = null, CancellationToken cancellationToken = default)
     {
         // Try to request to GB.
         var urlToUse = string.IsNullOrWhiteSpace(searchTerm)
@@ -53,10 +54,10 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
             : $"/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_aFilters[Generic_Name]=contains,{searchTerm}&_nPage={page}";
         // URL: https://gamebanana.com/apiv12/Mod/Index?_nPerpage=15&_aFilters[Generic_Category]=4609&_nPage={page}&_aFilters[Generic_Name]=contains,{searchTerm}
         var response = await _httpClientFactory.CreateClient(ClientName)
-            .GetAsync($"{apiVersion}{urlToUse}");
+            .GetAsync($"{apiVersion}{urlToUse}", cancellationToken);
 
         // If successful, get the document.
-        if (response.IsSuccessStatusCode) return Result<GameBananaIndex>.Success(GameBananaIndex.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
+        if (response.IsSuccessStatusCode) return Result<GameBananaIndex>.Success(GameBananaIndex.FromJson(JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken))));
         
         // Otherwise, return failure.
         Log.Logger.Error("Failed to retrieve the data from list ({page}).", page);
@@ -67,18 +68,19 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     /// Attempts to get an <see cref="IndexedFile"/> instance from a determined id.
     /// </summary>
     /// <param name="id">The id of the file.</param>
+    /// <param name="cancellationToken">Token to cancel this request.</param>
     /// <returns>A <see cref="Result{T}"/> containing the <see cref="IndexedFile"/> if successful, or an error message if failed.</returns>
-    public async Task<Result<IndexedFile>> GetIndexedFileFromFileId(int id)
+    public async Task<Result<IndexedFile>> GetIndexedFileFromFileId(int id, CancellationToken cancellationToken = default)
     {
         // Try to request to GB.
         // URL: https://gamebanana.com/apiv12/File/{id}
         var response = await _httpClientFactory.CreateClient(ClientName)
-            .GetAsync($"{apiVersion}/File/{id}");
+            .GetAsync($"{apiVersion}/File/{id}", cancellationToken);
 
         // If successful, get the document.
         if (response.IsSuccessStatusCode)
             return Result<IndexedFile>.Success(
-                IndexedFile.CreateOrGetIndexedFile(JsonDocument.Parse(await response.Content.ReadAsStringAsync())));
+                IndexedFile.CreateOrGetIndexedFile(JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken))));
         
         // Otherwise, return failure.
         Log.Logger.Error("Failed to retrieve the data from file id ({id}).", id);

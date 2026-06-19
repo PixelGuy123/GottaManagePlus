@@ -1,8 +1,7 @@
-using FileTypeChecker;
 using FileTypeChecker.Extensions;
 using FileTypeChecker.Types;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.UI;
+using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;

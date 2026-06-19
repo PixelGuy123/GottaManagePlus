@@ -17,24 +17,24 @@ public static class GamebananaModelUtils
     /// Converts an <see cref="IndexMod"/> (summary record) into a partial <see cref="ModItem"/>.
     /// Only fields present in both models are filled; others retain default values.
     /// </summary>
-    public static async Task<ModItem> ToModItem(this IndexMod indexMod, GamebananaApiService gamebananaApiService, GameEnvironmentController controller)
+    public static async Task<ModItem> ToModItem(this IndexMod indexMod, GamebananaApiService gamebananaApiService, GameEnvironmentController controller, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(indexMod);
         ArgumentNullException.ThrowIfNull(gamebananaApiService);
 
         // Get all the data from this id
-        var result = await gamebananaApiService.GetSubmissionDataAsync(indexMod.Id);
+        var result = await gamebananaApiService.GetSubmissionDataAsync(indexMod.Id, cancellationToken);
         if (result.IsFailure)
             throw new NullReferenceException(result.Error);
 
         var modItem = result.Value!;
         // # Use the service to implement fetching calls.
         // Attempt to load its thumbnail image too.
-        await modItem.AttemptToLoadImagesFromURLs(gamebananaApiService, false, null);
+        await modItem.AttemptToLoadImagesFromURLs(gamebananaApiService, false, null, cancellationToken);
         
         // Attempt to get the IndexedFile features
         foreach (var file in modItem.AllFiles)
-            file.IndexedFile = (await gamebananaApiService.GetIndexedFileFromFileId(file.Id)).Value ?? 
+            file.IndexedFile = (await gamebananaApiService.GetIndexedFileFromFileId(file.Id, cancellationToken)).Value ?? 
                                throw new NullReferenceException($"IndexedFile from {modItem} failed to load.");
         
         // Update mod item's environment files
@@ -205,36 +205,34 @@ public static class GamebananaModelUtils
     /// <param name="modItem">The mod item containing requirement URLs to process.</param>
     /// <param name="gamebananaApiService">The API service used to fetch submission data and indexed files from GameBanana.</param>
     /// <returns>A task that represents the asynchronous operation, containing a dictionary of results of mods with their respective indexed files for all valid dependencies.</returns>
-    public static async Task<Dictionary<ModItem, List<Result<IndexedFile>>>> GatherDependencyFiles(this ModItem modItem, GamebananaApiService gamebananaApiService)
+    public static async Task<Dictionary<ModItem, ModItem.ModFile>> GatherDependencyFiles(this ModItem modItem, GamebananaApiService gamebananaApiService, CancellationToken cancellationToken = default)
     {
         // Look up for Gamebanana.
         const string gamebanana_lookup_string = "https://gamebanana.com/mods/";
-        Dictionary<ModItem, List<Result<IndexedFile>>> dependencies = [];
-        var allRequirementURls = modItem.Requirements.ConvertAll(r => r[1]); // Index 1 is always the link
+        Dictionary<ModItem, ModItem.ModFile> dependencies = [];
+        var allRequirementUrls = modItem.Requirements.ConvertAll(r => r[1]); // Index 1 is always the link
         
         // Look for GameBanana links.
         foreach (var id in 
-                 from url in allRequirementURls
+                 from url in allRequirementUrls
                  where url.StartsWith(gamebanana_lookup_string) 
                  select url.Substring(gamebanana_lookup_string.Length, url.Length - gamebanana_lookup_string.Length))
         {
             // Search the mod item in gamebanana and get the files from it.
-            var searchedModItem = await gamebananaApiService.GetSubmissionDataAsync(int.Parse(id));
+            var searchedModItem = await gamebananaApiService.GetSubmissionDataAsync(int.Parse(id), cancellationToken);
 
             // Skip if this fails to be loaded.
             if (searchedModItem.IsFailure) continue;
 
-            var indexFiles = new List<Result<IndexedFile>>();
+            var modItemFiles = searchedModItem.Value.AllEnvironmentallyValidFiles;
             
             // For each ModFile, add a converted IndexFile.
-            foreach (var file in searchedModItem.Value.AllEnvironmentallyValidFiles)
-            {
-                var indexFile = await gamebananaApiService.GetIndexedFileFromFileId(file.Id);
-                indexFiles.Add(indexFile);
-            }
+            foreach (var file in modItemFiles)
+                file.IndexedFile = (await gamebananaApiService.GetIndexedFileFromFileId(file.Id, cancellationToken)).Value;
             
+
             // Add to the dictionary.
-            dependencies.Add(searchedModItem.Value, indexFiles);
+            dependencies.Add(searchedModItem.Value, modItemFiles[0]);
         }
         
         return dependencies;

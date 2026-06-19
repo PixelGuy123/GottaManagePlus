@@ -88,7 +88,7 @@ public class IndexedFile
     /// </summary>
     /// <param name="paths">The path to be formed.</param>
     /// <returns>A string containing the full file name.</returns>
-    public string? FindFileByName(params string[] paths)
+    public string FindFileByName(params string[] paths)
     {
         var fullPath = string.Join(CharSeparator, paths);
         var fileName = paths[^1];
