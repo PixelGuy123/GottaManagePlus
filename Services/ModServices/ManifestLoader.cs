@@ -48,13 +48,9 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
                 return null;
             }
             
-            // Rename the manifest's patcher names to be unique
-            for (var i = 0; i < manifest.Patchers.Count; i++)
-            {
-                var patcherName = Path.GetFileName(manifest.Patchers[i]);
-                manifest.Patchers[i] =
-                    $"{PathUtils.TurnFileNameLegal(manifest.ToString())}_{patcherName}";
-            }
+            // With the .index system, patchers no longer need unique names in the manifest.
+            // The patcher file name is kept as-is, and the .index system handles sharing.
+            // No renaming needed here anymore.
 
             // Load the metadata from disk.
             _ = await manifest.LoadMetadataFromDiskAsync(_controller, _logger, cancellationToken);

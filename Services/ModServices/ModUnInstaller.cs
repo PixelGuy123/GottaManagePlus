@@ -12,6 +12,7 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
     private readonly ILogger _logger = logger;
     private readonly ProfileManager _profileManager = profileManager;
     private readonly GameEnvironmentController _controller = controller;
+    private readonly PatcherIndexManager _patcherIndexManager = new(logger, controller);
 
     // ---- Public ----
     public void DeleteMod(ModManifest manifest, Action<ProfileMetadata>? afterRemovalCallback = null)
@@ -67,6 +68,30 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
         var deletionSucceeded = false;
         try
         {
+            // Handle patcher files using the .index system
+            var patcherDir = _controller.SearchAbsolutePath(Constants.BepInExFolderName, Constants.PatchersFolder);
+            if (Directory.Exists(patcherDir) && manifest.Patchers.Count > 0)
+            {
+                foreach (var patcherRelativePath in manifest.Patchers)
+                {
+                    var patcherFileName = Path.GetFileName(patcherRelativePath);
+                    var patcherFullPath = Path.Combine(patcherDir, patcherFileName);
+                    
+                    // Unregister the patcher - returns true if counter <= 0 (can delete)
+                    var canDelete = _patcherIndexManager.UnregisterPatcher(manifest, patcherFileName);
+                    
+                    if (canDelete && File.Exists(patcherFullPath))
+                    {
+                        _logger.Information("Deleted patcher file '{patcher}'", patcherFullPath);
+                        File.Delete(patcherFullPath);
+                    }
+                    else if (!canDelete)
+                    {
+                        _logger.Information("Keeping patcher '{patcher}' as it is still used by other mods", patcherFileName);
+                    }
+                }
+            }
+            
             // Delete plugin directory.
             if (Directory.Exists(pluginDir))
             {
