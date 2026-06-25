@@ -47,10 +47,6 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
                 _logger.Warning("Failed to deserialize metadata (null result).");
                 return null;
             }
-            
-            // With the .index system, patchers no longer need unique names in the manifest.
-            // The patcher file name is kept as-is, and the .index system handles sharing.
-            // No renaming needed here anymore.
 
             // Load the metadata from disk.
             _ = await manifest.LoadMetadataFromDiskAsync(_controller, _logger, cancellationToken);
