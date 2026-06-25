@@ -47,14 +47,6 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
                 _logger.Warning("Failed to deserialize metadata (null result).");
                 return null;
             }
-            
-            // Rename the manifest's patcher names to be unique
-            for (var i = 0; i < manifest.Patchers.Count; i++)
-            {
-                var patcherName = Path.GetFileName(manifest.Patchers[i]);
-                manifest.Patchers[i] =
-                    $"{PathUtils.TurnFileNameLegal(manifest.ToString())}_{patcherName}";
-            }
 
             // Load the metadata from disk.
             _ = await manifest.LoadMetadataFromDiskAsync(_controller, _logger, cancellationToken);

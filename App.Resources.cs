@@ -67,6 +67,7 @@ public static class Constants
     public const string ConfigFolder = "config";
     public const string PatchersFolder = "patchers";
     public const string PluginsFolder = "plugins";
+    public const string PatchersIndexFolder = ".index";
 
     // ==================== UI DIALOGS ====================
     

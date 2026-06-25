@@ -11,6 +11,7 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
 {
     private readonly ILogger _logger = logger;
     private readonly GameEnvironmentController _gameEnvironmentController = gameEnvironmentController;
+    private readonly PatcherIndexManager _patcherIndexManager = new(logger, gameEnvironmentController);
 
     /// <summary>
     /// Installs the mod into the assigned folder and attempts to install a metadata file inside too.
@@ -82,8 +83,13 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                     case ModManifestUtils.AssetType.Patcher:
                         if (File.Exists(resource.LocalPath))
                         {
+                            var patcherFileName = Path.GetFileName(resource.LocalPath);
+                            
+                            // Register the patcher in the .index system
+                            _patcherIndexManager.RegisterPatcher(manifest, patcherFileName);
+                            
                             var patcherDestinationPath =
-                                Path.Combine(patcherDir.FullName, Path.GetFileName(resource.LocalPath));
+                                Path.Combine(patcherDir.FullName, patcherFileName);
                             
                             _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath,
                                 patcherDestinationPath);
