@@ -52,7 +52,12 @@ public partial class App : Application
                 Log.CloseAndFlush();
             };
 
+            // FileService, ApplicationManager, etc.
             SetupServicesForWindowAttributes(services, desktop,TopLevel.GetTopLevel(desktop.MainWindow)!);
+            
+            // Setup Custom Schema
+            if (this.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
+                SetupHandle(activatableLifetime);
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -15,7 +15,6 @@ using GottaManagePlus.Services.ProfileServices.Management;
 using GottaManagePlus.Services.ProfileServices.Readers;
 using GottaManagePlus.Services.ProfileServices.Writers;
 using GottaManagePlus.ViewModels;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 

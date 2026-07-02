@@ -31,10 +31,10 @@ public partial class ModItem : ObservableObject, IDisposable
     [JsonPropertyName("_aSubmitter")] public ModSubmitter? Submitter { get; set; }
 
     /// <summary>Gets or sets the last modification date (Unix timestamp from _tsDateModified).</summary>
-    [JsonPropertyName("_tsDateModified")] public DateTime DateModified { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("_tsDateModified")] public DateTime? DateModified { get; set; }
 
     /// <summary>Gets or sets the last update date (Unix timestamp from _tsDateUpdated).</summary>
-    [JsonPropertyName("_tsDateUpdated")] public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("_tsDateUpdated")] public DateTime? DateUpdated { get; set; }
 
     /// <summary>Gets or sets the creation date (Unix timestamp from _tsDateAdded).</summary>
     [JsonPropertyName("_tsDateAdded")] public DateTime DateAdded { get; set; } = DateTime.UtcNow;
@@ -190,7 +190,7 @@ public partial class ModItem : ObservableObject, IDisposable
     public IEnumerable<ModFile> AllFiles => Files.Union(ArchivedFiles);
     [JsonIgnore]
     public IEnumerable<ModFile> AllValidFiles => Files.Union(ArchivedFiles).Where(f => f.IndexedFile is {
-        HasGMPRoot: true
+        HasGmpRoot: true
     });
 
     [JsonIgnore] [ObservableProperty] public partial ObservableCollection<ModFile> AllEnvironmentallyValidFiles { get; set; } = [];

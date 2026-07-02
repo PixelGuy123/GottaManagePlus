@@ -303,7 +303,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 (Delegate)_gameEnvironmentController.UpdateEnvironmentSnapshot
             );
 
-        if (result.Result is not SnapshotChangeReport report || !report.HasChanges ||
+        if (result.Result is not SnapshotChangeReport { HasChanges: true } report ||
             !raiseQuestionIfDifferencesDetected) return true;
         // Show the snapshot changes in a dialog with TreeDataGrid
         var logContainer = report.ToLogContainer();

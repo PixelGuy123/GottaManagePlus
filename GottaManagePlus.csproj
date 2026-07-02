@@ -7,7 +7,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <Authors>PixelGuy</Authors>
     <ApplicationIcon>GottaManagePlus_icon.icon</ApplicationIcon>
-    <AppVersion>0.2.0.0</AppVersion>
+    <AppVersion>0.3.0.0</AppVersion>
     <Version>$(AppVersion)</Version>
     <FileVersion>$(AppVersion)</FileVersion>
     <LangVersion>latest</LangVersion>

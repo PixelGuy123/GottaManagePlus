@@ -62,10 +62,12 @@ public sealed class GameEnvironmentController(
             // Set the new Current Environment
             CurrentEnvironment = env;
             
-            // Delete the Temps' content
-            foreach (var dir in Directory.EnumerateDirectories(this.SearchAbsolutePath(Constants.App_RootFolder,
-                Constants.App_TemporaryFolder)))
-                Directory.Delete(dir, true);
+            // Delete the Temps' content (if it exists)
+            var tempPath = this.SearchAbsolutePath(Constants.App_RootFolder,
+                Constants.App_TemporaryFolder);
+            if (Directory.Exists(tempPath))
+                foreach (var dir in Directory.EnumerateDirectories(tempPath))
+                    Directory.Delete(dir, true);
             return;
         }
         CurrentEnvironment = null; // No factory could handle this path.

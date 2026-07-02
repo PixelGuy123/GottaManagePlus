@@ -14,7 +14,7 @@ public partial class ModSelectionDialogView : DisposableUserControl
 {
     #region Constants
 
-    private const string HTML_DISPLAY_STYLESHEET = """
+    private const string HtmlDisplayStylesheet = """
                                               <style>
                                                   * {
                                                       font-family: 'Segoe UI', Arial, sans-serif;
@@ -71,7 +71,12 @@ public partial class ModSelectionDialogView : DisposableUserControl
     public ModSelectionDialogView()
     {
         InitializeComponent();
-        DescriptionHtmlDisplay.BaseStylesheet = HTML_DISPLAY_STYLESHEET;
+        DescriptionHtmlDisplay.BaseStylesheet = HtmlDisplayStylesheet;
+        InstallButton.Loaded += (_, _) =>
+        {
+            if (DataContext is ModSelectionDialogViewModel vm)
+                vm.EnqueuedModsToInstall.CollectionChanged += OnCollectionChanged;
+        };
         
         // HTML Display events
         DescriptionHtmlDisplay.PropertyChanged += OnDescriptionHtmlDisplayOnPropertyChanged;
@@ -81,9 +86,6 @@ public partial class ModSelectionDialogView : DisposableUserControl
         SelectInstallModButton.IsCheckedChanged += OnSelectInstallModButtonIsCheckedChanged;
         SelectInstallModButton.PropertyChanged += OnSelectInstallModButtonPropertyChanged;
         SelectInstallModButton.Loaded += OnSelectInstallModButtonIsCheckedChanged;
-
-        // Selection events
-        SelectVersionModBox.SelectionChanged += OnSelectVersionModBoxSelectionChanged;
 
         // Scroll event
         ModList.Loaded += (_, _) =>
@@ -128,7 +130,7 @@ public partial class ModSelectionDialogView : DisposableUserControl
     // Install Button Label Update
     private void DisplayInstallStringOrUnavailableString(string myString)
     {
-        const string NoFileWarning = "This mod has no file available for the current version of the game.";
+        const string noFileWarning = "This mod has no file available for the current version of the game.";
         if (SelectInstallModButton.IsEnabled)
         {
             ToolTip.SetTip(SelectInstallModButton, null);
@@ -138,8 +140,8 @@ public partial class ModSelectionDialogView : DisposableUserControl
         }
 
         SelectInstallModButton.Content = InstallButtonFileUnavailability;
-        ToolTip.SetTip(SelectInstallModButton, NoFileWarning);
-        ToolTip.SetTip(SelectVersionModBox, NoFileWarning);
+        ToolTip.SetTip(SelectInstallModButton, noFileWarning);
+        ToolTip.SetTip(SelectVersionModBox, noFileWarning);
     }
 
     // --- Mod visualizer (no mod text font sizing) ---
@@ -160,13 +162,6 @@ public partial class ModSelectionDialogView : DisposableUserControl
 
         if (args.NewValue is false)
             SelectInstallModButton.Content = InstallButtonFileUnavailability;
-    }
-
-    // --- Version selection ---
-    private void OnSelectVersionModBoxSelectionChanged(object? sender, SelectionChangedEventArgs args)
-    {
-        if (SelectInstallModButton?.IsChecked == false && DataContext is ModSelectionDialogViewModel vm)
-            vm.ToggleModToInstallQueue(vm.SelectedMod!);
     }
 
     // --- Collection changed (enqueued mods) ---
@@ -203,14 +198,6 @@ public partial class ModSelectionDialogView : DisposableUserControl
     #endregion
 
     #region Overrides
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        if (DataContext is ModSelectionDialogViewModel vm)
-            vm.EnqueuedModsToInstall.CollectionChanged += OnCollectionChanged;
-    }
 
     protected override void OnDispose()
     {

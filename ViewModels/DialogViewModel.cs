@@ -48,7 +48,9 @@ public abstract partial class DialogViewModel : ViewModelBase
     {
         if (_isDialogPrepared)
         {
+#if DEBUG
             Log.Logger.Warning("Dialog ('{dialog}') is already prepared!", this);
+#endif
             return;
         }
 

@@ -257,7 +257,7 @@
                                         </Button>
                                         <Separator Classes="vertical"/>
                                         <StackPanel>
-                                            <Label FontSize="12" Padding="0" Content="Order By:" Target="FilterComboBox"/>
+                                            <Label FontSize="12" Padding="0" Content="Sort By:" Target="FilterComboBox"/>
                                             <ComboBox
                                                 Name="FilterComboBox"
                                                 SelectedItem="{CompiledBinding SelectedFilterType}"
@@ -519,7 +519,7 @@
                                                  Foreground="{StaticResource GB_GreenBrush}" />
                                         </TextBlock>
                                         <!-- Edit Time -->
-                                        <TextBlock Classes="MetaValue" FontSize="11">
+                                        <TextBlock Classes="MetaValue" FontSize="11" IsVisible="{CompiledBinding SelectedMod.DateModified, Converter={x:Static ObjectConverters.IsNotNull}}">
                                             <InlineUIContainer BaselineAlignment="Center">
                                                 <Svg Path="/Assets/UI/gb-edit.svg"
                                                      RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -532,7 +532,7 @@
                                                  Foreground="{StaticResource GB_GreenBrush}" />
                                         </TextBlock>
                                         <!-- Update Time -->
-                                        <TextBlock Classes="MetaValue" FontSize="11">
+                                        <TextBlock Classes="MetaValue" FontSize="11" IsVisible="{CompiledBinding SelectedMod.HasUpdates}">
                                             <InlineUIContainer BaselineAlignment="Center">
                                                 <Svg Path="/Assets/UI/gb-update.svg"
                                                      RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -566,9 +566,9 @@
                                             Grid.Row="0"
                                             Grid.Column="0"
                                             ToolTip.ShowOnDisabled="True"
+                                            Name="SelectInstallModButton"
                                             IsEnabled="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count}"
                                             Opacity="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
-                                            Name="SelectInstallModButton"
                                             HorizontalAlignment="Stretch"
                                             Classes="GB_ActionBtn"
                                             Command="{Binding ToggleModToInstallQueue}"
@@ -596,6 +596,7 @@
                                             <ComboBox
                                                 Name="SelectVersionModBox"
                                                 ToolTip.ShowOnDisabled="True"
+                                                SelectedValue="{CompiledBinding SelectedFile, Mode=OneWay}"
                                                 IsEnabled="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count}"
                                                 Opacity="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
                                                 ItemsSource="{CompiledBinding SelectedMod.AllEnvironmentallyValidFiles}">

@@ -60,7 +60,7 @@ public static class GamebananaModelUtils
             Name = modItem.Name,
             ProfileUrl = string.Empty,
             DateAdded = modItem.DateAdded,
-            DateModified = modItem.DateModified,
+            DateModified = modItem.DateModified ?? DateTime.UtcNow,
             HasFiles = modItem.Files.Any(f => !f.IsArchived),
             PayType = modItem.PayType,
             Tags = [.. modItem.Tags.Select(t => t.Value)],

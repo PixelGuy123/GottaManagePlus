@@ -46,6 +46,10 @@
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Background" Value="{DynamicResource Generic-Border}"></Setter>
         </Style>
+        
+        <Style Selector="MenuItem[IsEnabled=False]">
+            <Setter Property="Opacity" Value="0.5"/>
+        </Style>
     </Window.Styles>
     
     <!-- Resources to Include -->
@@ -64,9 +68,13 @@
         <!-- Menu -->
         <Menu DockPanel.Dock="Top">
             <MenuItem 
-                Header="_Profiles"
-                Opacity="{CompiledBinding !!ProfileMetadataCollection.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
-                IsHitTestVisible="{CompiledBinding !!ProfileMetadataCollection.Count}">
+                Header="_Profiles">
+                <MenuItem.IsEnabled>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="!#DialogBorder.IsVisible"/>
+                        <Binding Path="!!ProfileMetadataCollection.Count"/>
+                    </MultiBinding>
+                </MenuItem.IsEnabled>
                 <!-- Current Profile -->
                 <MenuItem
                     IsHitTestVisible="False" 
@@ -117,8 +125,7 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="_Help"
-                      IsHitTestVisible="{CompiledBinding ProfileMetadataCollection.Count, FallbackValue=False, Converter={x:Static converters:EqualityConverters.IsHigherThanOne}}"
-                      Opacity="{CompiledBinding ProfileMetadataCollection.Count, FallbackValue=0.5, Converter={x:Static converters:EqualityConverters.IsHigherThanOne_Opacity}}">
+                      IsEnabled="{CompiledBinding !#DialogBorder.IsVisible}">
                 <MenuItem Header="Tutorial"/>
                 <MenuItem Header="About" Command="{Binding RevealAboutSection}"/>
             </MenuItem>
@@ -149,6 +156,7 @@
                     </Button>
                     <!-- Dialog Element -->
                     <Border
+                        Name="DialogBorder"
                         Background="#7D000000"
                         Opacity="{CompiledBinding Dialog.IsDialogOpen, FallbackValue=0, Mode=OneWay}"
                         IsVisible="{CompiledBinding !!Opacity, Mode=OneWay, RelativeSource={RelativeSource Self}}">

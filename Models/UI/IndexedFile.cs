@@ -12,7 +12,7 @@ public class IndexedFile
     public const char CharSeparator = '/';
     
     // Cache for IndexedFiles
-    private static readonly Dictionary<int, IndexedFile> idIndexFileCache = [];
+    private static readonly Dictionary<int, IndexedFile> IdIndexFileCache = [];
     
     private IndexedFile(JsonDocument document)
     {
@@ -30,26 +30,29 @@ public class IndexedFile
         
         void SearchFurther(JsonElement element, string currentPath)
         {
-            // Limit the search to .gmp/ root only
-            if (!IsCurrentPathRaw(currentPath) && !currentPath.StartsWith(Constants.App_SpecialFolderForMods_Name))
-                return;
-            
             switch (element.ValueKind)
             {
                 case JsonValueKind.String:
                     // Leaf node: add the file
                     var fileName = element.GetString();
-                    var fullPath = IsCurrentPathRaw(currentPath) ? fileName : currentPath + CharSeparator + fileName;
-                    _collectedPaths.Add((fullPath, fileName)!);
+                    var fullPath = string.IsNullOrEmpty(currentPath) ? fileName : currentPath + CharSeparator + fileName;
+    
+                    // ONLY collect the path if it contains your special mod folder name
+                    if (fullPath?.Contains(Constants.App_SpecialFolderForMods_Name) == true)
+                        _collectedPaths.Add((fullPath, fileName)!);
+                    
                     break;
 
                 case JsonValueKind.Object:
                     // Recurse into each property
                     foreach (var property in element.EnumerateObject())
                     {
-                        var newPath = 
-                            IsCurrentPathRaw(currentPath) ? property.Name 
-                            : currentPath + CharSeparator + property.Name;
+                        var newPath =
+                            int.TryParse(property.Name, out _)
+                                ? currentPath
+                                : string.IsNullOrEmpty(currentPath)
+                                    ? property.Name
+                                    : currentPath + CharSeparator + property.Name;
                         SearchFurther(property.Value, newPath);
                     }
                     break;
@@ -69,10 +72,6 @@ public class IndexedFile
                     // Ignore other types (numbers, booleans, null, etc.)
                     break;
             }
-
-            return;
-
-            static bool IsCurrentPathRaw(string currentPath) => string.IsNullOrEmpty(currentPath) || int.TryParse(currentPath, out _);
         }
     }
     
@@ -80,8 +79,7 @@ public class IndexedFile
     /// <summary>
     /// Whether the mapping contains the GMP root folder or not.
     /// </summary>
-    public bool HasGMPRoot => _collectedPaths.Exists(p =>
-        p.FullPath.StartsWith(Constants.App_SpecialFolderForMods_Name, StringComparison.OrdinalIgnoreCase));
+    public bool HasGmpRoot => _collectedPaths.Count != 0;
     
     /// <summary>
     /// Finds a file name by the path given.
@@ -113,13 +111,13 @@ public class IndexedFile
                 "Document does not contain an identifiable number.");
 
         // Try to get from cache the indexed file.
-        if (idIndexFileCache.TryGetValue(id.GetInt32(), out var indexedFile)) return indexedFile;
+        if (IdIndexFileCache.TryGetValue(id.GetInt32(), out var indexedFile)) return indexedFile;
 
         // Create a new instance from the document.
         indexedFile = new IndexedFile(document);
 
         // Cache it with the ID.
-        idIndexFileCache[id.GetInt32()] = indexedFile;
+        IdIndexFileCache[id.GetInt32()] = indexedFile;
 
         return indexedFile;
     }

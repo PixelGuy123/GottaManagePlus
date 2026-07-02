@@ -47,7 +47,7 @@ public static class Constants
     
     // Root and special folders
     public const string App_RootFolder = ".gmp";
-    public const string App_SpecialFolderForMods_Name = "_gmp";
+    public const string App_SpecialFolderForMods_Name = ".gmp";
     public const string App_ProfileExportFolder = "exports";
     public const string App_ProfilesFolder = "profiles";
     public const string App_TemporaryFolder = "temp";

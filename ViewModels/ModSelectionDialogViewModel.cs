@@ -1,11 +1,10 @@
-using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
@@ -58,7 +57,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     private int _incrementalPageCounter = 1;
     private readonly SemaphoreSlim _loadSemaphore = new(1, 1); // For limiting the IncrementModsList concurrent calls
     private readonly Queue<IndexMod> _failedRecordsQueue = new();
-    private readonly CancellationTokenSource _cancellationTokenForClosing = new(); // Cancels any Task inside this dialog if it is promptly closed
+    private CancellationTokenSource _cancellationTokenForClosing = new(); // Cancels any Task inside this dialog if it is promptly closed
 
     #endregion
 
@@ -154,6 +153,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             _gamebananaApiService = GetValueOrException<GamebananaApiService>(args, 1);
             _gameEnvironmentController = GetValueOrException<GameEnvironmentController>(args, 2);
             _modInstaller = GetValueOrException<ModInstaller>(args, 3);
+            _cancellationTokenForClosing = new CancellationTokenSource(); // Reset token cancellation
 
             // If the counter is not 1, then this is not the first time that this dialog loads.
             if (_incrementalPageCounter != 1) return;
@@ -202,7 +202,20 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     #region Commands
 
     [RelayCommand]
-    public void SelectMod(ModItem mod) => SelectedMod = mod;
+    public void SelectMod(ModItem? mod)
+    {
+        SelectedMod = mod;
+        
+        // Update file if possible
+        if (mod != null)
+        {
+            if (EnqueuedModsToInstall.TryGetValue(mod, out var file))
+                SelectedFile = file;
+            else
+                SelectedFile = mod.AllEnvironmentallyValidFiles.Count != 0 ? mod.AllEnvironmentallyValidFiles[0] : null;
+        }
+    }
+
 
     [RelayCommand]
     public void ToggleModToInstallQueue(ModItem mod)
@@ -371,7 +384,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     /// <param name="searchTerm">Search term or null to load the default feed.</param>
     private async Task IncrementModsList(string? searchTerm)
     {
-        const string ModLoadFail = "Some mods failed to be loaded in."; // TODO: Localization needed here
+        const string modLoadFail = "Some mods failed to be loaded in."; // TODO: Localization needed here
         await _loadSemaphore.WaitAsync();
         List<ModItem> allModsMirror = [.. AllMods];
         try
@@ -409,7 +422,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                         _failedRecordsQueue.Enqueue(record);
                     }
                     Log.Logger.Error(task.Exception, "An error occurred while incrementing the items list.");
-                    LoadingErrorText = ModLoadFail;
+                    LoadingErrorText = modLoadFail;
                     continue;
                 }
                 var modItem = await record.ToModItem(_gamebananaApiService, _gameEnvironmentController, _cancellationTokenForClosing.Token);
@@ -458,7 +471,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 if (!task.IsCompletedSuccessfully)
                 {
                     Log.Logger.Error(task.Exception, "An error occurred while incrementing the items list.");
-                    LoadingErrorText = ModLoadFail;
+                    LoadingErrorText = modLoadFail;
                     continue;
                 }
 
@@ -477,6 +490,30 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 // Finally, add the mod item to the list.
                 allModsMirror.Add(modItem);
             }
+            
+#if DEBUG
+            // Include a local file for test if it exists
+            var localModItemPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..",
+                "Documentation", "TestModItem.json");
+            if (File.Exists(localModItemPath))
+            {
+                // Load the mod item
+                var localModItem = ModItem.FromJson(JsonDocument.Parse(await File.ReadAllTextAsync(localModItemPath)));
+                
+                // Add this local mod item
+                allModsMirror.Insert(0, localModItem);
+                
+                // Attempt to get the IndexedFile features
+                foreach (var file in localModItem.AllFiles)
+                    file.IndexedFile = (await _gamebananaApiService.GetIndexedFileFromFileId(file.Id, _cancellationTokenForClosing.Token)).Value ?? 
+                                       throw new NullReferenceException($"IndexedFile from {localModItem} failed to load.");
+        
+                // Update mod item's environment files
+                localModItem.UpdateEnvironmentallyValidFiles(_gameEnvironmentController);
+                
+                Log.Logger.Debug(localModItem.ToString());
+            }
+#endif
 
             // Finally, if the metadata is complete, set an invalid page counter
             if (index.Metadata?.IsComplete == true)

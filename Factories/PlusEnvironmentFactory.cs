@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using GottaManagePlus.Interfaces.GameEnvironment;
+using GottaManagePlus.Models;
 using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Utils;
 using Serilog;
@@ -108,6 +109,10 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
                 return null;
             }
             
+#if DEBUG
+            // Substitute the game version with a custom one
+            gameVersion = new WrappedGameVersion("0.14.2");
+#endif
             // Create environment instance.
             var environment = new PlusEnvironment(rootPath, baldiDataFolder, executablePath, gameVersion);
             _uniquePlusEnvironments.TryAdd(executablePath, environment); // Adds to the database
