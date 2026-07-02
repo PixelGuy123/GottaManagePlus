@@ -76,6 +76,8 @@ public partial class SettingsViewModel : PageViewModel
 
     [ObservableProperty] public partial bool CancelOnSecurityIssues { get; set; }
 
+    [ObservableProperty] public partial bool HideNonGMPValidatedMods { get; set; } = true;
+
     // Property changes
     partial void OnNumberOfRowsPerModIndexChanged(int value) =>
         CurrentSaveState.NumberOfModsPerRow = PossibleRowsPerModStates[value];
@@ -83,6 +85,8 @@ public partial class SettingsViewModel : PageViewModel
     partial void OnThemeChanged(string? value) { CurrentSaveState.Theme = value!; } // Update the settings to show the new theme
 
     partial void OnCancelOnSecurityIssuesChanged(bool value) => CurrentSaveState.CancelOnSecurityIssues = value;
+
+    partial void OnHideNonGMPValidatedModsChanged(bool value) => CurrentSaveState.HideNonGMPValidatedMods = value;
 
 
 // Commands
@@ -148,6 +152,8 @@ public partial class SettingsViewModel : PageViewModel
             settings.Theme = CurrentSaveState.Theme;
             // Saving cancel on security issues setting
             settings.CancelOnSecurityIssues = CurrentSaveState.CancelOnSecurityIssues;
+            // Saving hide non-GMP validated mods setting
+            settings.HideNonGMPValidatedMods = CurrentSaveState.HideNonGMPValidatedMods;
 
             // Saving executable path to the folder validator
             _gameEnvironmentController.SetNewEnvironment(settings.BaldiPlusExecutablePath);
@@ -198,5 +204,8 @@ public partial class SettingsViewModel : PageViewModel
         
         // Update CancelOnSecurityIssues
         CancelOnSecurityIssues = CurrentSaveState.CancelOnSecurityIssues;
+        
+        // Update HideNonGMPValidatedMods
+        HideNonGMPValidatedMods = CurrentSaveState.HideNonGMPValidatedMods;
     }
 }

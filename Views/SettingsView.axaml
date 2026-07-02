@@ -104,6 +104,12 @@
                                 <Label Content="Prevent Suspicious Mods Installation"/>
                                 <CheckBox IsChecked="{CompiledBinding CancelOnSecurityIssues, Mode=TwoWay}"/>
                             </StackPanel>
+                            
+                            <!-- Hide Non-GMP Validated Mods Checkbox -->
+                            <StackPanel ToolTip.Tip="When enabled, hides mods that do not support the GMP validation system in the mod selection dialog.">
+                                <Label Content="Hide Non-GMP Validated Mods"/>
+                                <CheckBox IsChecked="{CompiledBinding HideNonGMPValidatedMods, Mode=TwoWay}"/>
+                            </StackPanel>
                             <!-- TODO: implement checkbox -->
                         </StackPanel>
                         <!-- END OF FIRST COLUMN -->
