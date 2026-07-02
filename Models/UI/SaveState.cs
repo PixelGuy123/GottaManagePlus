@@ -27,6 +27,7 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
         state.NumberOfModsPerRow = currentSettings.NumberOfRowsPerMod;
         state.Theme = currentSettings.Theme;
         state.CancelOnSecurityIssues = currentSettings.CancelOnSecurityIssues;
+        state.HideNonGMPValidatedMods = currentSettings.HideNonGMPValidatedMods;
         
         // Serialize last saved state
         state._savedState = JsonSerializer.Serialize(state, SaveStateContext.Default.SaveState);
@@ -80,6 +81,17 @@ public class SaveState : INotifyPropertyChanged // An "observable" AppSettings;
             OnPropertyChanged(nameof(HasChanged));
         }
     } = false;
+
+    public bool HideNonGMPValidatedMods
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(HideNonGMPValidatedMods));
+            OnPropertyChanged(nameof(HasChanged));
+        }
+    } = true;
 
     [JsonIgnore]
     public SaveState LastSavedState {

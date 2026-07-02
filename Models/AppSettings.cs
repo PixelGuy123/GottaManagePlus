@@ -10,6 +10,7 @@ public class AppSettings
     public int NumberOfRowsPerMod { get; set; } = 4;
     public string Theme { get; set; } = "Dark";
     public bool CancelOnSecurityIssues { get; set; } = false;
+    public bool HideNonGMPValidatedMods { get; set; } = true;
 
     /// <summary>
     /// Readonly Variant of <see cref="AppSettings"/>.
@@ -19,14 +20,16 @@ public class AppSettings
         string CurrentProfileSet,
         int NumberOfRowsPerMod,
         string Theme,
-        bool CancelOnSecurityIssues)
+        bool CancelOnSecurityIssues,
+        bool HideNonGMPValidatedMods)
     {
         public ReadonlyAppSettings(AppSettings settings) : this(
             settings.BaldiPlusExecutablePath,
             settings.CurrentProfileSet, 
             settings.NumberOfRowsPerMod,
             settings.Theme,
-            settings.CancelOnSecurityIssues) 
+            settings.CancelOnSecurityIssues,
+            settings.HideNonGMPValidatedMods) 
         { }
     };
 }
