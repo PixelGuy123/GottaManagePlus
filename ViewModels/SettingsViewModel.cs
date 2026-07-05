@@ -21,7 +21,7 @@ public partial class SettingsViewModel : PageViewModel
 
     public SettingsViewModel(FilePicker filePicker, FileLauncher fileLauncher, SettingsService settingsService,
         GameEnvironmentController gameEnvironmentController, DialogService dialogService, ApplicationManager appManager,
-        ILogger logger) : base(PageNames.Settings)
+        ILogger logger, DirectoryLauncher directoryLauncher) : base(PageNames.Settings)
     {
         if (Design.IsDesignMode) return;
 
@@ -32,10 +32,15 @@ public partial class SettingsViewModel : PageViewModel
         _dialogService = dialogService;
         _appManager = appManager;
         _logger = logger;
+        _directoryLauncher = directoryLauncher;
         CurrentSaveState = Models.UI.SaveState.InitializeState(settingsService);
 
         // Update this index
         UpdateSettingsDisplays();
+        
+        // Check if Unity log folder is available
+        UnityLogFolderPath = Constants.GetUnityLogFolderPath();
+        CanOpenUnityLogFolder = !string.IsNullOrEmpty(UnityLogFolderPath);
     }
 
 
@@ -60,6 +65,7 @@ public partial class SettingsViewModel : PageViewModel
     private readonly DialogService _dialogService = null!;
     private readonly ApplicationManager _appManager = null!;
     private readonly ILogger _logger = null!;
+    private readonly DirectoryLauncher _directoryLauncher = null!;
 
     // Readonly collections
     public int[] PossibleRowsPerModStates { get; } = [4, 5, 6];
@@ -75,6 +81,10 @@ public partial class SettingsViewModel : PageViewModel
     [ObservableProperty] public partial string? Theme { get; set; } = "Light";
 
     [ObservableProperty] public partial bool CancelOnSecurityIssues { get; set; }
+
+    [ObservableProperty] public partial string? UnityLogFolderPath { get; set; }
+
+    [ObservableProperty] public partial bool CanOpenUnityLogFolder { get; set; }
 
     // Property changes
     partial void OnNumberOfRowsPerModIndexChanged(int value) =>
@@ -124,6 +134,38 @@ public partial class SettingsViewModel : PageViewModel
             !_fileLauncher.OpenFileInfo(new FileInfo(CurrentSaveState.GameExecutablePath)))
         {
             await _dialogService.NotifyUser(Constants.FailDialog, "Failed to open the path to the executable due to an unknown error!");
+        }
+    }
+
+    [RelayCommand]
+    public async Task OpenUnityLogFolder()
+    {
+        if (string.IsNullOrEmpty(UnityLogFolderPath))
+        {
+            await _dialogService.NotifyUser(Constants.WarningDialog, 
+                "The Unity log folder for Baldi's Basics Plus could not be found.\nThis may happen if the game hasn't been launched yet or on Linux if the folder doesn't exist.");
+            return;
+        }
+
+        try
+        {
+            var directoryInfo = new DirectoryInfo(UnityLogFolderPath);
+            if (!directoryInfo.Exists)
+            {
+                await _dialogService.NotifyUser(Constants.WarningDialog, 
+                    "The Unity log folder does not exist. This may happen if the game hasn't been launched yet.");
+                return;
+            }
+
+            if (!await _directoryLauncher.OpenDirectoryInfo(directoryInfo))
+            {
+                await _dialogService.NotifyUser(Constants.FailDialog, "Failed to open the Unity log folder due to an unknown error!");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to open Unity log folder at '{UnityLogFolderPath}'.", UnityLogFolderPath);
+            await _dialogService.NotifyUser(Constants.FailDialog, $"Failed to open the Unity log folder: {ex.Message}");
         }
     }
 

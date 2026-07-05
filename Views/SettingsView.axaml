@@ -132,6 +132,15 @@
                                     SelectedValue="{CompiledBinding Theme}"
                                     ItemsSource="{CompiledBinding PossibleThemes, Mode=OneTime}"/>
                             </StackPanel>
+                            <!-- Unity Log Folder Button -->
+                            <StackPanel ToolTip.Tip="Opens the hidden Unity data folder where Baldi's Basics Plus stores its logs (Player.log).">
+                                <Label Content="Open Unity Log Folder"/>
+                                <Button
+                                    Classes="DialogBtn GenericDialogBtn"
+                                    Content="Open Log Folder"
+                                    Command="{Binding OpenUnityLogFolderCommand}"
+                                    IsEnabled="{CompiledBinding CanOpenUnityLogFolder}"/>
+                            </StackPanel>
                         </StackPanel>
                         <!-- END OF SECOND COLUMN -->
                         

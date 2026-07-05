@@ -108,4 +108,45 @@ public static class Constants
                                                      2. Adjust file permissions with chmod or chown commands.
                                                      3. Check if SELinux or AppArmor is blocking access and configure accordingly.
                                                      """;
+
+    // ==================== UNITY LOG PATHS ====================
+    
+    /// <summary>
+    /// Gets the default Unity log folder path for Baldi's Basics Plus based on the operating system.
+    /// </summary>
+    /// <returns>The path to the Unity log folder if found; otherwise, <see langword="null"/>.</returns>
+    public static string? GetUnityLogFolderPath()
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                var appDataLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                if (string.IsNullOrEmpty(appDataLocal)) return null;
+                return Path.Combine(appDataLocal, "Low", "Basically Games", "Baldi's Basics Plus");
+            }
+            
+            if (OperatingSystem.IsMacOS())
+            {
+                var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (string.IsNullOrEmpty(homeDir)) return null;
+                return Path.Combine(homeDir, "Library", "Logs", "Basically Games", "Baldi's Basics Plus");
+            }
+            
+            if (OperatingSystem.IsLinux())
+            {
+                var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (string.IsNullOrEmpty(homeDir)) return null;
+                var linuxPath = Path.Combine(homeDir, ".config", "unity3d", "Basically Games", "Baldi's Basics Plus");
+                // Verify the path exists on Linux as per requirements
+                return Directory.Exists(linuxPath) ? linuxPath : null;
+            }
+            
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
