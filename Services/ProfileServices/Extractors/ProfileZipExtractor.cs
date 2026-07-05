@@ -68,7 +68,7 @@ public sealed class ProfileZipExtractor(ILogger logger)
                 progress?.Report(
                     new ProgressReport(entriesSeen, entryCount,
                         "Extracting", $"'{Path.GetFileName(archiveEntry.Key)}'..."));
-                _logger.Information("Extracting '{ArchiveEntryKey}' to '{Combine}'", archiveEntry.Key, Path.Combine(temporaryDirectory.DirectoryInfo.FullName, archiveEntry.Key!));
+                _logger.Information("Extracting '{ArchiveEntryKey}' to '{Combine}'", archiveEntry.Key, (string)Path.Combine(temporaryDirectory.DirectoryInfo.FullName, archiveEntry.Key!));
                 await archiveEntry.WriteToDirectoryAsync(temporaryDirectory.DirectoryInfo.FullName, cancellationToken: cancellationToken);
                 entriesSeen++;
             }
@@ -100,7 +100,7 @@ public sealed class ProfileZipExtractor(ILogger logger)
                 progress?.Report(new ProgressReport(i, directories.Length,
                     "Extracting", $"Moving '{entry.Name}'."));
 
-                var destinationPath = Path.Combine(extractToPath, entry.Name);
+                var destinationPath = (string)Path.Combine(extractToPath, entry.Name);
                 _logger.Information("Moving '{EntryFullName}' to '{ExtractToPath}'", entry.FullName, destinationPath);
                 entry.AtomicallyMoveTo(destinationPath);
             }
@@ -121,7 +121,7 @@ public sealed class ProfileZipExtractor(ILogger logger)
                     if (isDirectory)
                     {
                         // Ensure parent exists (should already, but just in case)
-                        Directory.Move(backupPath, originalPath);
+                        new DirectoryInfo(backupPath).AtomicallyMoveTo(originalPath);
                     }
                     else
                     {
@@ -160,7 +160,7 @@ public sealed class ProfileZipExtractor(ILogger logger)
                 return;
             }
 
-            var backupPath = Path.Combine(backupRoot, Path.GetFileName(originalPath));
+            var backupPath = (string)Path.Combine(backupRoot, Path.GetFileName(originalPath));
             _logger.Information("Backing up into '{BackupPath}'", backupPath);
 
             // Delete any previous backup with the same name (should not happen normally)
@@ -170,9 +170,7 @@ public sealed class ProfileZipExtractor(ILogger logger)
                 File.Delete(backupPath);
 
             if (isDirectory)
-            {
-                Directory.Move(originalPath, backupPath);
-            }
+                new DirectoryInfo(originalPath).AtomicallyMoveTo(backupPath);
             else // it's a file
             {
                 // Ensure the backup directory exists
@@ -194,7 +192,7 @@ public sealed class ProfileZipExtractor(ILogger logger)
 
             foreach (var dir in Directory.EnumerateDirectories(backupRoot))
             {
-                var originalPath = Path.Combine(rootPath, Path.GetFileName(dir));
+                var originalPath = (string)Path.Combine(rootPath, Path.GetFileName(dir));
                 _logger.Information("Restoring directory '{Dir}' to '{OriginalPath}'...", dir, originalPath);
 
                 if (Directory.Exists(originalPath))
@@ -206,7 +204,7 @@ public sealed class ProfileZipExtractor(ILogger logger)
             // Also handle any files that might have been backed up directly (e.g., asset files)
             foreach (var file in Directory.EnumerateFiles(backupRoot))
             {
-                var originalPath = Path.Combine(rootPath, Path.GetFileName(file));
+                var originalPath = (string)Path.Combine(rootPath, Path.GetFileName(file));
                 _logger.Information("Restoring file '{File}' to '{OriginalPath}'...", file, originalPath);
 
                 if (File.Exists(originalPath))

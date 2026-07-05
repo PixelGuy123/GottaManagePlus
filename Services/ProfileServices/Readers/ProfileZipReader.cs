@@ -36,7 +36,7 @@ public sealed class ProfileZipReader(ILogger logger)
             //      [Profile.zip]
 
             // Try to search for the metadata file
-            var metadataFile = new FileInfo(Path.Combine(profileRootDirectory, Constants.ProfileMetadataFileName));
+            var metadataFile = new FileInfo((string)Path.Combine(profileRootDirectory, Constants.ProfileMetadataFileName));
 
             // If the file is missing, throw an error
             return !metadataFile.Exists ? null :

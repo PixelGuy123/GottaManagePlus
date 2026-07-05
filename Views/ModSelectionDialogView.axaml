@@ -596,14 +596,23 @@
                                             <ComboBox
                                                 Name="SelectVersionModBox"
                                                 ToolTip.ShowOnDisabled="True"
-                                                SelectedValue="{CompiledBinding SelectedFile, Mode=OneWay}"
+                                                SelectedValue="{CompiledBinding SelectedFile, Mode=TwoWay}"
                                                 IsEnabled="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count}"
                                                 Opacity="{CompiledBinding !!SelectedMod.AllEnvironmentallyValidFiles.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
                                                 ItemsSource="{CompiledBinding SelectedMod.AllEnvironmentallyValidFiles}">
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
                                                         <StackPanel ToolTip.Tip="{CompiledBinding FormattedAnalysisWarnings}">
-                                                            <TextBlock Text="{CompiledBinding }" />
+                                                            <Grid ColumnDefinitions="*, Auto">
+                                                                <TextBlock 
+                                                                    Grid.Column="0" 
+                                                                    Text="{CompiledBinding}"
+                                                                    TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Grid.Column="1"
+                                                                           Text="(!!)"
+                                                                           IsVisible="{CompiledBinding !!AnalysisWarnings.Count}"
+                                                                           Padding="2.5 0 0 0"/>
+                                                            </Grid>
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
@@ -626,11 +635,14 @@
                             Classes="DialogBtn DangerDialogBtn"
                             Command="{Binding CancelAsync}" />
                     <Button Name="InstallButton"
-                            Content="Install (0)"
                             Classes="DialogBtn GenericDialogBtn"
                             Command="{Binding InstallPromptAsync}"
                             Opacity="{CompiledBinding !!EnqueuedModsToInstall.Count, Converter={x:Static converters:BoolConverters.BoolToOpacityIndicator}}"
-                            IsHitTestVisible="{CompiledBinding !!EnqueuedModsToInstall.Count, Mode=OneWay}" />
+                            IsHitTestVisible="{CompiledBinding !!EnqueuedModsToInstall.Count, Mode=OneWay}">
+                            <TextBlock Foreground="#000000">
+                                Install (<Run Text="{CompiledBinding EnqueuedModsToInstall.Count}"/>)
+                            </TextBlock>
+                        </Button>
                 </StackPanel>
             </Grid>
         </Border>

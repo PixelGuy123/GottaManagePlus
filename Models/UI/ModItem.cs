@@ -238,7 +238,8 @@ public partial class ModItem : ObservableObject, IDisposable
     public override int GetHashCode() => Id;
     public static bool operator ==(ModItem? a, ModItem? b) => a?.Equals(b) == true;
     public static bool operator !=(ModItem? a, ModItem? b) => !(a == b);
-    public override string ToString() => $"{Name} ({Version} | {Author})";
+    public override string ToString() => string.IsNullOrEmpty(Version) ? 
+        Name : $"{Name} ({Version} | {Author})";
 
     /// <summary>
     /// Creates a <see cref="ModItem"/> from a JSON document.
@@ -521,7 +522,7 @@ public partial class ModItem : ObservableObject, IDisposable
                 if (AnalysisWarnings.Count == 0) return null;
                 
                 // TODO: Add localization here
-                StringBuilder strBld = new("This file contains the following warnings:");
+                StringBuilder strBld = new("This file contains the following warnings:\n");
                 var titleCase = CultureInfo.InvariantCulture.TextInfo.ToTitleCase; // Make "this sentence" become "This Sentence"
                 
                 // Warn Name.

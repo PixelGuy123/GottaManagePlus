@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Controls;
 using GottaManagePlus.Services;
-using SaveStateContext = GottaManagePlus.Models.SourceGenerators.SaveStateContext;
+using SaveStateContext = GottaManagePlus.Utils.SourceGenerators.SaveStateContext;
 
 namespace GottaManagePlus.Models.UI;
 

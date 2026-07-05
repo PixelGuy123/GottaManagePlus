@@ -1,9 +1,9 @@
 using ByteSizeLib;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.SourceGenerators;
 using Serilog;
 using Tomlyn;
+using EnvironmentSnapshotContext = GottaManagePlus.Utils.SourceGenerators.EnvironmentSnapshotContext;
 
 namespace GottaManagePlus.Services.GameEnvironmentServices;
 
@@ -39,7 +39,7 @@ public sealed class GameEnvironmentSnapshotWriter(ILogger logger) : IGameEnviron
                 
                 // If the path is the root folder of the application, ignore it.
                 if (Path.GetFileName(currentDir)
-                        .Equals(Constants.App_RootFolder, StringComparison.OrdinalIgnoreCase)) continue;
+                        .Equals(Constants.App_RootFolder)) continue;
                 
                 var relativeDir = Path.GetRelativePath(rootPath, currentDir);
                 if (!string.IsNullOrEmpty(relativeDir) && relativeDir != ".")

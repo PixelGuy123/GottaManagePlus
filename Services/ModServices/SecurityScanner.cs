@@ -41,7 +41,7 @@ public sealed class SecurityScanner(ILogger logger)
         {
             if (!controller.IsPathSafetyValid(resource.LocalPath) ||
                 (!string.IsNullOrEmpty(resource.Destination) &&
-                 !controller.IsPathSafetyValid(resource.Destination)))
+                 !controller.IsPathSafetyValid(resource.Destination!.Value)))
             {
                 _logger.Warning(
                     "SAFETY WARNING: The path {0} attempts to access outside boundaries from the environment.",

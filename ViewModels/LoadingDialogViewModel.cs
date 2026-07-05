@@ -6,6 +6,7 @@ using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Models.UI;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -92,7 +93,18 @@ public partial class LoadingDialogViewModel : DialogViewModel
             }
 
             // Run the result in a separate thread to not affect UI
-            var result = await Task.Run(() => _loadingDelegate.DynamicInvoke(finalArgs)).ConfigureAwait(false);
+            var result = await Task.Run(() =>
+            {
+                try
+                {
+                    return _loadingDelegate.DynamicInvoke(finalArgs);
+                }
+                catch(Exception e)
+                {
+                    Log.Logger.Error(e, "A loading task has thrown an exception!");
+                    return false;
+                }
+            }).ConfigureAwait(false);
             bool cancellationDone;
             
             switch (result)

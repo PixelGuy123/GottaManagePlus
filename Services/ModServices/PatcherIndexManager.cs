@@ -52,7 +52,7 @@ public sealed class PatcherIndexManager(ILogger logger, GameEnvironmentControlle
     {
         EnsureIndexFolderExists();
         
-        var indexFilePath = Path.Combine(GetIndexFolderPath(), GetIndexFileName(manifest, patcherFileName));
+        var indexFilePath = (string)Path.Combine(GetIndexFolderPath(), GetIndexFileName(manifest, patcherFileName));
         var actualPatcherFileName = patcherFileName; // The actual file name in Patchers folder
         
         // Check if the index file already exists
@@ -96,7 +96,7 @@ public sealed class PatcherIndexManager(ILogger logger, GameEnvironmentControlle
     /// </returns>
     public bool UnregisterPatcher(ModManifest manifest, string patcherFileName)
     {
-        var indexFilePath = Path.Combine(GetIndexFolderPath(), GetIndexFileName(manifest, patcherFileName));
+        var indexFilePath = (string)Path.Combine(GetIndexFolderPath(), GetIndexFileName(manifest, patcherFileName));
         
         if (!File.Exists(indexFilePath))
         {

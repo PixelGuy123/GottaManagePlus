@@ -1,9 +1,10 @@
 using System.Text.Json;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.SourceGenerators;
+
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;
+using ModManifestContext = GottaManagePlus.Utils.SourceGenerators.ModManifestContext;
 
 namespace GottaManagePlus.Services.ModServices;
 
@@ -26,11 +27,11 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
     /// <returns>Returns a <see cref="ModManifest"/> with the manifest generated.</returns>
     public async Task<ModManifest?> LoadMetadataAsync(string modRootPath, IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
-        // Locate _gmp/metadata.json
-        var manifestPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, Constants.ModManifestDefaultFileName);
+        // Locate .gmp/manifest.json
+        var manifestPath = (string)Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name, Constants.ModManifestDefaultFileName);
         if (!File.Exists(manifestPath))
         {
-            _logger.Warning("Missing _gmp{DirectorySeparatorChar}manifest.json", Path.DirectorySeparatorChar);
+            _logger.Warning("Missing manifest: '{path}'", manifestPath);
             return null;
         }
 
@@ -53,14 +54,15 @@ public sealed class ManifestLoader(ILogger logger, GameEnvironmentController con
 
             // Look for supported versions file
             var dir = Path.GetDirectoryName(manifestPath);
-            if (dir == null) return manifest; // If directory is null, return
 
+            if (dir == null) return manifest;
+            
             var versionFile = Directory
                 .EnumerateFiles(dir, $"{Constants.ModSupportForGameVersionPreviewFilePrefixName}*").FirstOrDefault();
             if (versionFile == null) return manifest; // If there's no version file, return
 
             var fileName = Path.GetFileName(versionFile);
-            var versionsPart = fileName.Substring(Constants.ModSupportForGameVersionPreviewFilePrefixName.Length);
+            var versionsPart = fileName[Constants.ModSupportForGameVersionPreviewFilePrefixName.Length..];
             if (!string.IsNullOrEmpty(versionsPart))
             {
                 // Use '_' to split each version found

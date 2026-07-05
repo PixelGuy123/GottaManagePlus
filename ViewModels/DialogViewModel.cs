@@ -20,13 +20,17 @@ public abstract partial class DialogViewModel : ViewModelBase
     {
         if (!_isDialogPrepared)
             throw new InvalidOperationException("Dialog is not prepared to show!");
+        
+        if (IsDialogOpen)
+            return;
+        
         if (_closeTask.Task.IsCompleted)
             _closeTask = new TaskCompletionSource();
         
         IsDialogOpen = true;
     }
 
-    protected void Close()
+    public void Close()
     {
         OnClose();
         
@@ -46,13 +50,10 @@ public abstract partial class DialogViewModel : ViewModelBase
     /// <exception cref="InvalidOperationException"></exception>
     public void Prepare(params object?[]? args)
     {
-        if (_isDialogPrepared)
-        {
 #if DEBUG
-            Log.Logger.Warning("Dialog ('{dialog}') is already prepared!", this);
+        if (_isDialogPrepared)
+            Log.Logger.Warning("Dialog ('{dialog}') is already prepared! Calling setup anyways..", this);
 #endif
-            return;
-        }
 
         // Setup abstraction
         try

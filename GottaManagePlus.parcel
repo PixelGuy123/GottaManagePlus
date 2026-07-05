@@ -1,0 +1,45 @@
+{
+    "GeneralSettings": {
+        "NetProjectPath": "GottaManagePlus.csproj",
+        "ApplicationName": "GottaManagePlus",
+        "Version": "0.3.0.0",
+        "PackageName": {
+            "$type": "msbuild",
+            "property": "AssemblyName"
+        },
+        "AssemblyName": {
+            "$type": "msbuild",
+            "property": "AssemblyName"
+        }
+    },
+    "LinuxSettings": {
+        "InstallDirName": "gottamanageplus",
+        "AppIcon": "GMP_Icon.png",
+        "Maintainer": "PixelGuy \u003Cstickmoderator123@gmail.com\u003E",
+        "CreateBinSymlink": "True",
+        "DesktopCategory": "Utility",
+        "CopyrightFile": "LICENSE"
+    },
+    "Win32Settings": {
+        "InstallerIcon": "GMP_Icon.png",
+        "Company": "PixelGuy",
+        "InstallerLicense": "LICENSE",
+        "InstallerRequiresAdmin": "False",
+        "IncludeUninstaller": "True"
+    },
+    "MacOsSettings": {
+        "CreateBundle": true,
+        "BundleIdentifier": "com.PixelGuy.GottaManagePlus",
+        "BundleCategory": "Utilities",
+        "Permissions": {
+            "Network": "This application uses network access to connect to online services."
+        },
+        "AppIcon": "GMP_Icon.png",
+        "SigningCredentialsType": "AdHoc"
+    },
+    "PublishSettings": {
+        "PublishSingleFile": "True",
+        "PublishReadyToRun": "True",
+        "ExtraBuildProperties": {}
+    }
+}

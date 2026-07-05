@@ -1,6 +1,4 @@
-using System.Text.Json;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.SourceGenerators;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;
@@ -38,7 +36,7 @@ public sealed class ModActivator(ILogger logger, GameEnvironmentController contr
             {
                 foreach (var fullPath in manifest.Plugins
                              .Select(pluginRelativePath => Path.GetFileName(pluginRelativePath))
-                             .Select(pluginFileName => Path.Combine(pluginDir, pluginFileName)))
+                             .Select(pluginFileName => (string)Path.Combine(pluginDir, pluginFileName)))
                 {
                     RenameDllFile(fullPath, activate);
                 }
@@ -55,7 +53,7 @@ public sealed class ModActivator(ILogger logger, GameEnvironmentController contr
             {
                 foreach (var fullPath in manifest.Patchers
                              .Select(patcherRelativePath => Path.GetFileName(patcherRelativePath))
-                             .Select(patcherFileName => Path.Combine(patcherDir, patcherFileName)))
+                             .Select(patcherFileName => (string)Path.Combine(patcherDir, patcherFileName)))
                 {
                     RenameDllFile(fullPath, activate);
                 }

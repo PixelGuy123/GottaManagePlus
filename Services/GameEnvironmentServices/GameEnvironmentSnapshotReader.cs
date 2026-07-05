@@ -1,8 +1,8 @@
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.SourceGenerators;
 using Serilog;
 using Tomlyn;
+using EnvironmentSnapshotContext = GottaManagePlus.Utils.SourceGenerators.EnvironmentSnapshotContext;
 
 namespace GottaManagePlus.Services.GameEnvironmentServices;
 

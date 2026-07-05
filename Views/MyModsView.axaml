@@ -198,17 +198,14 @@
                             <Svg Path="/Assets/UI/delete-search.svg" />
                         </Button>
                         <!-- Current version display -->
-                        <Button Classes="clickable-text"
-                                Command="{Binding OpenGamePath}">
-                            <TextBlock
-                                Foreground="PowderBlue"
-                                FontWeight="Bold"
-                                TextDecorations="Underline"
-                                FontSize="22"
-                                FontFamily="{StaticResource ComicRelief}"
-                                Text="{CompiledBinding CurrentPlusVersion, Mode=OneTime}"/>
-                        </Button>
-                        
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="PowderBlue"
+                            FontWeight="Bold"
+                            FontSize="22"
+                            FontFamily="{StaticResource ComicRelief}"
+                            Text="{CompiledBinding CurrentPlusVersion, Mode=OneTime}"/>
+                       
                     </StackPanel>
                 </DockPanel>
 

@@ -1,6 +1,7 @@
+using GottaManagePlus.Models;
 using Tomlyn.Serialization;
 
-namespace GottaManagePlus.Models.SourceGenerators;
+namespace GottaManagePlus.Utils.SourceGenerators;
 
 [TomlSerializable(typeof(ProfileMetadata))]
 [TomlSerializable(typeof(ModManifest))]

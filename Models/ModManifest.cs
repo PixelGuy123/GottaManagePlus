@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
-using GottaManagePlus.Utils;
 using GottaManagePlus.Utils.Collections;
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
@@ -20,8 +19,8 @@ public class ModManifest
     
     // Assets
     [JsonRequired] public List<DestinedAsset> Assets { get; set; } = []; // Assets must always be a directory, they cannot be a file.
-    [JsonRequired] public List<string> Plugins { get; set; } = []; // string here means the LocalPath, they must always be a file and linked to a .dll.
-    [JsonRequired] public List<string> Patchers { get; set; } = []; // patcher here means the BepInEx/Patchers.
+    [JsonRequired] public List<OsPath> Plugins { get; set; } = []; // string here means the LocalPath, they must always be a file and linked to a .dll.
+    [JsonRequired] public List<OsPath> Patchers { get; set; } = []; // patcher here means the BepInEx/Patchers.
 
     [JsonIgnore] public ModMetadata Metadata { get; set; } = new();
     [JsonIgnore] public bool SupportsCurrentVersion { get; set; }
@@ -60,15 +59,19 @@ public class ModMetadata
 public struct DestinedAsset : IEquatable<DestinedAsset>
 {
     [JsonRequired]
-    public required string LocalPath { get; set; }
-    public string? Destination { get; set; }
+    public required OsPath LocalPath { get; set; }
+    public OsPath? Destination { get; set; }
     
     /// <summary>
     /// Combines the asset's final location with the actual file to go there.
     /// If Destination appears to be a directory path (no file extension), returns the directory name.
     /// </summary>
-    public string MovedAsset => !string.IsNullOrEmpty(Destination) ? 
-            Path.Combine(Destination, Path.GetFileName(LocalPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))) : 
+    public OsPath MovedAsset => !string.IsNullOrEmpty(Destination) ? 
+            Path.Combine(Destination.Value, 
+                Path.GetFileName(
+                    LocalPath.NormalizedPath.TrimEnd(
+                        Path.DirectorySeparatorChar,
+                        Path.AltDirectorySeparatorChar))) : 
         throw new NullReferenceException("Invalid destination set.");
 
     public override string ToString() =>
@@ -78,12 +81,11 @@ public struct DestinedAsset : IEquatable<DestinedAsset>
 
     public override bool Equals([NotNullWhen(true)] object? obj) =>
         obj is DestinedAsset destinedAsset &&
-        destinedAsset.LocalPath.Equals(LocalPath,
-            StringComparison.OrdinalIgnoreCase) && // If the destined asset has equal local path
+        destinedAsset.LocalPath == LocalPath && // If the destined asset has equal local path
         (string.IsNullOrEmpty(destinedAsset.Destination) ||
          string.IsNullOrEmpty(
              Destination) || // And both destinations are valid and equal (or if one of them is invalid)
-         Destination.Equals(destinedAsset.Destination, StringComparison.OrdinalIgnoreCase)); // return true
+         Destination == destinedAsset.Destination); // return true
     public bool Equals(DestinedAsset other) => LocalPath == other.LocalPath && Destination == other.Destination;
     public override int GetHashCode() => HashCode.Combine(LocalPath, Destination);
     public static bool operator ==(DestinedAsset left, DestinedAsset right) => left.Equals(right);

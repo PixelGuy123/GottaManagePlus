@@ -2,11 +2,11 @@ using Serilog;
 using SharpCompress.Writers;
 using SharpCompress.Common;
 using System.Text.Json;
-using GottaManagePlus.Models.SourceGenerators;
 using System.Text;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
+using ModManifestContext = GottaManagePlus.Utils.SourceGenerators.ModManifestContext;
 using ProgressReport = GottaManagePlus.Models.ProgressReport;
 
 namespace GottaManagePlus.Services.ModServices;
@@ -77,7 +77,7 @@ public class ModArchiveGenerator(ILogger logger, GameEnvironmentController contr
                 manifest.Assets.Add(new DestinedAsset
                 {
                     LocalPath = Path.GetFileName(assetDir.LocalPath),
-                    Destination = _controller.SearchRelativePath(assetDir.Destination)
+                    Destination = _controller.SearchRelativePath(assetDir.Destination!.Value)
                 });
             }
             

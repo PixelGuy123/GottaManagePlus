@@ -9,7 +9,8 @@
             </StackPanel>
         </Border>
     </Design.PreviewWith>
-
+    <!-- TODO: Localization support here -->
+    
     <!-- Add necessary styles -->
     <StyleInclude Source="/Styles/style.axaml"/>
     
@@ -32,6 +33,7 @@
                             IsVisible="{TemplateBinding SelectFileCommand, Converter={x:Static ObjectConverters.IsNotNull}}"
                             Command="{TemplateBinding SelectFileCommand}"
                             Name="PART_SelectButton"
+                            ToolTip.Tip="Select a file."
                             DockPanel.Dock="{TemplateBinding ButtonAlignment}">
                             <Svg Path="/Assets/UI/folder-search.svg"/>
                         </Button>
@@ -40,6 +42,7 @@
                             DockPanel.Dock="{TemplateBinding ButtonAlignment}"
                             Margin="5 0 0 0"
                             Classes="YCTPButton Miniature"
+                            ToolTip.Tip="Open the file's location."
                             IsVisible="{TemplateBinding OpenFileCommand, Converter={x:Static ObjectConverters.IsNotNull}}"
                             IsHitTestVisible="{TemplateBinding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Opacity="{TemplateBinding FilePath, Converter={x:Static converters:ObjectConverters.ObjectNotNullToOpacityIndicator}}"

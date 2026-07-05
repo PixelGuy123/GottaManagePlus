@@ -84,11 +84,11 @@ public sealed class ProfileZipWriter(ILogger logger)
         {
             using var temporaryDirectory = controller.CreateTempSubdirectory(_logger);
             var profileRootDirectory = Directory.CreateDirectory(
-                Path.Combine(temporaryDirectory.DirectoryInfo.FullName, profile.Name)
+                (string)Path.Combine(temporaryDirectory.DirectoryInfo.FullName, profile.Name)
             );
             
             // --- Write compressed content ---
-            var zipPathToWrite = Path.Combine(profileRootDirectory.FullName, $"{profile.Name}{Constants.ProfileDefaultExtension}");
+            var zipPathToWrite = (string)Path.Combine(profileRootDirectory.FullName, $"{profile.Name}{Constants.ProfileDefaultExtension}");
             _logger.Information("Writing profile's content to '{zipPathToWrite}'...", zipPathToWrite);
             await using (var fileStream = File.OpenWrite(zipPathToWrite))
             {
@@ -100,7 +100,7 @@ public sealed class ProfileZipWriter(ILogger logger)
             }
             
             // --- Write metadata file ---
-            var metadataPath = Path.Combine(profileRootDirectory.FullName, Constants.ProfileMetadataFileName);
+            var metadataPath = (string)Path.Combine(profileRootDirectory.FullName, Constants.ProfileMetadataFileName);
             _logger.Information("Writing metadata file to '{metadata}'...", metadataPath);
             File.WriteAllText(metadataPath, profile.Serialize());
 
@@ -155,7 +155,8 @@ public sealed class ProfileZipWriter(ILogger logger)
         foreach (var modData in profile.ModDataFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            totalOps += modData.Assets.Select(asset => controller.SearchAbsolutePath(asset.LocalPath)).Count(Directory.Exists);
+            totalOps += modData.Assets.Select(asset => controller.SearchAbsolutePath(asset.LocalPath))
+                .Count(p => Directory.Exists(p));
         }
 
         // Count configs directory
@@ -193,7 +194,7 @@ public sealed class ProfileZipWriter(ILogger logger)
             cancellationToken.ThrowIfCancellationRequested();
             foreach (var resourcePath in modData.Assets
                          .Select(asset => controller.SearchAbsolutePath(asset.LocalPath))
-                         .Where(Directory.Exists))
+                         .Where(p => Directory.Exists(p)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 writer.WriteDirectory(resourcePath);
@@ -259,9 +260,9 @@ public sealed class ProfileZipWriter(ILogger logger)
     private void WriteEmptyProfileContent(IWriter writer)
     {
         // Write empty directories
-        writer.WriteDirectory(Path.Combine(Constants.BepInExFolderName, Constants.PluginsFolder));
-        writer.WriteDirectory(Path.Combine(Constants.BepInExFolderName, Constants.ConfigFolder));
-        writer.WriteDirectory(Path.Combine(Constants.BepInExFolderName, Constants.PatchersFolder));
+        writer.WriteDirectory((string)Path.Combine(Constants.BepInExFolderName, Constants.PluginsFolder));
+        writer.WriteDirectory((string)Path.Combine(Constants.BepInExFolderName, Constants.ConfigFolder));
+        writer.WriteDirectory((string)Path.Combine(Constants.BepInExFolderName, Constants.PatchersFolder));
     }
 
     

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Avalonia.Logging;
 using Avalonia.Media.Imaging;
+using ByteSizeLib;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -151,36 +152,42 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
     {
         try
         {
-        if (!File.GetAttributes(fileDestinationPath).HasFlag(FileAttributes.Directory))
-            return Result<string>.Failure("Destination Path is not a directory.");
+            if (!File.GetAttributes(fileDestinationPath).HasFlag(FileAttributes.Directory))
+                return Result<string>.Failure("Destination Path is not a directory.");
         
-        // HTTP Request
-        var httpClient = _httpClientFactory.CreateClient(ClientName);
+            // HTTP Request
+            var httpClient = _httpClientFactory.CreateClient(ClientName);
 
-        using var response = await httpClient.GetAsync(
-            file.DownloadUrl,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
-            return Result<string>.Failure($"HTTP Error: {response.StatusCode}");
+            progress?.Report(new ProgressReport($"Sending request to '{file.DownloadUrl}'"));
+            using var response = await httpClient.GetAsync(
+                file.DownloadUrl,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = $"HTTP Error: {response.StatusCode}";
+                progress?.Report(new ProgressReport(error));
+                return Result<string>.Failure(error);
+            }
         
-        // Prepare Temporary Download Location
-        using var tempDir = controller.CreateTempSubdirectory(logger);
+            // Prepare Temporary Download Location
+            using var tempDir = controller.CreateTempSubdirectory(logger);
         
-        // Create file for writing (disposed manually in finally block)
-        var tempFilePath = Path.Combine(tempDir.DirectoryInfo.FullName, file.FileName);
-        var destinationPath = Path.Combine(fileDestinationPath, file.FileName);
+            // Create file for writing (disposed manually in finally block)
+            var tempFilePath = Path.Combine(tempDir.DirectoryInfo.FullName, file.FileName);
+            var destinationPath = Path.Combine(fileDestinationPath, file.FileName);
         
-        logger?.Information("Initialized download of file ({file})", file.ToString());
-
-        
+            logger?.Information("Initialized download of file ({file})", file.ToString());
+            
         
             // Download file to temp folder
             await using (var fileStream = File.OpenWrite(tempFilePath))
             {
                 // Download with Progress Reporting
                 var contentLength = response.Content.Headers.ContentLength;
+                ByteSize? userContentLength = 
+                    contentLength.HasValue ? ByteSize.FromBytes(contentLength.Value) : null;
                 await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
                 var buffer = new byte[defaultStreamAllocationBuffer];
@@ -194,17 +201,20 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
 
                     // Report progress if provider is set and content length is known
                     if (progress == null || !contentLength.HasValue) continue;
+                    var userTotalBytesRead = ByteSize.FromBytes(totalBytesRead);
+                   
                     progress.Report(
-                        new ProgressReport(totalBytesRead, contentLength.Value * 100,
-                            currentStatus: "Retrieving image from URL...", usePercentage: true));
+                        new ProgressReport(totalBytesRead, contentLength.Value,
+                            currentStatus: $"({userTotalBytesRead}/{userContentLength}) Downloading '{file.FileName}'", usePercentage: true));
                 }
             }
             
             // Move the written file it to the right destination.
             File.Move(tempFilePath, destinationPath);
-            logger?.Information("Moved file to {path}", destinationPath);
+            logger?.Information("Downloaded file to '{path}'", destinationPath);
+            progress?.Report(new ProgressReport($"Downloaded file successfully to '{destinationPath}'"));
             
-            return Result<string>.Success(fileDestinationPath);
+            return Result<string>.Success(destinationPath);
         }
         catch (OperationCanceledException)
         {
@@ -214,7 +224,9 @@ public class GamebananaApiService(IHttpClientFactory httpClientFactory)
         {
             // Error Handling
             logger?.Error(e, "Failed to download file ('{file}')", file.FileName);
-            return Result<string>.Failure($"Download Failure: {e.Message}");
+            var error = $"Download Failure: {e.Message}";
+            progress?.Report(new ProgressReport(error));
+            return Result<string>.Failure(error);
         }
     }
 

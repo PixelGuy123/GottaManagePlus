@@ -6,7 +6,7 @@ using GottaManagePlus.Services.GameEnvironmentServices;
 namespace GottaManagePlus.Utils;
 
 /// <summary>
-/// Provides conversion extensions between the detailed <see cref="ModItem"/> model
+/// Provides extensions between the detailed <see cref="ModItem"/> model
 /// and the summary <see cref="GameBananaIndex"/> model (including nested types).
 /// </summary>
 public static class GamebananaModelUtils
@@ -205,36 +205,72 @@ public static class GamebananaModelUtils
     /// <param name="modItem">The mod item containing requirement URLs to process.</param>
     /// <param name="gamebananaApiService">The API service used to fetch submission data and indexed files from GameBanana.</param>
     /// <returns>A task that represents the asynchronous operation, containing a dictionary of results of mods with their respective indexed files for all valid dependencies.</returns>
-    public static async Task<Dictionary<ModItem, ModItem.ModFile>> GatherDependencyFiles(this ModItem modItem, GamebananaApiService gamebananaApiService, CancellationToken cancellationToken = default)
+    /// <remarks>If a mod is found, but contains no suitable file, then its correspondent <see cref="ModItem.ModFile"/> will be <see langword="null"/>.</remarks>
+    public static async Task<Dictionary<ModItem, ModItem.ModFile?>> GatherDependencyFiles(this ModItem modItem, GamebananaApiService gamebananaApiService, CancellationToken cancellationToken = default)
     {
         // Look up for Gamebanana.
-        const string gamebanana_lookup_string = "https://gamebanana.com/mods/";
-        Dictionary<ModItem, ModItem.ModFile> dependencies = [];
-        var allRequirementUrls = modItem.Requirements.ConvertAll(r => r[1]); // Index 1 is always the link
+        const string gamebananaLookupString = "https://gamebanana.com/mods/";
+        Dictionary<ModItem, ModItem.ModFile?> dependencies = [];
+
         
         // Look for GameBanana links.
-        foreach (var id in 
-                 from url in allRequirementUrls
-                 where url.StartsWith(gamebanana_lookup_string) 
-                 select url.Substring(gamebanana_lookup_string.Length, url.Length - gamebanana_lookup_string.Length))
+        foreach (var requirement in modItem.Requirements)
         {
-            // Search the mod item in gamebanana and get the files from it.
-            var searchedModItem = await gamebananaApiService.GetSubmissionDataAsync(int.Parse(id), cancellationToken);
-
-            // Skip if this fails to be loaded.
-            if (searchedModItem.IsFailure) continue;
-
-            var modItemFiles = searchedModItem.Value.AllEnvironmentallyValidFiles;
+            var name = requirement[0];
+            var url = requirement[1];
             
-            // For each ModFile, add a converted IndexFile.
-            foreach (var file in modItemFiles)
-                file.IndexedFile = (await gamebananaApiService.GetIndexedFileFromFileId(file.Id, cancellationToken)).Value;
-            
+            if (url.StartsWith(gamebananaLookupString) && url.Length - gamebananaLookupString.Length > 0)
+            {
+                var id = url.Substring(gamebananaLookupString.Length, url.Length - gamebananaLookupString.Length);
+                // Search the mod item in gamebanana and get the files from it.
+                var searchedModItem =
+                    await gamebananaApiService.GetSubmissionDataAsync(int.Parse(id), cancellationToken);
 
-            // Add to the dictionary.
-            dependencies.Add(searchedModItem.Value, modItemFiles[0]);
+                // Skip if this fails to be loaded.
+                if (searchedModItem.IsFailure) continue;
+
+                var modItemFiles = searchedModItem.Value.AllEnvironmentallyValidFiles;
+
+                // For each ModFile, add a converted IndexFile.
+                var recentFile = modItemFiles.GetMostRecent();
+                recentFile?.IndexedFile =
+                    (await gamebananaApiService.GetIndexedFileFromFileId(recentFile.Id, cancellationToken))
+                    .Value;
+                // Add to the dictionary.
+                dependencies[searchedModItem.Value] = recentFile;
+                continue;
+            }
+            
+            // TODO: Implement later some sort of service or factory pattern to
+            // properly decide which api to lookup when getting the url.
+            // The current implementation is horrible and hardcoded.
+            
+            // If the URL is not gamebanana, add an arbitrary mod item
+            // with a label and a null dependency.
+            var fakeModItem = new ModItem() { Name = name };
+            dependencies[fakeModItem] = null;
         }
         
         return dependencies;
+    }
+
+    /// <summary>
+    /// Returns the most recent <see cref="ModItem.ModFile"/> from a collection.
+    /// </summary>
+    /// <param name="files">The files to go through.</param>
+    /// <returns>Most recent <see cref="ModItem.ModFile"/> from a collection.</returns>
+    public static ModItem.ModFile? GetMostRecent(this IEnumerable<ModItem.ModFile> files)
+    {
+        var modFiles = files.ToArray();
+        if (modFiles.Length == 0) return null;
+        
+        var mostRecentFile = modFiles.First();
+        foreach (var file in modFiles)
+        {
+            if (file.DateAdded > mostRecentFile.DateAdded)
+                mostRecentFile = file;
+        }
+
+        return mostRecentFile;
     }
 }

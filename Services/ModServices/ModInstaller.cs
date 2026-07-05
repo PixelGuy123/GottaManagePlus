@@ -49,19 +49,22 @@ public sealed class ModInstaller(
             Path.GetFileNameWithoutExtension(archivePath));
         
         // Create a temporary dir
-        string? temporaryDirectory = null;
-        var results = new ModInstallationResult(cancellationToken);
-        
+        TemporaryDirectoryInfo? temporaryDirectory = null;
+        var results = new ModInstallationResult();
         try
         {
             // 2. First, we need to physically extract the archive to somewhere, so that
             // file manipulation can be performed.
             temporaryDirectory = await _modArchiveExtractor.ExtractToTempAsync(archivePath, _controller, cancellationToken);
+            if (temporaryDirectory == null)
+                throw new NullReferenceException("TemporaryDirectory is null.");
+            
+            var tempDirPath = temporaryDirectory.DirectoryInfo.FullName;
 
             cancellationToken.ThrowIfCancellationRequested(); // Between each step, a cancellation token check is done.
             
             // It wasn't a success, so return earlier
-            if (string.IsNullOrEmpty(temporaryDirectory))
+            if (string.IsNullOrEmpty(tempDirPath))
             {
                 _logger.Warning("Directory is empty! Failed to generate a directory for the archive.");
                 return results;
@@ -69,7 +72,7 @@ public sealed class ModInstaller(
 
             // 3. Then, we ought to generate a manifest representation of the mod to understand its structure.
             var manifest =
-                await _manifestLoader.LoadMetadataAsync(temporaryDirectory, progress, cancellationToken);
+                await _manifestLoader.LoadMetadataAsync(tempDirPath, progress, cancellationToken);
 
             if (manifest == null)
             {
@@ -81,7 +84,7 @@ public sealed class ModInstaller(
             
             // 4. After the manifest is scanned, we can start by checking the plugins and assets:
             // do they contain any suspicious files?
-            var isSafeToLoad = await _securityScanner.ScanAsync(temporaryDirectory, _controller, results, progress, manifest, cancellationToken);
+            var isSafeToLoad = await _securityScanner.ScanAsync(tempDirPath, _controller, results, progress, manifest, cancellationToken);
 
             // If the manifest is unsafe, check settings to see if we should forcefully cancel
             if (!isSafeToLoad)
@@ -99,7 +102,13 @@ public sealed class ModInstaller(
 
             // 5. After scanning, after getting manifest, we have everything ready;
             // now, move the files (exposed by the manifest) to the right places.
-            _resourceInstaller.InstallResources(temporaryDirectory, manifest);
+            var resourceInstallationResult = _resourceInstaller.InstallResources(tempDirPath, manifest);
+
+            if (resourceInstallationResult.IsFailure)
+            {
+                _logger.Warning("Failed to install all resources from archive!");
+                return results;
+            }
             
             // 6. Register the mod to the available profile.
             var currentProfile = _profileManager.ActiveProfile;
@@ -121,8 +130,7 @@ public sealed class ModInstaller(
         {
             try
             {
-                if (Directory.Exists(temporaryDirectory))
-                    Directory.Delete(temporaryDirectory, true);
+                temporaryDirectory?.Dispose();
             }
             catch
             {

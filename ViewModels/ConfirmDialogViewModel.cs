@@ -14,7 +14,7 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     
         // Set defaults for the dialog
         Title = "Design Preview";
-        Message = "This is how the dialog will appear with log entries.\nThis\nUssss\nText";
+        Message = "This is how th";
 
         // Create a sample log container
         var sampleLogs = new LogContainer();
@@ -24,7 +24,7 @@ public partial class ConfirmDialogViewModel : DialogViewModel
         sampleLogs.AddError("Missing configuration key", "Key 'ApiKey' not found in AppSettings.json");
         sampleLogs.AddInformation("User logged in", "User 'admin' logged in at 10:32 AM");
         sampleLogs.AddInformation("Background sync completed", "Synced 150 records successfully");
-
+        
         // Assign the container
         LogContainer = sampleLogs;
     }

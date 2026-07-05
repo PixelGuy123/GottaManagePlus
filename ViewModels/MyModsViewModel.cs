@@ -127,10 +127,6 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     public async Task OpenModAssetsPath() => await OpenModAssetsPathUiAsync(ManifestInPreview!.InnerManifest);
 
     [RelayCommand]
-    public async Task OpenGamePath() =>
-        await OpenPathUiAsync(_gameEnvironmentController.CurrentEnvironment!.RootPath);
-
-    [RelayCommand]
     public void ExitModVisualization() => ManifestInPreview = null;
 
     // ---- Design-Time Constructor ----
@@ -298,12 +294,13 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                 // Generate destination assets from the asset directories.
                 var destinedAssets = assetDirectories.Select(folder => new DestinedAsset
                 {
-                    LocalPath = folder.TryGetLocalPath()!, Destination = destinationForAssets?.TryGetLocalPath()
+                    LocalPath = folder.TryGetLocalPath()!, Destination = destinationForAssets?.TryGetLocalPath()!
                 }).ToArray();
 
                 // Get a temporary location for the to-be-generated archive.
                 using var tempDir = _gameEnvironmentController.CreateTempSubdirectory(Log.Logger);
-                archiveToInstall = Path.Combine(tempDir.DirectoryInfo.FullName, Path.GetFileNameWithoutExtension(dllFile) + ".bin");
+                archiveToInstall = Path.Combine(tempDir.DirectoryInfo.FullName, 
+                    Path.GetFileNameWithoutExtension(dllFile) + ".bin");
 
                 // Now, actually wrap the files in a temporary zip file.
                 if (!await _dialogService.GenerateBooleanLoadingProcess(
@@ -360,7 +357,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                         installationResult.SecurityIssues.ToLogContainer("Security Issue", LogType.Warning);
 
                     // If this wasn't intentional (cancel), show message.
-                    if (!installationResult.Cancelled && !installationFailed)
+                    if (!installationFailed)
                     {
                         // If security issues are found, don't proceed with installation
                         await _dialogService.NotifyUser(Constants.WarningDialog,
@@ -441,7 +438,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
         // Gather all the asset directories available.
         foreach (var path in from asset in mod.Assets
                  where !string.IsNullOrEmpty(asset.Destination)
-                 select _gameEnvironmentController.SearchAbsolutePath(asset.Destination!))
+                 select _gameEnvironmentController.SearchAbsolutePath(asset.Destination!.Value))
         {
             // If the path exists and isn't added to the list, add it.
             if (Directory.Exists(path))

@@ -47,7 +47,7 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
                 }
 
                 var dirName = Path.GetFileName(dirPath);
-                var backupDir = Path.Combine(tempBackup.DirectoryInfo.FullName, dirName); // Make a backup version from original path
+                var backupDir = (string)Path.Combine(tempBackup.DirectoryInfo.FullName, dirName); // Make a backup version from original path
                 Directory.CreateDirectory(backupDir); // Creates directory
                 CopyDirectoryRecursively(dirPath, backupDir); // Copy the stuff from original to the backup
                 backupPaths[dirPath] = backupDir;
@@ -75,7 +75,7 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
                 foreach (var patcherRelativePath in manifest.Patchers)
                 {
                     var patcherFileName = Path.GetFileName(patcherRelativePath);
-                    var patcherFullPath = Path.Combine(patcherDir, patcherFileName);
+                    var patcherFullPath = (string)Path.Combine(patcherDir, patcherFileName);
                     
                     // Unregister the patcher - returns true if counter <= 0 (can delete)
                     var canDelete = _patcherIndexManager.UnregisterPatcher(manifest, patcherFileName);
@@ -100,7 +100,7 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
             }
 
             // Delete asset directories.
-            foreach (var assetDir in assetDirs.Where(Directory.Exists))
+            foreach (var assetDir in assetDirs.Where(p => Directory.Exists(p)))
             {
                 _logger.Information("Deleted asset directory '{dir}'.", assetDir);
                 Directory.Delete(assetDir, true);
@@ -129,8 +129,15 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
                         continue;
                     }
 
+                    var dirName = Path.GetDirectoryName(original);
+                    if (string.IsNullOrEmpty(dirName))
+                    {
+                        _logger.Warning("Backup directory '{Backup}' has no directory name. Cannot restore '{Original}'.", backup, original);
+                        continue;
+                    }
+
                     // Ensure parent directory exists
-                    Directory.CreateDirectory(Path.GetDirectoryName(original)!);
+                    Directory.CreateDirectory(dirName);
 
                     // Overwrite the original with the backup
                     CopyDirectoryRecursively(backup, original);
@@ -167,14 +174,14 @@ public sealed class ModUnInstaller(ILogger logger, ProfileManager profileManager
         // Copy files
         foreach (var file in source.GetFiles())
         {
-            var destFile = Path.Combine(dest.FullName, file.Name);
+            var destFile = (string)Path.Combine(dest.FullName, file.Name);
             file.CopyTo(destFile, true);
         }
 
         // Copy subdirectories
         foreach (var subDir in source.GetDirectories())
         {
-            var destSubDir = Path.Combine(dest.FullName, subDir.Name);
+            var destSubDir = (string)Path.Combine(dest.FullName, subDir.Name);
             CopyDirectoryRecursively(subDir.FullName, destSubDir);
         }
     }

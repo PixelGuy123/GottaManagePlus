@@ -12,15 +12,23 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
 {
     // Constants
     private static readonly char[] InvalidPathChars = [.. Path.GetInvalidFileNameChars(), '_'];
-    private const int profileNameLengthLimit = 48;
+    private const int ProfileNameLengthLimit = 48;
     
     // Observables
     [ObservableProperty]
-    private string _title = "Creating a new profile...", _cancelText = "Cancel", _createText = "Create Profile",
-        _errorText = $"This name must be unique (not duplicate), below or equal to {profileNameLengthLimit} characters and shall not contain one of these invalid symbols ({string.Join(", ", InvalidPathChars
-            .Where(c => !char.IsControl(c))
-            .Select(c => $"'{c}'"))}).";
-
+    public partial string? Title { get; set; }
+    
+    [ObservableProperty]
+    public partial string? CancelText { get; set; }
+    
+    [ObservableProperty]
+    public partial string? CreateText { get; set; }
+    
+    [ObservableProperty]
+    public partial string ErrorText { get; set; } = $"This name must be unique (not duplicate), below or equal to {ProfileNameLengthLimit} characters and shall not contain one of these invalid symbols ({string.Join(", ", InvalidPathChars
+        .Where(c => !char.IsControl(c))
+        .Select(c => $"'{c}'"))}).";
+        
     [ObservableProperty]
     public partial bool Confirmed { get; set; }
 
@@ -124,7 +132,7 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
 
     private static bool IsValidFilename([NotNullWhen(true)] string? name) // Annotation to make compiler happy
     {
-        if (string.IsNullOrWhiteSpace(name) || name.Length > profileNameLengthLimit)
+        if (string.IsNullOrWhiteSpace(name) || name.Length > ProfileNameLengthLimit)
             return false;
         
         return name.IndexOfAny(InvalidPathChars) < 0;

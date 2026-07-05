@@ -125,7 +125,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     #endregion
 
     #region Constructor and Design-Time Support
-
+#if DEBUG
     /// <summary>
     /// Parameterless constructor used only for design-time preview in Avalonia designer.
     /// </summary>
@@ -136,6 +136,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         SelectedMod = AllMods[0];
         ApplyFilterAndUpdateDisplay(FilterTypes.None);
     }
+#endif
 
     #endregion
 
@@ -207,13 +208,13 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         SelectedMod = mod;
         
         // Update file if possible
-        if (mod != null)
-        {
-            if (EnqueuedModsToInstall.TryGetValue(mod, out var file))
-                SelectedFile = file;
-            else
-                SelectedFile = mod.AllEnvironmentallyValidFiles.Count != 0 ? mod.AllEnvironmentallyValidFiles[0] : null;
-        }
+        if (mod == null) return;
+        
+        if (EnqueuedModsToInstall.TryGetValue(mod, out var file))
+            SelectedFile = file;
+        else
+            SelectedFile = mod.AllEnvironmentallyValidFiles.Count != 0 ? mod.AllEnvironmentallyValidFiles[0] : null;
+        Log.Logger.Debug("Retrieving from mod '{mod}' file '{SelectedFile}'", mod, SelectedFile);
     }
 
 
@@ -239,9 +240,6 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     public async Task InstallPromptAsync()
     {
         if (EnqueuedModsToInstall.Count == 0) return;
-
-        // Close this dialog before anything
-        Close();
         
         // Create a copy of the mods to include dependencies.
         var modsToInstall = new List<(ModItem, ModItem.ModFile)>();
@@ -251,17 +249,54 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         foreach (var (mod, file) in EnqueuedModsToInstall) modsToInstall.Add((mod, file));
         
         // Populate again with dependencies.
-        foreach (var (mod, file) in EnqueuedModsToInstall)
+        try
         {
-            previewLogContainer.AddInformation(mod.ToString(), file.ToString());
-            foreach (var (dependency, dependencyFile) in await mod.GatherDependencyFiles(_gamebananaApiService,
-                         _cancellationTokenForClosing.Token))
+            if (EnqueuedModsToInstall.Any((modKvp) => modKvp.Key.Requirements.Count != 0))
             {
-                modsToInstall.Add((dependency, dependencyFile));
-                previewLogContainer.AddInformation($"\tDEPENDENCY: {dependency}", dependencyFile.ToString());
+                async Task LoadDependencies(IProgress<ProgressReport>? progress)
+                {
+                    var modsChecked = 0;
+                    foreach (var (mod, file) in EnqueuedModsToInstall)
+                    {
+                        previewLogContainer.AddInformation(mod.ToString(), file.ToString());
+                        progress?.Report(new ProgressReport(
+                            modsChecked, EnqueuedModsToInstall.Count,
+                            "File Gathering", $"Retrieving files from '{mod}'"));
+
+                        // Get the dependency files.
+                        var files = await mod.GatherDependencyFiles(_gamebananaApiService,
+                            _cancellationTokenForClosing.Token);
+
+                        progress?.Report(new ProgressReport(
+                            modsChecked, EnqueuedModsToInstall.Count,
+                            "Dependency Check", $"Analyzing files from '{mod}'"));
+                        foreach (var (dependency, dependencyFile) in files)
+                        {
+                            if (dependencyFile == null)
+                            {
+                                previewLogContainer.AddWarning($"DEPENDENCY: '{dependency}'",
+                                    "No valid version found! You might need to check this manually.");
+                                continue;
+                            }
+
+                            modsToInstall.Add((dependency, dependencyFile));
+                            previewLogContainer.AddInformation($"DEPENDENCY: '{dependency}'",
+                                dependencyFile.ToString());
+                        }
+
+                        modsChecked++;
+                    }
+                }
+
+                // Do a loading screen to display them
+                await _dialogService.GenerateGenericLoadingProcess(null, null,
+                    args: ["Loading dependencies", null, (Delegate)LoadDependencies]);
             }
         }
-
+        catch (Exception e)
+        {
+            Log.Logger.Error(e, "Failed to gather dependencies!");
+        }
 
         if (await _dialogService.PromptUserQuestion(
                 "Confirm Installation",
@@ -269,6 +304,9 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 DialogServiceUtils.QuestionAnswerType.ProceedOrCancel,
                 previewLogContainer))
         {
+            // Close since it won't be open anymore.
+            Close();
+            
             // Create a shared log container for the installation process.
             var installationLogContainer = new LogContainer();
 
@@ -283,6 +321,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 successDialogDescription: $"{modsToInstall.Count} mod(s) have been installed successfully.",
                 title: "Installing Mods",
                 status: null,
+                showResultScreen: false,
                 loadingViewModels);
 
             // Check if any task failed.
@@ -293,7 +332,6 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             await _dialogService.NotifyUser(
                 "Installation Completed",
                 postInstallationMsg,
-                confirmationButton: "View Logs",
                 container: installationLogContainer);
         }
     }
@@ -397,13 +435,13 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 toRetry = new List<IndexMod>(_failedRecordsQueue);
                 _failedRecordsQueue.Clear();
             }
-            
+
             // Parallel Conversion.
             var conversionTasks = toRetry.Select(record =>
                 record.ToModItem(_gamebananaApiService, _gameEnvironmentController, _cancellationTokenForClosing.Token)
             ).ToList();
-            
-            
+
+
             // Wait for the result of all tasks.
             var tasks = conversionTasks.Select(t =>
                 t.ContinueWith(_ => { }));
@@ -413,7 +451,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             {
                 var task = conversionTasks[i];
                 var record = toRetry[i]; // Each index in conversionTask corresponds to the IndexMod
-                
+
                 if (!task.IsCompletedSuccessfully)
                 {
                     // Re-queue if the conversion failed.
@@ -421,13 +459,16 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                     {
                         _failedRecordsQueue.Enqueue(record);
                     }
+
                     Log.Logger.Error(task.Exception, "An error occurred while incrementing the items list.");
                     LoadingErrorText = modLoadFail;
                     continue;
                 }
-                var modItem = await record.ToModItem(_gamebananaApiService, _gameEnvironmentController, _cancellationTokenForClosing.Token);
+
+                var modItem = await record.ToModItem(_gamebananaApiService, _gameEnvironmentController,
+                    _cancellationTokenForClosing.Token);
                 if (allModsMirror.Contains(modItem)) continue;
-                
+
 #if RELEASE
                 if (modItem.AllValidFiles.Any())
 #elif DEBUG
@@ -490,7 +531,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 // Finally, add the mod item to the list.
                 allModsMirror.Add(modItem);
             }
-            
+
 #if DEBUG
             // Include a local file for test if it exists
             var localModItemPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..",
@@ -499,18 +540,20 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             {
                 // Load the mod item
                 var localModItem = ModItem.FromJson(JsonDocument.Parse(await File.ReadAllTextAsync(localModItemPath)));
-                
+
                 // Add this local mod item
                 allModsMirror.Insert(0, localModItem);
-                
+
                 // Attempt to get the IndexedFile features
                 foreach (var file in localModItem.AllFiles)
-                    file.IndexedFile = (await _gamebananaApiService.GetIndexedFileFromFileId(file.Id, _cancellationTokenForClosing.Token)).Value ?? 
-                                       throw new NullReferenceException($"IndexedFile from {localModItem} failed to load.");
-        
+                    file.IndexedFile =
+                        (await _gamebananaApiService.GetIndexedFileFromFileId(file.Id,
+                            _cancellationTokenForClosing.Token)).Value ??
+                        throw new NullReferenceException($"IndexedFile from {localModItem} failed to load.");
+
                 // Update mod item's environment files
                 localModItem.UpdateEnvironmentallyValidFiles(_gameEnvironmentController);
-                
+
                 Log.Logger.Debug(localModItem.ToString());
             }
 #endif
@@ -518,6 +561,12 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             // Finally, if the metadata is complete, set an invalid page counter
             if (index.Metadata?.IsComplete == true)
                 _incrementalPageCounter = -1;
+        }
+        catch (OperationCanceledException)
+        {
+            // Nothing to be logged 
+            _incrementalPageCounter--;
+            LoadingErrorText = "Operation canceled.";
         }
         catch (Exception e)
         {
@@ -591,7 +640,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             // Prepare the loading dialog with a title, status, and a delegate that installs the mod.
             // The delegate must accept IProgress<ProgressReport> and CancellationToken.
             loadingVm.Prepare(
-                $"Installing {mod.Name}",
+                $"Installing '{mod.Name}'",
                 "Downloading and installing...",
                 new Func<IProgress<ProgressReport>, CancellationToken, Task<bool>>(
                     async (progress, ct) =>
@@ -624,6 +673,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                                 progress,
                                 ct);
 
+                            
                             // Log any security issues from the installation.
                             if (installResult.SecurityIssues.Count != 0)
                             {
@@ -631,6 +681,15 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                                 foreach (var issue in installResult.SecurityIssues)
                                     logContainer.AddWarning(issue);
                             }
+                            
+                            if (!installResult.Success)
+                            {
+                                logContainer.AddError(
+                                    $"Failed to install {mod.Name}!",
+                                    "Check logs!");
+                                return false;
+                            }
+
 
                             // Log success.
                             logContainer.AddInformation(

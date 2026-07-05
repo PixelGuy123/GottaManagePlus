@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Platform.Storage;
+using GottaManagePlus.Models;
 
 namespace GottaManagePlus;
 

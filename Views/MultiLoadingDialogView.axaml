@@ -92,9 +92,11 @@
                                                     <ProgressBar 
                                                         IsIndeterminate="{CompiledBinding HideProgressBar}"
                                                         Minimum="0"
+                                                        ShowProgressText="{CompiledBinding !HideProgressBar}"
+                                                        ProgressTextFormat="{CompiledBinding ProgressTextFormat}"
                                                         Maximum="{CompiledBinding ProgressMax}"
                                                         Value="{CompiledBinding ProgressValue}"
-                                                        Height="8"
+                                                        Height="15"
                                                         Margin="0,2,0,0"
                                                         Foreground="{DynamicResource ProgressBar-Foreground}"/>
                                                 </StackPanel>

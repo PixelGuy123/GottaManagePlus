@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -72,11 +73,6 @@ public partial class ModSelectionDialogView : DisposableUserControl
     {
         InitializeComponent();
         DescriptionHtmlDisplay.BaseStylesheet = HtmlDisplayStylesheet;
-        InstallButton.Loaded += (_, _) =>
-        {
-            if (DataContext is ModSelectionDialogViewModel vm)
-                vm.EnqueuedModsToInstall.CollectionChanged += OnCollectionChanged;
-        };
         
         // HTML Display events
         DescriptionHtmlDisplay.PropertyChanged += OnDescriptionHtmlDisplayOnPropertyChanged;
@@ -162,15 +158,6 @@ public partial class ModSelectionDialogView : DisposableUserControl
 
         if (args.NewValue is false)
             SelectInstallModButton.Content = InstallButtonFileUnavailability;
-    }
-
-    // --- Collection changed (enqueued mods) ---
-    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
-    {
-        if (sender is not ObservableCollection<ModItem> collection) return;
-
-        // TODO: Add localization here
-        InstallButton.Content = $"Install ({collection.Count})";
     }
 
     // --- Mod list infinite scroll ---

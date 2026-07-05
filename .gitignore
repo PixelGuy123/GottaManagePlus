@@ -451,3 +451,4 @@ temp_icons/*
 
 # Dotnet-releaser
 artifacts-dotnet-releaser/*
+build/*

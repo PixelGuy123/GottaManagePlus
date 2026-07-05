@@ -7,7 +7,7 @@
     "_bIsWithheld": false,
     "_sName": "Test Mod",
     "_sCommentsMode": "open",
-    "_tsDateModified": 1782929432,
+    "_tsDateModified": 1783104625,
     "_tsDateAdded": 1781970013,
     "_sProfileUrl": "https:\/\/gamebanana.com\/mods\/687493",
     "_aPreviewMedia": {
@@ -52,7 +52,7 @@
     },
     "_sInitialVisibility": "warn",
     "_sDownloadUrl": "https:\/\/gamebanana.com\/mods\/download\/687493",
-    "_nDownloadCount": 3,
+    "_nDownloadCount": 21,
     "_sPayType": "free",
     "_aFiles": [
         {
@@ -60,7 +60,7 @@
             "_sFile": "extralockers_version3.zip",
             "_nFilesize": 4840381,
             "_tsDateAdded": 1782929419,
-            "_nDownloadCount": 0,
+            "_nDownloadCount": 1,
             "_sDownloadUrl": "https:\/\/gamebanana.com\/dl\/1742853",
             "_sMd5Checksum": "8c8e33965a7620444f2d640457cfdb65",
             "_sAnalysisState": "done",
@@ -97,7 +97,7 @@
             "_sFile": "extralockers_version2.zip",
             "_nFilesize": 4840217,
             "_tsDateAdded": 1782929355,
-            "_nDownloadCount": 0,
+            "_nDownloadCount": 17,
             "_sDownloadUrl": "https:\/\/gamebanana.com\/dl\/1742850",
             "_sMd5Checksum": "58c1506843d232d35f9df4658869292f",
             "_sAnalysisState": "done",
@@ -185,7 +185,7 @@
     "_nLikeCount": 0,
     "_bAccessorHasUnliked": false,
     "_bAccessorHasLiked": false,
-    "_nViewCount": 16,
+    "_nViewCount": 21,
     "_sVersion": "1.0.0",
     "_bAcceptsDonations": false,
     "_bShowRipePromo": false,
@@ -219,8 +219,8 @@
         "_sLocation": "[location redacted]",
         "_sOnlineTitle": "Ready to Talk!",
         "_sOfflineTitle": "Not available",
-        "_nPoints": 6537,
-        "_nPointsRank": 5918,
+        "_nPoints": 6552,
+        "_nPointsRank": 5909,
         "_aNormalMedals": [
             [
                 "returns_1.png",
@@ -401,7 +401,7 @@
         "_sProfileUrl": "https:\/\/gamebanana.com\/games\/6476",
         "_sIconUrl": "https:\/\/images.gamebanana.com\/img\/ico\/games\/62ec28fd3038e.png",
         "_sBannerUrl": "https:\/\/images.gamebanana.com\/img\/ico\/games\/62ec28fd3038e.png",
-        "_nSubscriberCount": 7626,
+        "_nSubscriberCount": 7634,
         "_bHasSubmissionQueue": true,
         "_bAccessorIsSubscribed": true,
         "_idAccessorSubscriptionRow": 217550
@@ -437,6 +437,25 @@
     ],
     "_aEmbeddedMedia": [
         "https:\/\/www.youtube.com\/watch?v=I_A59-h5XAg"
+    ],
+    "_bAdvancedRequirementsExist": true,
+    "_aRequirements": [
+        [
+            "MTM101BaldDevAPI (Fancy)",
+            "https:\/\/gamebanana.com\/mods\/383711",
+            "Absent",
+            "RedColor",
+            "Required",
+            "OrangeColor"
+        ],
+        [
+            "MTM101BaldDevAPI (Normal)",
+            "https:\/\/gamebanana.com\/mods\/383711"
+        ],
+        [
+            "TestGithubProject",
+            "https:\/\/github.com\/PixelGuy123\/PixelInternalAPI"
+        ]
     ],
     "_idAccessorSubscriptionRow": 0,
     "_bAccessorIsSubscribed": false,

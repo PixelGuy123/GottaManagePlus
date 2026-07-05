@@ -4,7 +4,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using GottaManagePlus.Models;
 using Serilog;
-using AppSettingsContext = GottaManagePlus.Models.SourceGenerators.AppSettingsContext;
+using AppSettingsContext = GottaManagePlus.Utils.SourceGenerators.AppSettingsContext;
 
 namespace GottaManagePlus.Services;
 
@@ -24,7 +24,7 @@ public sealed class SettingsService
         ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
+        _filePath = (string)Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
         
         _appSettings = LoadOrDefault();
         ApplyConstraints(_appSettings);

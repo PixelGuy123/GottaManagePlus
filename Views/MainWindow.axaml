@@ -126,7 +126,6 @@
             </MenuItem>
             <MenuItem Header="_Help"
                       IsEnabled="{CompiledBinding !#DialogBorder.IsVisible}">
-                <MenuItem Header="Tutorial"/>
                 <MenuItem Header="About" Command="{Binding RevealAboutSection}"/>
             </MenuItem>
         </Menu>

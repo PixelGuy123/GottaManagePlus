@@ -16,10 +16,10 @@ public static class GameEnvironmentControllerUtils
         /// Search the absolute location inside the game's folder.
         /// </summary>
         /// <param name="paths">The paths to be combined.</param>
-        /// <returns>A sanitized <see cref="string"/> absolute path to a directory inside the game's folder.</returns>
+        /// <returns>A sanitized absolute path to a directory inside the game's folder.</returns>
         /// <exception cref="ArgumentOutOfRangeException">The paths array is null or empty.</exception>
         /// <exception cref="UnauthorizedAccessException">If the path attempts to exploit "../" to leave the game's root folder.</exception>
-        public string SearchAbsolutePath(params string[] paths)
+        public OsPath SearchAbsolutePath(params string[] paths)
         {
             var currentEnvironment = controller.CurrentEnvironment;
             if (currentEnvironment == null)
@@ -29,12 +29,12 @@ public static class GameEnvironmentControllerUtils
                 throw new ArgumentOutOfRangeException(nameof(paths));
 
             var formedPath = Path.Combine(paths);
-            var absolutePath = Path.GetFullPath(Path.Combine(currentEnvironment.RootPath, formedPath));
+            var absolutePath = Path.GetFullPath(Path.Combine(currentEnvironment.RootPath.BasePath, formedPath));
             var normalizedRoot = Path.GetFullPath(currentEnvironment.RootPath);
 
             return !absolutePath.StartsWith(normalizedRoot, StringComparison.Ordinal)
                 ? throw new UnauthorizedAccessException($"AbsolutePath attempts to leave the RootPath. ({formedPath})")
-                : PathUtils.GetLongPath(absolutePath);
+                : absolutePath;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ public static class GameEnvironmentControllerUtils
         /// <summary>
         /// Checks whether the path given is safe by the <see cref="GameEnvironmentControllerUtils.SearchAbsolutePath"/> standards.
         /// </summary>
-        /// <param name="paths">The path collection to be tested agaisnt.</param>
+        /// <param name="paths">The path collection to be tested against.</param>
         /// <returns><see langword="true"/> if the path is safe; otherwise, <see langword="false"/>.</returns>
         public bool IsPathSafetyValid(params string[] paths)
         {
@@ -113,7 +113,7 @@ public static class GameEnvironmentControllerUtils
     
             // Generate a unique directory name (GUID is cross-platform safe)
             var uniqueDirName = Guid.NewGuid().ToString();
-            var tempSubDirPath = Path.Combine(tempBasePath, uniqueDirName);
+            var tempSubDirPath = (string)Path.Combine(tempBasePath, uniqueDirName);
     
             // Create the temporary subdirectory
             logger?.Information("Creating temporary subdirectory '{TempSubDirPath}'.", tempSubDirPath);

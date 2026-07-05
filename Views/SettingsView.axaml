@@ -100,9 +100,11 @@
                                 SelectFileCommand="{Binding SetFilePathForPlusFolder}"/>
                             
                             <!-- Security Issue Checkbox -->
-                            <StackPanel ToolTip.Tip="When enabled, automatically cancels installation of any mod flagged as 'suspicious' to protect your system.">
-                                <Label Content="Prevent Suspicious Mods Installation"/>
+                            <StackPanel 
+                                Orientation="Horizontal" 
+                                ToolTip.Tip="When enabled, automatically cancels installation of any mod flagged as 'suspicious' to protect your system.">
                                 <CheckBox IsChecked="{CompiledBinding CancelOnSecurityIssues, Mode=TwoWay}"/>
+                                <Label Content="Prevent Suspicious Mods Installation"/>
                             </StackPanel>
                             <!-- TODO: implement checkbox -->
                         </StackPanel>

@@ -35,25 +35,25 @@ public class LocalProfileCloner(
             return null;
         
         // Copy the directory under a new name.
-        var newProfileDir = Directory.CreateDirectory(Path.Combine(profilesFolder, newName));
+        var newProfileDir = Directory.CreateDirectory((string)Path.Combine(profilesFolder, newName));
         foreach (var file in Directory.EnumerateFiles(metadataPath, "*", SearchOption.AllDirectories))
         {
             // Copy the file to the new directory.
             File.Copy(file, 
-                Path.Combine(newProfileDir.FullName, Path.GetFileName(file)), 
+                (string)Path.Combine(newProfileDir.FullName, Path.GetFileName(file)), 
                 true);
         }
         
         // Write the metadata to the new directory.
         File.WriteAllText(
-            Path.Combine(newProfileDir.FullName, Constants.ProfileMetadataFileName),
+            (string)Path.Combine(newProfileDir.FullName, Constants.ProfileMetadataFileName),
             newMetadata.Serialize());
         
         // Locate the compacted file and rename it.
-        var zipFilePath = Path.Combine(newProfileDir.FullName, metadata.Name + Constants.ProfileDefaultExtension);
+        var zipFilePath = (string)Path.Combine(newProfileDir.FullName, metadata.Name + Constants.ProfileDefaultExtension);
         if (File.Exists(zipFilePath))
             File.Move(zipFilePath,
-                Path.Combine(newProfileDir.FullName,
+                (string)Path.Combine(newProfileDir.FullName,
                     newName + Constants.ProfileDefaultExtension));
         
         return newMetadata;

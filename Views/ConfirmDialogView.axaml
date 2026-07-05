@@ -6,8 +6,7 @@
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
              x:DataType="vm:ConfirmDialogViewModel"
              x:Class="GottaManagePlus.Views.ConfirmDialogView"
-             MinWidth="350"
-             MinHeight="250">
+             MinWidth="350">
 
     <Design.DataContext><vm:ConfirmDialogViewModel/></Design.DataContext>
 

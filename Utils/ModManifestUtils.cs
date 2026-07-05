@@ -2,9 +2,10 @@ using System.Text.Json;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.SourceGenerators;
+
 using GottaManagePlus.Services.GameEnvironmentServices;
 using Serilog;
+using ModManifestContext = GottaManagePlus.Utils.SourceGenerators.ModManifestContext;
 
 namespace GottaManagePlus.Utils;
 
@@ -59,9 +60,9 @@ public static class ModManifestUtils
             if (string.IsNullOrEmpty(path)) return null;
         
             if (File.Exists(Path.Combine(path, "thumbnail.png")))
-                return Path.Combine(path, "thumbnail.png");
+                return (string)Path.Combine(path, "thumbnail.png");
             if (File.Exists(Path.Combine(path, "thumbnail.bmp")))
-                return Path.Combine(path, "thumbnail.bmp");
+                return (string)Path.Combine(path, "thumbnail.bmp");
             return File.Exists(Path.Combine(path, "thumbnail.jpg")) ? Path.Combine(path, "thumbnail.jpg") : null;
         }
     }
@@ -127,7 +128,7 @@ public static class ModManifestUtils
 
                 string GetPathFromPlugin(string newExtension) =>
                     !string.IsNullOrEmpty(directoryName)
-                        ? Path.Combine(directoryName, Path.GetFileNameWithoutExtension(plugin) + newExtension) : 
+                        ? (string)Path.Combine(directoryName, Path.GetFileNameWithoutExtension(plugin) + newExtension) : 
                         Path.GetFileNameWithoutExtension(plugin) + newExtension;
             }
         
@@ -146,7 +147,7 @@ public static class ModManifestUtils
                 array[index++] = (AssetType.Asset, new DestinedAsset
                 {
                     LocalPath = Path.Combine(relativeBasePath, asset.LocalPath), 
-                    Destination = string.IsNullOrEmpty(asset.Destination) ? null : controller.SearchAbsolutePath(asset.Destination)
+                    Destination = (string.IsNullOrEmpty(asset.Destination) ? null! : controller.SearchAbsolutePath(asset.Destination!.Value))
                 });
             return array;
         }
@@ -169,7 +170,13 @@ public static class ModManifestUtils
             }
     
             var metadataDirectory = Path.GetDirectoryName(manifest.Metadata.Path);
-            DirectoryUtils.GetOrCreate(metadataDirectory!);
+            if (string.IsNullOrEmpty(metadataDirectory))
+            {
+                logger?.Error("Failed to get the directory name of the metadata file! Path: '{path}'", 
+                    manifest.Metadata.Path);
+                return;
+            }
+            DirectoryUtils.GetOrCreate(metadataDirectory);
             File.WriteAllText(manifest.Metadata.Path!,
                 JsonSerializer.Serialize(manifest.Metadata, ModManifestContext.Default.ModMetadata));
     

@@ -39,7 +39,7 @@ public sealed class ProfileExporter(ILogger logger)
             
             // If the profile's directory exists, then zip it up in a custom extension.
             using var fileStream = File.OpenWrite(
-                             Path.Combine(exportPath, $"{profile.Name}{Constants.ExportedProfileExtension}"));
+                             (string)Path.Combine(exportPath, $"{profile.Name}{Constants.ExportedProfileExtension}"));
             
             // Make the writer, then write the content to it.
             using var writer = WriterFactory.OpenWriter(fileStream, ArchiveType,

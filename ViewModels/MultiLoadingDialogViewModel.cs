@@ -1,21 +1,18 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using GottaManagePlus.Models;
+using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class MultiLoadingDialogViewModel : DialogViewModel
 {
-    /// <summary>
-    /// Default constructor. If the view is in design mode, 
-    /// populates the dialog with sample data for preview.
-    /// </summary>
     public MultiLoadingDialogViewModel()
     {
         if (!Design.IsDesignMode) return;
-        
-        // Create dummy child view models
+
+        // Design‑time dummy data (unchanged)
         LoadingDialogs =
         [
             new LoadingDialogViewModel
@@ -25,7 +22,6 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
                 ProgressMax = 100,
                 ProgressValue = 50
             },
-
             new LoadingDialogViewModel
             {
                 Title = "Installing Package",
@@ -33,7 +29,6 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
                 ProgressMax = 10,
                 ProgressValue = 7
             },
-
             new LoadingDialogViewModel
             {
                 Title = "Processing Data",
@@ -43,26 +38,22 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
             }
         ];
 
-        // Overall multi‑dialog state
         Title = "Multiple Tasks Loading";
         Status = "2/3 tasks completed";
         ProgressMax = 3;
         ProgressValue = 2;
     }
-    private readonly Lock _lock = new();
-    private int _completedCount = 0;
-    private int _totalCount = 0;
-    private readonly TaskCompletionSource<bool> _allTasksCompletedTcs = new();
-    // Observable properties
-    [ObservableProperty] 
+
+    // --- Observable properties ---
+    [ObservableProperty]
     public partial ObservableCollection<LoadingDialogViewModel> LoadingDialogs { get; set; } = [];
-    
+
     [ObservableProperty]
     public partial string Title { get; set; } = "Loading...";
 
     [ObservableProperty]
     public partial string? Status { get; set; } = "Loading...";
-    
+
     [ObservableProperty]
     public partial long ProgressMax { get; set; } = 1;
 
@@ -70,64 +61,99 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
     public partial long ProgressValue { get; set; }
 
     public List<object?> Results { get; private set; } = [];
-    public Task WhenAllTasksCompleted => _allTasksCompletedTcs.Task;
 
-    public void InsertLoadingTask(LoadingDialogViewModel loadingVm)
+    // --- Internal tracking ---
+    private int _totalCount;
+    private int _completedCount;
+    private readonly Lock _progressLock = new();
+
+    /// <summary>
+    /// Adds a loading task to the dialog. Does not start the task.
+    /// Call this for each sub‑operation, then call <see cref="RunTasksAsync"/> to start processing.
+    /// </summary>
+    public void InsertLoadingTask(LoadingDialogViewModel loadingVm) =>
+        LoadingDialogs.Add(loadingVm);
+
+    /// <summary>
+    /// Starts all previously inserted tasks, updates overall progress,
+    /// and closes the dialog when every task has finished (or been canceled).
+    /// </summary>
+    public async Task RunTasksAsync()
     {
-        lock (_lock)
+        // Snapshot total number of tasks
+        _totalCount = LoadingDialogs.Count;
+        UpdateMainProgress();
+
+        // Build a wrapper task for each LoadingDialogViewModel
+        var tasks = LoadingDialogs.Select(RunSingleTaskAsync).ToList();
+
+        try
         {
-            // Add to UI collection
-            LoadingDialogs.Add(loadingVm);
-            
-            // Increase total count for main progress
-            _totalCount++;
-            UpdateMainProgress();
-
-            // Store the task
-            var task = loadingVm.StartTask();
-
-            // Continuation that runs when this individual task completes
-            task.ContinueWith(_ =>
-            {
-                lock (_lock)
-                {
-                    _completedCount++;
-                    UpdateMainProgress();
-
-                    // If all tasks are done, signal completion
-                    if (_completedCount >= _totalCount)
-                    {
-                        _allTasksCompletedTcs.TrySetResult(true);
-                        // Optionally collect results from each LoadingDialogViewModel
-                        Results = LoadingDialogs.Select(vm => vm.Result).ToList();
-                    }
-                }
-            }, TaskScheduler.Default); // or use the UI scheduler if needed
+            // Wait for all wrappers to complete (none should throw)
+            await Task.WhenAll(tasks);
         }
+        finally
+        {
+            // Collect results from every view model (even if some failed)
+            Results = LoadingDialogs.Select(vm => vm.Result).ToList();
+
+            // Close the dialog on the UI thread
+            if (Dispatcher.UIThread.CheckAccess())
+                Close();
+            else
+                await Dispatcher.UIThread.InvokeAsync(Close);
+        }
+    }
+
+    private async Task RunSingleTaskAsync(LoadingDialogViewModel vm)
+    {
+        try
+        {
+            await vm.StartTask();
+        }
+        catch (OperationCanceledException)
+        {
+            // Task was canceled, treat as completed
+            await OnTaskCompletedAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log the error; the UI can still show the failure via the child VM's Status
+            Log.Logger.Error(ex, "Loading task '{Title}' failed", vm.Title);
+            await OnTaskCompletedAsync();
+        }
+        finally
+        {
+            await OnTaskCompletedAsync();
+        }
+    }
+
+    private async Task OnTaskCompletedAsync()
+    {
+        // Marshal the progress update to the UI thread
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            lock (_progressLock)
+            {
+                _completedCount++;
+                UpdateMainProgress();
+            }
+        });
     }
 
     private void UpdateMainProgress()
     {
+        // Allowed only on the UI thread (called from InvokeAsync)
         ProgressMax = _totalCount;
         ProgressValue = _completedCount;
-        Status = $"Loading {_completedCount}/{_totalCount}";
+        Status = $"{_completedCount}/{_totalCount} tasks completed";
     }
 
-    /// <summary>
-    /// Set up the dialog with the following parameters:
-    /// <list type="number">
-    ///     <item><description><see cref="string"/> Title (optional)</description></item>
-    ///     <item><description><see cref="string"/> Status (optional)</description></item>
-    /// </list>
-    /// </summary>
-    /// <param name="args">The positional arguments as defined in the summary.</param>
     protected override void Setup(params object?[]? args)
     {
-        // Throw if null, since there are two required arguments afterward
         ArgumentNullException.ThrowIfNull(args);
-
-        // Update UI Elements
         Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
         Status = TryGetValue(args, 1, out text) ? text : "Loading...";
+        LoadingDialogs.Clear();
     }
 }

@@ -45,7 +45,7 @@ public class WrappedGameVersion : IComparable, IComparable<WrappedGameVersion>
         var suffix = (char)(RevisionNumber + 'a' - 1);
             
         // Return formatted version string
-        return $"{WrappedVersion.Major}.{WrappedVersion.Minor}.{WrappedVersion.Build}{suffix}";
+        return $"{WrappedVersion.Major}.{WrappedVersion.Minor}{suffix}";
     }
 
     public override bool Equals(object? obj) =>

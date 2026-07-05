@@ -1,6 +1,6 @@
 using System.Text.Json;
 using GottaManagePlus.Models;
-using GottaManagePlus.Models.SourceGenerators;
+
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;
@@ -19,11 +19,13 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
     /// <param name="modRootPath">The root path of the mod's folder.</param>
     /// <param name="manifest">The manifest to receive a new metadata.</param>
     /// <returns>The metadata of the resource installation.</returns>
-    public void InstallResources(
+    public Result InstallResources(
         string modRootPath,
         ModManifest manifest)
     {
-        // Form the path that plugins will go to.
+        // Track moved files and directories for rollback in case of failure
+        var movedItems = new List<(string Path, bool IsDirectory)>();
+
         try
         {
             _logger.Information("Initializing metadata and installation...");
@@ -52,19 +54,23 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                     // Try to move directory asset to the right destination.
                     case ModManifestUtils.AssetType.Asset:
                         // Check asset locations.
+                        // * If LocalPath does not exist OR
+                        // * If the destination is empty OR
+                        // * If the destination is not a directory
                         if (!Directory.Exists(resource.LocalPath) || string.IsNullOrEmpty(resource.Destination) ||
-                            !Directory.Exists(resource.Destination))
+                            !File.GetAttributes(resource.Destination).HasFlag(FileAttributes.Directory))
                         {
                             var message = !Path.EndsInDirectorySeparator(resource.LocalPath)
-                                ? "Skipped asset '{res}' due to localPath being a file, not a directory."
-                                : "Skipped asset '{res}' for lacking path.";
+                                ? $"Skipped asset '{resource}' due to localPath being a file, not a directory."
+                                : $"Skipped asset '{resource}' for lacking path.";
                             _logger.Warning("{msg}", message);
                             throw new InvalidOperationException("Asset does not contain a proper path. Check logs.");
                         }
                         
                         // Then move the asset.
                         _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath, resource.MovedAsset);
-                        Directory.Move(resource.LocalPath, resource.MovedAsset);
+                        new DirectoryInfo(resource.LocalPath).AtomicallyMoveTo(resource.MovedAsset);
+                        movedItems.Add((resource.MovedAsset, true));
                         break;
                     // Move the plugin to the new directory.
                     case ModManifestUtils.AssetType.Plugin:
@@ -75,6 +81,7 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                             _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath,
                                 pluginDestinationPath);
                             File.Move(resource.LocalPath, pluginDestinationPath, true);
+                            movedItems.Add((pluginDestinationPath, false));
                         }
 
                         break;
@@ -89,11 +96,12 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                             _patcherIndexManager.RegisterPatcher(manifest, patcherFileName);
                             
                             var patcherDestinationPath =
-                                Path.Combine(patcherDir.FullName, patcherFileName);
+                                (string)Path.Combine(patcherDir.FullName, patcherFileName);
                             
                             _logger.Information("Moved {localPath} to {newDir}", resource.LocalPath,
                                 patcherDestinationPath);
                             File.Move(resource.LocalPath, patcherDestinationPath, true);
+                            movedItems.Add((patcherDestinationPath, false));
                         }
 
                         break;
@@ -102,20 +110,49 @@ public sealed class ResourceInstaller(ILogger logger, GameEnvironmentController 
                 }
             }
             
-            // Move the internal _gmp folder to the right place.
-            var gmpRootPath = Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name);
-            DirectoryUtils.AtomicallyMoveTo(gmpRootPath, 
-                _gameEnvironmentController.SearchAbsolutePath(
-                    pluginDir.FullName, Constants.App_SpecialFolderForMods_Name));
+            // Move the internal .gmp folder to the right place.
+            var gmpRootPath = (string)Path.Combine(modRootPath, Constants.App_SpecialFolderForMods_Name);
+            var gmpDestinationPath = _gameEnvironmentController.SearchAbsolutePath(
+                    pluginDir.FullName, Constants.App_SpecialFolderForMods_Name);
+            
+            DirectoryUtils.AtomicallyMoveTo(gmpRootPath, gmpDestinationPath);
+            movedItems.Add((gmpDestinationPath, true));
 
             // Save the metadata.
             manifest.SaveMetadataToDisk(_gameEnvironmentController, _logger);
 
             _logger.Information("Resource Installation completed!");
+            return Result.Success();
         }
         catch (Exception e)
         {
             _logger.Error(e, "Error during mod installation.");
+            
+            // Rollback moved files and directories in reverse order
+            for (var i = movedItems.Count - 1; i >= 0; i--)
+            {
+                var item = movedItems[i];
+                try
+                {
+                    if (item.IsDirectory)
+                    {
+                        if (Directory.Exists(item.Path))
+                            Directory.Delete(item.Path, true);
+                    }
+                    else
+                    {
+                        if (File.Exists(item.Path))
+                            File.Delete(item.Path);
+                    }
+                }
+                catch (Exception rollbackEx)
+                {
+                    // Log rollback failures but don't let them interrupt the rest of the rollback process
+                    _logger.Error(rollbackEx, "Failed to rollback file/directory: '{path}'", item.Path);
+                }
+            }
+            
+            return Result.Failure(e.Message);
         }
     }
 }

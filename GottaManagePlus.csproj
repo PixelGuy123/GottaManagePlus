@@ -6,42 +6,18 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <Authors>PixelGuy</Authors>
-    <ApplicationIcon>GottaManagePlus_icon.icon</ApplicationIcon>
-    <AppVersion>0.3.0.0</AppVersion>
+    <ApplicationIcon>GMP_Icon.ico</ApplicationIcon>
+    <AppVersion>0.1.0.0</AppVersion>
     <Version>$(AppVersion)</Version>
     <FileVersion>$(AppVersion)</FileVersion>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-  
-
-  <!--APP Bundle description for dotnet-bundler (macOS)-->
-  <PropertyGroup>
-    <CFBundleName>GottaManagePlus</CFBundleName>
-    <CFBundleDisplayName>Gotta Manage Plus</CFBundleDisplayName>
-    <CFBundleIdentifier>com.pixelguy.gottamanageplus</CFBundleIdentifier>
-    <CFBundleVersion>$(AppVersion)</CFBundleVersion>
-    <CFBundleShortVersionString>$(AppVersion)</CFBundleShortVersionString>
-    <CFBundlePackageType>APPL</CFBundlePackageType>
-    <CFBundleSignature>????</CFBundleSignature>
-    <CFBundleExecutable>GottaManagePlus</CFBundleExecutable>
-    <CFBundleIconFile>GottaManagePlus.icns</CFBundleIconFile> <!-- Will be copied from output directory -->
-    <CFBundleURLTypes>
-        <CFBundleURLName>GottaManagePlus URL</CFBundleURLName>
-        <CFBundleURLSchemes>gottamanageplus://</CFBundleURLSchemes>
-    </CFBundleURLTypes>
-    <NSPrincipalClass>NSApplication</NSPrincipalClass>
-    <NSHighResolutionCapable>true</NSHighResolutionCapable>
-
-    <!-- Optional -->
-    <NSRequiresAquaSystemAppearance>true</NSRequiresAquaSystemAppearance>
   </PropertyGroup>
 
 <!--Avalonia Stuff-->
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
-    <None Include="GottaManagePlus.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
@@ -76,24 +52,5 @@
     <PackageReference Include="Svg.Skia" Version="5.0.0" />
     <PackageReference Include="TreeDataGrid" Version="12.0.0" />
     <PackageReference Include="Tomlyn" Version="2.4.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Views\AppInfoDialogView.axaml.cs">
-      <DependentUpon>AppInfoDialogView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\LoadingDialogView.axaml.cs">
-      <DependentUpon>LoadingDialogView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\MultiLoadingDialogView.axaml.cs">
-      <DependentUpon>MultiLoadingDialogView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\UI\Dark\" />
   </ItemGroup>
 </Project>

@@ -28,7 +28,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
     /// </summary>
     /// <param name="executablePath">The path where the game's executable is located.</param>
     /// <returns>An instance of <see cref="PlusEnvironment"/> or <see langword="null"/> if anything fails in the process.</returns>
-    public IGameEnvironment? CreateEnvironment(string executablePath)
+    public IGameEnvironment? CreateEnvironment(OsPath executablePath)
     {
         if (string.IsNullOrWhiteSpace(executablePath))
         {
@@ -37,7 +37,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
         }
 
         // Make it a long path and full if possible
-        executablePath = PathUtils.GetLongPath(Path.GetFullPath(executablePath));
+        executablePath = Path.GetFullPath(executablePath);
         
         // If the executable path is false, attempt to remove it from the register
         if (!File.Exists(executablePath))
@@ -60,9 +60,6 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
             _logger.Warning("Failed to get the directory name from path ({ExecutablePath}).", executablePath);
             return null;
         }
-        
-        // Convert to long path if possible
-        rootPath = PathUtils.GetLongPath(rootPath);
      
         // OS Checks
         if (OperatingSystem.IsWindows())
@@ -77,7 +74,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
         return null;
         
         // Helper to validate based on the same pattern that is followed
-        PlusEnvironment? ValidateIndividually((string, bool) executableNameAndUnixFlag, params string[] baldiDataFolderPath)
+        PlusEnvironment? ValidateIndividually((string, bool) executableNameAndUnixFlag, params OsPath[] baldiDataFolderPath)
         {
             // if executable is BALDI.app/BALDI.exe
             var (expectedExecName, useUnixCheck) = executableNameAndUnixFlag;
@@ -92,7 +89,7 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
             var baldiDataFolder = Path.Combine([rootPath, .. baldiDataFolderPath]);
             if (!Directory.Exists(baldiDataFolder))
             {
-                _logger.Warning("Executable path does not contain {Combine} folder ({GetFullPath}).", Path.Combine(baldiDataFolderPath), Path.GetFullPath(baldiDataFolder));
+                _logger.Warning("Executable path does not contain {Combine} folder ({GetFullPath}).", baldiDataFolderPath.Unite(), Path.GetFullPath(baldiDataFolder));
                 _uniquePlusEnvironments.TryRemove(executablePath, out _);
                 return null;
             }
@@ -108,11 +105,6 @@ public sealed class PlusEnvironmentFactory(ILogger logger) : IGameEnvironmentFac
                 _uniquePlusEnvironments.TryRemove(executablePath, out _);
                 return null;
             }
-            
-#if DEBUG
-            // Substitute the game version with a custom one
-            gameVersion = new WrappedGameVersion("0.14.2");
-#endif
             // Create environment instance.
             var environment = new PlusEnvironment(rootPath, baldiDataFolder, executablePath, gameVersion);
             _uniquePlusEnvironments.TryAdd(executablePath, environment); // Adds to the database

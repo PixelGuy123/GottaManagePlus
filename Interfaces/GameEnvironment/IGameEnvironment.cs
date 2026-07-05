@@ -4,8 +4,8 @@ namespace GottaManagePlus.Interfaces.GameEnvironment;
 
 public interface IGameEnvironment
 {
-    string RootPath { get; }
-    string ExecutablePath { get; }
-    string UnityDataFolder { get; }
+    OsPath RootPath { get; }
+    OsPath ExecutablePath { get; }
+    OsPath UnityDataFolder { get; }
     WrappedGameVersion GameVersion { get; }
 }
