@@ -2,17 +2,76 @@ using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using GottaManagePlus.Models.DialogManagement;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
 public partial class MultiLoadingDialogViewModel : DialogViewModel
 {
+    // ========== Dependencies ==========
+    private readonly IServiceScopeFactory _serviceProvider = null!;
+
+    // ========== Observable Properties ==========
+    [ObservableProperty]
+    public partial ObservableCollection<LoadingDialogViewModel> LoadingDialogs { get; set; } = [];
+
+    [ObservableProperty]
+    public partial string Title { get; set; } = "Loading...";
+
+    [ObservableProperty]
+    public partial string? Status { get; set; } = "Loading...";
+
+    [ObservableProperty]
+    public partial long ProgressMax { get; set; } = 1;
+
+    [ObservableProperty]
+    public partial long ProgressValue { get; set; }
+
+    // ========== Public Properties ==========
+    public List<object?> Results { get; private set; } = [];
+
+    // ========== Internal State ==========
+    private int _totalCount;
+    private int _completedCount;
+    private readonly Lock _progressLock = new();
+
+    // ========== Constructors ==========
     public MultiLoadingDialogViewModel()
     {
         if (!Design.IsDesignMode) return;
+        InitializeDesignTimeData();
+    }
 
-        // Design‑time dummy data (unchanged)
+    public MultiLoadingDialogViewModel(IServiceScopeFactory serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    // ========== Dialog Lifecycle ==========
+    protected override async Task<object?> OnShow(DialogContext? context)
+    {
+        if (context is not MultiLoadingDialogContext multiContext) return null;
+
+        InitializeDialog(multiContext);
+        var tasks = CreateLoadingTasks(multiContext);
+
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            await FinalizeDialogAsync();
+        }
+
+        return null;
+    }
+
+    // ========== Private Methods - Initialization ==========
+    private void InitializeDesignTimeData()
+    {
         LoadingDialogs =
         [
             new LoadingDialogViewModel
@@ -44,83 +103,45 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
         ProgressValue = 2;
     }
 
-    // --- Observable properties ---
-    [ObservableProperty]
-    public partial ObservableCollection<LoadingDialogViewModel> LoadingDialogs { get; set; } = [];
-
-    [ObservableProperty]
-    public partial string Title { get; set; } = "Loading...";
-
-    [ObservableProperty]
-    public partial string? Status { get; set; } = "Loading...";
-
-    [ObservableProperty]
-    public partial long ProgressMax { get; set; } = 1;
-
-    [ObservableProperty]
-    public partial long ProgressValue { get; set; }
-
-    public List<object?> Results { get; private set; } = [];
-
-    // --- Internal tracking ---
-    private int _totalCount;
-    private int _completedCount;
-    private readonly Lock _progressLock = new();
-
-    /// <summary>
-    /// Adds a loading task to the dialog. Does not start the task.
-    /// Call this for each sub‑operation, then call <see cref="RunTasksAsync"/> to start processing.
-    /// </summary>
-    public void InsertLoadingTask(LoadingDialogViewModel loadingVm) =>
-        LoadingDialogs.Add(loadingVm);
-
-    /// <summary>
-    /// Starts all previously inserted tasks, updates overall progress,
-    /// and closes the dialog when every task has finished (or been canceled).
-    /// </summary>
-    public async Task RunTasksAsync()
+    private void InitializeDialog(MultiLoadingDialogContext context)
     {
-        // Snapshot total number of tasks
+        Title = context.Title ?? "Processing";
+        Status = context.Status ?? "Loading...";
+    }
+
+    // ========== Private Methods - Task Management ==========
+    private List<Task> CreateLoadingTasks(MultiLoadingDialogContext context)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        LoadingDialogs.Clear();
+
+        var tasks = new List<Task>();
+        foreach (var loadingContext in context.LoadingDialogContexts)
+        {
+            var loadingViewModel = scope.ServiceProvider.GetRequiredService<LoadingDialogViewModel>();
+            tasks.Add(RunSingleTaskAsync(loadingViewModel, loadingContext));
+            LoadingDialogs.Add(loadingViewModel);
+        }
+
         _totalCount = LoadingDialogs.Count;
         UpdateMainProgress();
 
-        // Build a wrapper task for each LoadingDialogViewModel
-        var tasks = LoadingDialogs.Select(RunSingleTaskAsync).ToList();
-
-        try
-        {
-            // Wait for all wrappers to complete (none should throw)
-            await Task.WhenAll(tasks);
-        }
-        finally
-        {
-            // Collect results from every view model (even if some failed)
-            Results = LoadingDialogs.Select(vm => vm.Result).ToList();
-
-            // Close the dialog on the UI thread
-            if (Dispatcher.UIThread.CheckAccess())
-                Close();
-            else
-                await Dispatcher.UIThread.InvokeAsync(Close);
-        }
+        return tasks;
     }
 
-    private async Task RunSingleTaskAsync(LoadingDialogViewModel vm)
+    private async Task RunSingleTaskAsync(LoadingDialogViewModel vm, LoadingDialogContext context)
     {
         try
         {
-            await vm.StartTask();
+            await vm.Show(context);
         }
         catch (OperationCanceledException)
         {
             // Task was canceled, treat as completed
-            await OnTaskCompletedAsync();
         }
         catch (Exception ex)
         {
-            // Log the error; the UI can still show the failure via the child VM's Status
             Log.Logger.Error(ex, "Loading task '{Title}' failed", vm.Title);
-            await OnTaskCompletedAsync();
         }
         finally
         {
@@ -128,32 +149,40 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
         }
     }
 
+    // ========== Private Methods - Progress Updates ==========
     private async Task OnTaskCompletedAsync()
     {
-        // Marshal the progress update to the UI thread
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        await Dispatcher.UIThread.InvokeAsync(IncrementCompletedCount);
+    }
+
+    private void IncrementCompletedCount()
+    {
+        lock (_progressLock)
         {
-            lock (_progressLock)
-            {
-                _completedCount++;
-                UpdateMainProgress();
-            }
-        });
+            _completedCount++;
+            UpdateMainProgress();
+        }
     }
 
     private void UpdateMainProgress()
     {
-        // Allowed only on the UI thread (called from InvokeAsync)
         ProgressMax = _totalCount;
         ProgressValue = _completedCount;
         Status = $"{_completedCount}/{_totalCount} tasks completed";
     }
 
-    protected override void Setup(params object?[]? args)
+    // ========== Private Methods - Finalization ==========
+    private async Task FinalizeDialogAsync()
     {
-        ArgumentNullException.ThrowIfNull(args);
-        Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
-        Status = TryGetValue(args, 1, out text) ? text : "Loading...";
-        LoadingDialogs.Clear();
+        Results = LoadingDialogs.Select(vm => vm.Result).ToList();
+        await CloseDialogAsync();
+    }
+
+    private async Task CloseDialogAsync()
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            Close();
+        else
+            await Dispatcher.UIThread.InvokeAsync(Close);
     }
 }

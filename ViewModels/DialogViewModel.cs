@@ -1,99 +1,35 @@
-using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Serilog;
+using GottaManagePlus.Models.DialogManagement;
 
 namespace GottaManagePlus.ViewModels;
 
 public abstract partial class DialogViewModel : ViewModelBase
 {
+    #region Properties
+
     [ObservableProperty]
     public partial bool IsDialogOpen { get; set; }
 
-    private TaskCompletionSource _closeTask = new();
-    private bool _isDialogPrepared;
+    #endregion
 
-    public async Task WaitAsync() =>
-        await _closeTask.Task;
-    
+    #region Public Methods
 
-    public void Show()
+    public async Task<object?> Show(DialogContext? context)
     {
-        if (!_isDialogPrepared)
-            throw new InvalidOperationException("Dialog is not prepared to show!");
-        
         if (IsDialogOpen)
-            return;
-        
-        if (_closeTask.Task.IsCompleted)
-            _closeTask = new TaskCompletionSource();
-        
+            return null;
+
         IsDialogOpen = true;
-    }
-
-    public void Close()
-    {
-        OnClose();
-        
+        var result = await OnShow(context);
         IsDialogOpen = false;
-        _isDialogPrepared = false;
-
-        _closeTask.TrySetResult();
-    }
-    
-    protected virtual void OnClose() { }
-
-    /// <summary>
-    /// A method that must be called before displaying a dialog to prepare it.
-    /// </summary>
-    /// <param name="args">The arguments to set up this dialog.</param>
-    /// <returns>The instance of itself.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    public void Prepare(params object?[]? args)
-    {
-#if DEBUG
-        if (_isDialogPrepared)
-            Log.Logger.Warning("Dialog ('{dialog}') is already prepared! Calling setup anyways..", this);
-#endif
-
-        // Setup abstraction
-        try
-        {
-            Setup(args);
-        }
-        catch (Exception e)
-        {
-            Log.Logger.Error(e, "Failed to open dialog ('{dialogType}').", this);
-            throw;
-        }
-
-        // Dialog is prepared by default
-        _isDialogPrepared = true;
-    }
-    
-    // Protected methods
-    protected abstract void Setup(params object?[]? args);
-    // Protected helper methods
-    protected static bool TryGetValue<T>(object?[] args, int index, [NotNullWhen(true)] out T? val)
-    {
-        if (index >= 0 && args.Length > index && args[index] is T t)
-        {
-            val = t;
-            return true;
-        }
-        val = default;
-        return false;
+        return result;
     }
 
-    protected static T GetValueOrException<T>(object?[]? args, int index)
-    {
-        ArgumentNullException.ThrowIfNull(args);
+    #endregion
 
-        if (index < 0 || args.Length <= index)
-            throw new IndexOutOfRangeException($"Argument ({index}) missing.");
-        var arg = args[index];
-        if (arg is T t)
-            return t;
-        
-        throw new ArgumentException($"Expected value for argument ({index}) is {typeof(T).Name}; received {arg?.GetType().Name}");
-    }
+    #region Protected Abstract Methods
+
+    protected abstract Task<object?> OnShow(DialogContext? context);
+
+    #endregion
 }

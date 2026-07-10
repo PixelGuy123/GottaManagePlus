@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Models.UI;
 using Serilog;
@@ -178,8 +179,23 @@ public partial class LoadingDialogViewModel : DialogViewModel
         // Throw if null, since there are two required arguments afterward
         ArgumentNullException.ThrowIfNull(args);
         
-        // If there are optional arguments in the beginning, increment this value by the amount of optional parameters
-        const int delegateHandlingOffset = 2;
+       
+
+       
+
+        
+
+        if (!HideProgressBar) // If there's progress bar, there's progress instance
+            Progress = new Progress<ProgressReport>();
+
+        // Update UI Elements
+        Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
+        Status = TryGetValue(args, 1, out text) ? text : "Loading...";
+    }
+
+    protected override async Task<object?> OnShow(DialogContext? context)
+    {
+        if (context is not LoadingDialogContext loadingContext) return null;
         
         // Reset state
         _hasAlreadyInitiated = false;
@@ -188,34 +204,27 @@ public partial class LoadingDialogViewModel : DialogViewModel
         Progress = null;
         ProgressValue = 0;
         ProgressMax = 1;
-
-        // Get arguments
-        _loadingDelegate = GetValueOrException<Delegate>(args, delegateHandlingOffset);
         
+        // Prepare delegate's parameters
         // The rest of the arguments are for the delegate
-        if (args is { Length: > delegateHandlingOffset + 1 })
+        var args = loadingContext.DelegateArgs;
+        if (args is { Length: > 0 })
         {
-            _providedArgs = new object?[args.Length - (delegateHandlingOffset + 1)];
+            _providedArgs = new object?[args.Length];
             for (var i = 0; i < _providedArgs.Length; i++)
-                _providedArgs[i] = args[i + delegateHandlingOffset + 1];
+                _providedArgs[i] = args[i];
         }
         else
         {
             _providedArgs = [];
         }
-
+        
         // Retrieve or Cache Method Parameters
+        _loadingDelegate = loadingContext.LoadingDelegate;
         var parameters = MethodCache.GetOrAdd(_loadingDelegate.Method, m => m.GetParameters());
-
+        
         // Dynamic UI State Detection
         AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
         HideProgressBar = !parameters.Any(p => typeof(IProgress<ProgressReport>).IsAssignableFrom(p.ParameterType));
-
-        if (!HideProgressBar) // If there's progress bar, there's progress instance
-            Progress = new Progress<ProgressReport>();
-
-        // Update UI Elements
-        Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
-        Status = TryGetValue(args, 1, out text) ? text : "Loading...";
     }
 }

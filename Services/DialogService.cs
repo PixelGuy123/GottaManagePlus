@@ -1,13 +1,14 @@
-using System.Collections.Concurrent;
 using GottaManagePlus.Interfaces;
+using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GottaManagePlus.Services;
 
-public sealed class DialogService
+public sealed class DialogService(IServiceProvider serviceProvider)
 {
-    // Cache for view models (unchanged)
-    private readonly ConcurrentDictionary<Type, DialogViewModel> _dialogCache = new();
+    // Main Service Provider for Dialogs
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     
     // Use a simple Stack with a lock for thread safety
     private readonly Stack<DialogViewModel> _dialogStack = new();
@@ -23,26 +24,14 @@ public sealed class DialogService
         }
     }
 
-    public TDialogViewModel GetDialog<TDialogViewModel>()
-        where TDialogViewModel : DialogViewModel, new()
-    {
-        var tDialogType = typeof(TDialogViewModel);
-        if (_dialogCache.TryGetValue(tDialogType, out var dialogViewModel))
-            return (TDialogViewModel)dialogViewModel;
-
-        var tDialog = Activator.CreateInstance<TDialogViewModel>();
-        _dialogCache.TryAdd(tDialogType, tDialog);
-        return tDialog;
-    }
-
-    public async Task<bool> ShowDialog<TDialogViewModel>(
-        TDialogViewModel dialogViewModel,
-        Func<TDialogViewModel, Task<bool>>? onShowAction = null,
-        CancellationToken cancellationToken = default)
+    public async Task<object?> ShowDialog<TDialogViewModel>(DialogContext? context) // context is placeholder
         where TDialogViewModel : DialogViewModel
     {
         if (_dialogProvider == null)
             throw new InvalidOperationException("DialogProvider has not been registered yet.");
+        
+        // Get the dialog
+        var dialogViewModel = _serviceProvider.GetRequiredService<TDialogViewModel>();
 
         // Atomically push the dialog and set the provider
         lock (_stackLock)
@@ -53,21 +42,7 @@ public sealed class DialogService
 
         try
         {
-            var result = true;
-            // Show the dialog (this will set IsDialogOpen and reset the TCS if needed)
-            dialogViewModel.Show();
-
-            // Invoke optional async callback (e.g., for data loading) – but we still await close
-            if (onShowAction != null)
-                result = await onShowAction(dialogViewModel).ConfigureAwait(false);
-
-            // Wait for the dialog to be closed (or canceled)
-            await using (cancellationToken.Register(dialogViewModel.Close))
-            {
-                await dialogViewModel.WaitAsync().ConfigureAwait(false);
-            }
-
-            return result;
+            return await dialogViewModel.Show(context);
         }
         catch
         {
