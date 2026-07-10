@@ -77,6 +77,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     public async Task RevealAboutSection() => await RevealAboutSectionUi();
 
     [RelayCommand]
+    public async Task RevealLicense() => await RevealLicenseUi();
+
+    [RelayCommand]
     public async Task CreateProfileUi() => await CreateProfileUiAsync();
     
     [RelayCommand]
@@ -235,6 +238,16 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     private async Task RevealAboutSectionUi()
     {
         var dialog = _dialogService.GetDialog<AppInfoDialogViewModel>();
+        dialog.Prepare();
+        await _dialogService.ShowDialog(dialog);
+    }
+    
+    /// <summary>
+    /// Show the License dialog.
+    /// </summary>
+    private async Task RevealLicenseUi()
+    {
+        var dialog = _dialogService.GetDialog<LicenseDialogViewModel>();
         dialog.Prepare();
         await _dialogService.ShowDialog(dialog);
     }

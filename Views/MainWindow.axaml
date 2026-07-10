@@ -6,6 +6,7 @@
         xmlns:models="using:GottaManagePlus.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gameEnvironments="clr-namespace:GottaManagePlus.Models.GameEnvironments"
         mc:Ignorable="d" d:DesignWidth="1720" d:DesignHeight="820"
         x:Class="GottaManagePlus.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -127,6 +128,7 @@
             <MenuItem Header="_Help"
                       IsEnabled="{CompiledBinding !#DialogBorder.IsVisible}">
                 <MenuItem Header="About" Command="{Binding RevealAboutSection}"/>
+                <MenuItem Header="License" Command="{Binding RevealAboutSection}"/>
             </MenuItem>
         </Menu>
         <!-- START of Body -->

@@ -22,7 +22,8 @@ public static class AppInfo
 public static class HyperLinks
 {
     // App's Advertisement & Community Links
-    public static readonly Uri DiscordLink = new("https://discord.gg/p2mpGsKAfG");
+    public static readonly Uri DiscordLink = new("https://discord.gg/p2mpGsKAfG"),
+        GithubLink = new("https://github.com/PixelGuy123/GottaManagePlus");
 }
 
 public static class Constants
@@ -43,6 +44,9 @@ public static class Constants
         OperatingSystem.IsLinux() ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), 
             ".steam", "steam", "steamapps", "common", "Baldi's Basics Plus") :
         string.Empty;
+    
+    // LICENSE Path
+    public static readonly string LicensePath = Path.Combine(ApplicationLocation, "LICENSE");
 
     // ==================== FOLDER & FILE NAMES ====================
     

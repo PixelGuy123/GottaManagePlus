@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             x:DataType="vm:LicenseDialogViewModel"
+             x:Class="GottaManagePlus.Views.LicenseDialogView"
+             MinWidth="350">
+
+    <Design.DataContext><vm:LicenseDialogViewModel/></Design.DataContext>
+
+    <UserControl.Styles>
+        <StyleInclude Source="/Styles/TextBlock.axaml"/>
+        <StyleInclude Source="/Styles/Buttons.axaml"/>
+    </UserControl.Styles>
+
+    <Border
+        CornerRadius="10"
+        Margin="10 10"
+        BoxShadow="0 5 25 1.5 Black">
+        <Border
+            Background="{DynamicResource MainMenus-Bg}"
+            CornerRadius="10"
+            ClipToBounds="True">
+            <Grid RowDefinitions="Auto, Auto, Auto"> <!-- Title | Description + Logs | Buttons -->
+                <!-- Title -->
+                <TextBlock
+                    Grid.Row="0"
+                    Background="{DynamicResource Menu-Header-Bg}"
+                    Text="{CompiledBinding Title, Mode=OneWay}"
+                    MaxWidth="650"
+                    HorizontalAlignment="Stretch"
+                    TextAlignment="Center"
+                    Padding="10"
+                    FontSize="25"
+                    TextTrimming="CharacterEllipsis"
+                    FontWeight="ExtraLight"
+                    FontFamily="{StaticResource WorkSans}"/>
+                
+                <!-- Description Text -->
+                <TextBlock Grid.Row="1"
+                    Padding="10"
+                    Text="{CompiledBinding Message, Mode=OneWay}"
+                    MaxWidth="650"
+                    TextWrapping="Wrap"
+                    TextAlignment="Center"
+                    FontSize="18"
+                    FontFamily="{StaticResource ComicRelief}"
+                />
+
+                <!-- Buttons -->
+                <StackPanel
+                    Orientation="Horizontal"
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    Spacing="20"
+                    Margin="10">
+                    <!-- TODO: Localization support here -->
+                    <Button
+                        Content="Open License"
+                        Padding="5"
+                        Classes="GenericDialogBtn"
+                        Command="{Binding Cancel}"/>
+                    <Button
+                        IsDefault="True"
+                        Content="{CompiledBinding ConfirmText, Mode=OneWay}"
+                        Classes="DialogBtn GenericDialogBtn"
+                        Command="{Binding Confirm}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>
