@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.ExplorerServices;
 using GottaManagePlus.Services.GameEnvironmentServices;

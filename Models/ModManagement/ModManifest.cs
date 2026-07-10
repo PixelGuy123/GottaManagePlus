@@ -2,10 +2,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
+using GottaManagePlus.Models.GameEnvironments;
+using GottaManagePlus.Models.System;
 using GottaManagePlus.Utils.Collections;
+
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.ModManagement;
 
 // Representation of a metadata of an outside mod
 public class ModManifest

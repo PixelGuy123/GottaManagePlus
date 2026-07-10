@@ -1,4 +1,5 @@
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;

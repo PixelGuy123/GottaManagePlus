@@ -1,17 +1,14 @@
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using GottaManagePlus.Utils.JsonConverters;
 
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.GameEnvironments;
 
+[JsonConverter(typeof(WrappedGameVersionJsonConverter))]
 public class WrappedGameVersion : IComparable, IComparable<WrappedGameVersion>
 {
-    public Version WrappedVersion { get; } = new();
-    public int? RevisionNumber { get; } 
+    private Version WrappedVersion { get; }
+    private int? RevisionNumber { get; } 
     
-    // Private parameterless constructor used only for deserialization
-    [JsonConstructor]
-    public WrappedGameVersion() { }
-
     public WrappedGameVersion(string version)
     {
         if (string.IsNullOrWhiteSpace(version))

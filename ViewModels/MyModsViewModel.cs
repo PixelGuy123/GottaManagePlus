@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;

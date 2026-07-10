@@ -4,6 +4,7 @@ using SharpCompress.Common;
 using System.Text.Json;
 using System.Text;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using ModManifestContext = GottaManagePlus.Utils.SourceGenerators.ModManifestContext;

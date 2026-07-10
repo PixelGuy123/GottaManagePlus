@@ -1,5 +1,6 @@
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Utils;
 

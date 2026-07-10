@@ -1,4 +1,5 @@
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using Tomlyn.Serialization;
 
 namespace GottaManagePlus.Utils.SourceGenerators;

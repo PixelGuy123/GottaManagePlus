@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using Serilog;
 
 namespace GottaManagePlus.Services.ProfileServices;

@@ -2,7 +2,7 @@ using System.Text.Json;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using GottaManagePlus.Models;
-
+using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using Serilog;
 using ModManifestContext = GottaManagePlus.Utils.SourceGenerators.ModManifestContext;

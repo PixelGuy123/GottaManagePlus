@@ -1,4 +1,5 @@
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 
 namespace GottaManagePlus.Interfaces.GameEnvironment;
 

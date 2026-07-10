@@ -1,6 +1,7 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Styles.Converters;

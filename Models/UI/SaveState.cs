@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Controls;
+using GottaManagePlus.Models.System;
 using GottaManagePlus.Services;
 using SaveStateContext = GottaManagePlus.Utils.SourceGenerators.SaveStateContext;
 

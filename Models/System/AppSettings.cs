@@ -1,4 +1,4 @@
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.System;
 
 /// <summary>
 /// Core settings from the application.

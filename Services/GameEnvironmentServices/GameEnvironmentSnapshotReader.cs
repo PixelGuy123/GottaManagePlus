@@ -1,5 +1,6 @@
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using Serilog;
 using Tomlyn;
 using EnvironmentSnapshotContext = GottaManagePlus.Utils.SourceGenerators.EnvironmentSnapshotContext;

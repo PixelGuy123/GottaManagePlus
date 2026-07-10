@@ -1,7 +1,7 @@
-using GottaManagePlus.Utils.JsonConverters;
 using System.Text.Json.Serialization;
+using GottaManagePlus.Utils.JsonConverters;
 
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.System;
 
 #region OsPath Struct
 /// <summary>

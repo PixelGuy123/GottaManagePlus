@@ -59,7 +59,7 @@ public partial class App
 #if DEBUG
             .WriteTo.Console()
 #endif
-            .WriteTo.File(Path.Combine(Constants.ApplicationLocation, "Logs", DateTime.Now.ToLongTimeString() + ".log"))
+            .WriteTo.File(Path.Combine(Constants.ApplicationLocation, "Logs", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".log"))
             .CreateLogger();
         collection.AddSingleton(Log.Logger);
         

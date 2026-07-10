@@ -1,5 +1,6 @@
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using Serilog;
 
 namespace GottaManagePlus.Services.GameEnvironmentServices;

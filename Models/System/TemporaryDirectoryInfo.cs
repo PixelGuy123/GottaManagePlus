@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.System;
 
 /// <summary>
 /// A representation of a temporary <see cref="DirectoryInfo"/> with a disposable pattern.

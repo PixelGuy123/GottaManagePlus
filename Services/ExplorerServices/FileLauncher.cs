@@ -11,7 +11,21 @@ public class FileLauncher(ILogger logger)
     public void RegisterLauncher(ILauncher launcher) => _launcher = launcher;
 
     /// <summary>
-    /// Attempts to launch a <see cref="FileInfo"/> into the explorer.
+    /// Attempts to launch a <see cref="FileInfo"/> into the OS.
+    /// </summary>
+    /// <param name="fileInfo">The <see cref="FileInfo"/> instance to be launched.</param>
+    /// <returns><see langword="true"/> if the launch was successful; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="InvalidOperationException">If the launcher hasn't been registered yet.</exception>
+    public async Task<bool> TryLaunchFileInfo(FileInfo fileInfo)
+    {
+        if (_launcher != null) return await _launcher.LaunchFileInfoAsync(fileInfo);
+        
+        _logger.Error("{Name}'s Launcher is null!", GetType().Name);
+        throw new InvalidOperationException("Launcher has not been registered yet.");
+    }
+
+    /// <summary>
+    /// Attempts to open a <see cref="FileInfo"/> into the explorer.
     /// </summary>
     /// <param name="fileInfo">The <see cref="FileInfo"/> instance to be launched.</param>
     /// <returns><see langword="true"/> if the launch was successful; otherwise, <see langword="false"/>.</returns>

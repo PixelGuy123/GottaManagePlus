@@ -42,33 +42,18 @@
                 
                 <!-- Description -->
                 <Border Grid.Row="1" Padding="10">
-                    <StackPanel Orientation="Vertical">
-                        <!-- "Progressable" Bar -->
-                        <ProgressBar
-                            Name="DeterminateProgressBar"
-                            Foreground="{DynamicResource ProgressBar-Foreground}"
-                            IsIndeterminate="{CompiledBinding HideProgressBar}"
-                            MinHeight="20"
-                            Margin="0 5"
-                            ShowProgressText="{CompiledBinding !HideProgressBar}"
-                            ProgressTextFormat="{CompiledBinding ProgressTextFormat}"
-                            FontFamily="{StaticResource WorkSans}"
-                            Minimum="0"
-                            Maximum="{CompiledBinding ProgressMax, Mode=OneWay}"
-                            Value="{CompiledBinding ProgressValue, Mode=OneWay}"/>
-                        <!-- Status -->
-                        <TextBlock
-                            Name="Status"
-                            Text="{CompiledBinding Status, Mode=OneWay}"
-                            FontFamily="{StaticResource WorkSans}"
-                            FontSize="18"
-                            MaxLines="2"
-                            MaxWidth="620"
-                            VerticalAlignment="Bottom"
-                            TextWrapping="Wrap"
-                            TextAlignment="Center"
-                            />
-                    </StackPanel>
+                    <!-- Status -->
+                    <TextBlock
+                        Name="Status"
+                        Text="{CompiledBinding Status, Mode=OneWay}"
+                        FontFamily="{StaticResource WorkSans}"
+                        FontSize="18"
+                        MaxLines="2"
+                        MaxWidth="620"
+                        VerticalAlignment="Bottom"
+                        TextWrapping="Wrap"
+                        TextAlignment="Center"
+                        />
                 </Border>
                 
                 <!-- Buttons -->

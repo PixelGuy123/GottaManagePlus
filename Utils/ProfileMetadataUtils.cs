@@ -1,5 +1,5 @@
 using GottaManagePlus.Models;
-
+using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using Tomlyn;
 using ProfileMetadataContext = GottaManagePlus.Utils.SourceGenerators.ProfileMetadataContext;

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using GottaManagePlus.Models;
+using GottaManagePlus.Models.System;
 
 namespace GottaManagePlus.Utils.JsonConverters;
 

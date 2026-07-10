@@ -1,6 +1,7 @@
+using GottaManagePlus.Models.ModManagement;
 using Tomlyn.Serialization;
 
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.GameEnvironments;
 
 /// <summary>
 /// An object that represents the basic data inside a compressed profile.

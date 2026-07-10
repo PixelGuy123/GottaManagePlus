@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterScreen"
 
         Name="Root"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/Other/GMP_Icon.ico"
         WindowState="Normal"
         MinHeight="700"
         MinWidth="1080"
@@ -102,7 +102,7 @@
                           SelectedItem="{CompiledBinding SelectedProfile, Mode=OneWay}"
                           ItemsSource="{CompiledBinding ProfileMetadataCollection}">
                     <MenuItem.ItemContainerTheme>
-                        <ControlTheme x:DataType="models:ProfileMetadata" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                        <ControlTheme x:DataType="gameEnvironments:ProfileMetadata" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
                             <Setter Property="Header" Value="{CompiledBinding Name}" />
                             <Setter Property="Command" 
                                     Value="{Binding #Root.((vm:MainWindowViewModel)DataContext).SwitchToProfileUi}" />

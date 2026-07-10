@@ -230,7 +230,7 @@ public partial class ModItem : ObservableObject, IDisposable
         }
 
         AllEnvironmentallyValidFiles = new ObservableCollection<ModFile>(
-            envValidFiles.OrderBy(f => System.Version.TryParse(f.Version, out var v) ? v : new Version("0.0.0")));
+            envValidFiles.OrderBy(f => global::System.Version.TryParse(f.Version, out var v) ? v : new Version("0.0.0")));
     }
 
     public override bool Equals(object? obj) =>
@@ -352,7 +352,7 @@ public partial class ModItem : ObservableObject, IDisposable
     /// <summary>
     /// Tries to load the images established in the stored URLs inside this object.
     /// </summary>
-    public async Task AttemptToLoadImagesFromURLs(GamebananaApiService apiService, bool reloadIfAlreadySet,
+    public async Task AttemptToLoadImagesFromUrls(GamebananaApiService apiService, bool reloadIfAlreadySet,
         IProgress<ProgressReport>? progress, CancellationToken cancellationToken = default)
     {
         if (ValidateString(ThumbnailUrl, ThumbnailUrlAsImage))

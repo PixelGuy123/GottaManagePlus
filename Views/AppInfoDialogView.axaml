@@ -17,6 +17,46 @@
     <UserControl.Styles>
         <StyleInclude Source="/Styles/Buttons.axaml"/>
         <StyleInclude Source="/Styles/HyperlinkButton.axaml"/>
+        
+        <Style Selector="HyperlinkButton.GitHubButton">
+            <!-- Base Properties -->
+            <Setter Property="Background" Value="#21262d"/>
+            <Setter Property="Foreground" Value="#c9d1d9"/>
+            <Setter Property="BorderBrush" Value="#30363d"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="{StaticResource WorkSans}"/>
+            <Style Selector="^ TextBlock">
+                <Setter Property="TextDecorations" Value="" />
+            </Style>
+    
+            <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Transitions">
+                    <Transitions>
+                        <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                        <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+                    </Transitions>
+                </Setter>
+            </Style>
+            
+            <!-- PointerOver / Hover State -->
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="#30363d"/>
+                <Setter Property="BorderBrush" Value="#8b949e"/>
+                <Setter Property="Foreground" Value="#c9d1d9"/>
+            </Style>
+
+            <!-- Pressed State -->
+            <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="#282e33"/>
+                <Setter Property="BorderBrush" Value="#6e7681"/>
+                <Setter Property="Foreground" Value="#c9d1d9"/>
+            </Style>
+        </Style>
     </UserControl.Styles>
     
     <Border
@@ -44,18 +84,17 @@
                 
                 <!-- Description -->
                 <Border Grid.Row="1" Padding="10">
-                    <StackPanel Orientation="Vertical" Spacing="25">
+                    <StackPanel Orientation="Vertical">
                         <Image 
-                            Source="/Assets/UI/PlaceholderLogo_256x256.webp"
-                            MaxWidth="128"
+                            Source="/Assets/Other/GottaManagePlus.png"
+                            MaxWidth="256"
                             MaxHeight="128"/>
                         <TextBlock
                             MaxWidth="650"
                             TextWrapping="Wrap"
                             FontSize="18"
                             TextAlignment="Center"
-                            FontFamily="{StaticResource ComicRelief}"
-                        >
+                            FontFamily="{StaticResource ComicRelief}">
                             <Run Foreground="Yellow" FontStyle="Italic" Text="Gotta Manage Plus"/>
                             <Run Text="was carefully created by"/>
                             <Run Text="PixelGuy" FontWeight="Bold"/>
@@ -86,13 +125,35 @@
                     ColumnDefinitions="*, Auto, *"
                     Grid.Row="2"
                     Margin="10">
+                    <HyperlinkButton
+                        Grid.Column="0" 
+                        Classes="GitHubButton"
+                        HorizontalAlignment="Left" 
+                        NavigateUri="{x:Static app:HyperLinks.GithubLink}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <PathIcon
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left"
+                                Width="24"
+                                Height="24"
+                                Foreground="{Binding $parent[Button].Foreground}"
+                                Data="{StaticResource GithubIcon}"/>
+                            <TextBlock
+                                Text="View on GitHub"
+                                VerticalAlignment="Center"
+                                TextAlignment="Center"/>
+                        </StackPanel>
+                    </HyperlinkButton>
+
                     <Button
                         Grid.Column="1"
                         Command="{Binding Ok}"
                         IsDefault="True"
                         Content="Ok"
                         Classes="DialogBtn GenericDialogBtn"/>
-                    <HyperlinkButton Grid.Column="2" HorizontalAlignment="Right" NavigateUri="{x:Static app:HyperLinks.DiscordLink}">
+                    <HyperlinkButton Grid.Column="2" 
+                                     HorizontalAlignment="Right" 
+                                     NavigateUri="{x:Static app:HyperLinks.DiscordLink}">
                         <!-- Negative margin for correcting alignment -->
                         <Image 
                             Source="/Assets/UI/Button_DiscordCommunity.png"

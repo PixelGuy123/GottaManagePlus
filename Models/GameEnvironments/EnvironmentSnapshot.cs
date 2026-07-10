@@ -1,9 +1,10 @@
 using ByteSizeLib;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using Tomlyn.Serialization;
+
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
-namespace GottaManagePlus.Models;
+namespace GottaManagePlus.Models.GameEnvironments;
 
 /// <summary>
 /// Represents a snapshot of the game environment's folder structure.

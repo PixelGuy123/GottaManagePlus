@@ -1,5 +1,6 @@
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ModServices;
 using GottaManagePlus.Services.ProfileServices.Writers;

@@ -30,7 +30,7 @@ public static class GamebananaModelUtils
         var modItem = result.Value!;
         // # Use the service to implement fetching calls.
         // Attempt to load its thumbnail image too.
-        await modItem.AttemptToLoadImagesFromURLs(gamebananaApiService, false, null, cancellationToken);
+        await modItem.AttemptToLoadImagesFromUrls(gamebananaApiService, false, null, cancellationToken);
         
         // Attempt to get the IndexedFile features
         foreach (var file in modItem.AllFiles)

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using GottaManagePlus.Models.ModManagement;
 
 namespace GottaManagePlus.Models.UI;
 

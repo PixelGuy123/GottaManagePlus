@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.System;
 using Serilog;
 using AppSettingsContext = GottaManagePlus.Utils.SourceGenerators.AppSettingsContext;
 

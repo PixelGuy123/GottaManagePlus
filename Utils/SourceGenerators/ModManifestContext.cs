@@ -1,5 +1,8 @@
 using System.Text.Json.Serialization;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.GameEnvironments;
+using GottaManagePlus.Models.ModManagement;
+using GottaManagePlus.Models.System;
 using GottaManagePlus.Utils.Collections;
 
 namespace GottaManagePlus.Utils.SourceGenerators;
