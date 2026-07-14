@@ -121,6 +121,15 @@ public partial class App
         collection.AddScoped<ModArchiveExtractor>();
         collection.AddScoped<ManifestLoader>();
         collection.AddScoped<ModActivator>();
+        
+        // Dialogs
+        collection.AddScoped<AppInfoDialogViewModel>();
+        collection.AddScoped<ConfirmDialogViewModel>();
+        collection.AddScoped<CreateProfileDialogViewModel>();
+        collection.AddScoped<LicenseDialogViewModel>();
+        collection.AddScoped<LoadingDialogViewModel>();
+        collection.AddScoped<ModSelectionDialogViewModel>();
+        collection.AddScoped<MultiLoadingDialogViewModel>();
     }
 
     private static void SetupServicesForWindowAttributes(ServiceProvider services, IClassicDesktopStyleApplicationLifetime desktop, TopLevel window)
