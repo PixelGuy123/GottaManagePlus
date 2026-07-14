@@ -125,26 +125,6 @@
                     ColumnDefinitions="*, Auto, *"
                     Grid.Row="2"
                     Margin="10">
-                    <HyperlinkButton
-                        Grid.Column="0" 
-                        Classes="GitHubButton"
-                        HorizontalAlignment="Left" 
-                        NavigateUri="{x:Static app:HyperLinks.GithubLink}">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <PathIcon
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Left"
-                                Width="24"
-                                Height="24"
-                                Foreground="{Binding $parent[Button].Foreground}"
-                                Data="{StaticResource GithubIcon}"/>
-                            <TextBlock
-                                Text="View on GitHub"
-                                VerticalAlignment="Center"
-                                TextAlignment="Center"/>
-                        </StackPanel>
-                    </HyperlinkButton>
-
                     <Button
                         Grid.Column="1"
                         Command="{Binding Ok}"
