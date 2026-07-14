@@ -1,3 +1,23 @@
+/*
+This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManagePlus)
+
+    Copyright (C) 2026 PixelGuy123
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 using Avalonia.Controls;
 using Avalonia.Media;
 using GottaManagePlus.Models.GameEnvironments;
@@ -23,7 +43,6 @@ public record TitleMessageContext(string? Title = null, string? Message = null) 
 /// <summary>
 /// Context for confirmation dialogs with customizable buttons and optional log display.
 /// </summary>
-/// <param name="OnlyConfirmButton">If true, only shows the confirm button.</param>
 /// <param name="Title">The dialog title.</param>
 /// <param name="Message">The dialog message.</param>
 /// <param name="ConfirmText">Text for the confirm button.</param>
@@ -31,14 +50,58 @@ public record TitleMessageContext(string? Title = null, string? Message = null) 
 /// <param name="DescriptionAlignment">Text alignment for the description.</param>
 /// <param name="LogContainer">Optional log container for displaying categorized logs.</param>
 public record ConfirmDialogContext(
-    bool OnlyConfirmButton = false,
     string? Title = null,
     string? Message = null,
-    string? ConfirmText = null,
+    string ConfirmText = "Ok",
     string? CancelText = null,
     TextAlignment DescriptionAlignment = TextAlignment.Center,
     LogContainer? LogContainer = null
-) : TitleMessageContext(Title, Message);
+) : TitleMessageContext(Title, Message)
+{
+    /// <summary>
+    /// The type of answers a prompted user can respond.
+    /// </summary>
+    public enum QuestionAnswerType
+    {
+        YesOrNo = 0,
+        AllowOrDisallow,
+        ProceedOrCancel,
+        AdaptOrIgnore
+    }
+
+    /// <summary>
+    /// Creates a confirmation dialog with only a confirm button using a predefined answer type.
+    /// </summary>
+    /// <param name="answerType">The type of confirmation button to display.</param>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="message">The dialog message.</param>
+    /// <param name="descriptionAlignment">Text alignment for the description.</param>
+    /// <param name="logContainer">Optional log container for displaying categorized logs.</param>
+    public ConfirmDialogContext(
+        QuestionAnswerType answerType,
+        string? title = null,
+        string? message = null,
+        TextAlignment descriptionAlignment = TextAlignment.Center,
+        LogContainer? logContainer = null
+    ) : this(title, message, AnswerToString(answerType).Yes, null, descriptionAlignment, logContainer)
+    {
+    }
+
+    // ---- Private -----
+    /// <summary>
+    /// Converts a <see cref="QuestionAnswerType"/> to its <see langword="string"/> form.
+    /// </summary>
+    /// <param name="answerType">The answer type for conversion.</param>
+    /// <returns>A <see cref="Tuple{string, string}"/> for a <c>Yes</c> and a <c>No</c>.</returns>
+    private static (string Yes, string No) AnswerToString(QuestionAnswerType answerType) => answerType switch
+    {
+        QuestionAnswerType.YesOrNo => ("Yes", "No"), // TODO: Here needs localization
+        QuestionAnswerType.AllowOrDisallow => ("Allow", "Disallow"),
+        QuestionAnswerType.ProceedOrCancel => ("Proceed", "Cancel"),
+        QuestionAnswerType.AdaptOrIgnore => ("Adapt", "Ignore"),
+        _ => ("Yes", "No")
+    };
+}
 
 /// <summary>
 /// Context for loading dialogs with a delegate to execute.

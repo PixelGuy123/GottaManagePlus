@@ -18,11 +18,10 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using System.Text.Json.Serialization;
-using GottaManagePlus.Models;
+namespace GottaManagePlus.Models.DialogManagement;
 
-namespace GottaManagePlus.Utils.SourceGenerators;
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(AppSettings))]
-internal partial class AppSettingsContext : JsonSerializerContext;
+/// <summary>
+/// Represents an action by the user in any dialog that supports confirmation/cancellation.
+/// </summary>
+/// <param name="confirmedOrCanceled"></param>
+public record UserChoice(bool confirmedOrCanceled);

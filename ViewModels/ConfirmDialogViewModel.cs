@@ -1,7 +1,28 @@
+/*
+This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManagePlus)
+
+    Copyright (C) 2026 PixelGuy123
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Models.UI;
 
 namespace GottaManagePlus.ViewModels;
@@ -47,9 +68,6 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     [ObservableProperty]
     public partial TextAlignment DescriptionAlignment { get; set; } = TextAlignment.Center;
 
-    [ObservableProperty]
-    public partial bool Confirmed { get; set; }
-
     /// <summary>
     /// The log container holding categorized logs (Warnings, Errors, Information).
     /// When set, updates the TreeDataGrid source for hierarchical display.
@@ -64,69 +82,26 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     [ObservableProperty]
     public partial LogsTreeContainer? LogsTreeContainer { get; set; }
 
-    [RelayCommand]
-    public void Confirm()
-    {
-        Confirmed = true;
-        Close();
-    }
-
-    [RelayCommand]
-    public void Cancel()
-    {
-        Confirmed = false;
-        Close();
-    }
-
     /// <summary>
     /// Gets the TreeDataGrid source for displaying logs hierarchically.
     /// Returns null if no LogContainer is set or if it has no logs.
     /// </summary>
     public HierarchicalTreeDataGridSource<LogTreeNode>? LogsTreeSource => LogsTreeContainer?.Source;
 
-    /// <summary>
-    /// Set up the dialog with the following parameters:
-    /// <list type="number">
-    ///     <item><description><see cref="bool"/> OnlyConfirmButton (Optional)</description></item>
-    ///     <item><description><see cref="string"/> Title (Optional)</description></item>
-    ///     <item><description><see cref="string"/> Message (Optional)</description></item>
-    ///     <item><description><see cref="string"/> Confirm Text (Optional)</description></item>
-    ///     <item><description><see cref="string"/> Cancel Text (Optional)</description></item>
-    ///     <item><description><see cref="TextAlignment"/> DescriptionAlignment (Optional)</description></item>
-    ///     <item><description><see cref="LogContainer"/> LogContainer (Optional)</description></item>
-    /// </list>
-    /// </summary>
-    /// <param name="args">The positional arguments as defined in the summary.</param>
-    protected override void Setup(params object?[]? args)
+    protected override async Task<object?> OnShow(DialogContext? context)
     {
-        // Reset this to false
-        Confirmed = false;
+        var confirmDialogContext = ExpectContext<ConfirmDialogContext>(context);
 
-        // Get the optional parameters ready
-        if (args == null) return;
-
-        // OnlyConfirmButton
-        OnlyConfirmButton = TryGetValue(args, 0, out bool? isOkDialog) && isOkDialog.Value;
-        // Title
-        if (TryGetValue(args, 1, out string? text))
-            Title = text;
-        // Message
-        if (TryGetValue(args, 2, out text))
-            Message = text;
-        // Confirm Text
-        if (TryGetValue(args, 3, out text))
-            ConfirmText = text;
-        else
-            ConfirmText = isOkDialog.GetValueOrDefault() ? "Ok" : "Confirm";
-        // Cancel Text
-        if (TryGetValue(args, 4, out text))
-            CancelText = text;
-        // Text Alignment
-        if (TryGetValue(args, 5, out TextAlignment? textAlignment))
-            DescriptionAlignment = textAlignment.Value;
-        // LogContainer
-        if (TryGetValue(args, 6, out LogContainer? logContainer))
-            LogContainer = logContainer;
+        // Fill up data
+        (Title, Message, ConfirmText, CancelText) =
+            (confirmDialogContext.Title ?? Title,
+                confirmDialogContext.Message ?? Message,
+                confirmDialogContext.ConfirmText ?? ConfirmText,
+                confirmDialogContext.CancelText ?? CancelText);
+        DescriptionAlignment = confirmDialogContext.DescriptionAlignment;
+        LogContainer = confirmDialogContext.LogContainer;
+        
+        return await WaitForCompletionAsync();
     }
 
     /// <summary>

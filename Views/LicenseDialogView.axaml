@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              xmlns:vm="clr-namespace:GottaManagePlus.ViewModels"
+             xmlns:gottaManagePlus="clr-namespace:GottaManagePlus"
              x:DataType="vm:LicenseDialogViewModel"
              x:Class="GottaManagePlus.Views.LicenseDialogView"
              MinWidth="350">
@@ -39,15 +40,12 @@
                     FontFamily="{StaticResource WorkSans}"/>
                 
                 <!-- Description Text -->
-                <TextBlock Grid.Row="1"
-                    Padding="10"
-                    Text="{CompiledBinding Message, Mode=OneWay}"
-                    MaxWidth="650"
-                    TextWrapping="Wrap"
-                    TextAlignment="Center"
-                    FontSize="18"
-                    FontFamily="{StaticResource ComicRelief}"
-                />
+                <TextBox Grid.Row="1"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap" 
+                         MaxHeight="200"
+                         Height="150"
+                         Text="{x:Static gottaManagePlus:Constants.LicenseDialogDescription}" />
 
                 <!-- Buttons -->
                 <StackPanel
@@ -61,12 +59,12 @@
                         Content="Open License"
                         Padding="5"
                         Classes="GenericDialogBtn"
-                        Command="{Binding Cancel}"/>
+                        Command="{Binding CancelCommand}"/>
                     <Button
                         IsDefault="True"
-                        Content="{CompiledBinding ConfirmText, Mode=OneWay}"
+                        Content="Close"
                         Classes="DialogBtn GenericDialogBtn"
-                        Command="{Binding Confirm}"/>
+                        Command="{Binding ConfirmCommand}"/>
                 </StackPanel>
             </Grid>
         </Border>

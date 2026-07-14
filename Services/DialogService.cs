@@ -1,3 +1,23 @@
+/*
+This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManagePlus)
+
+    Copyright (C) 2026 PixelGuy123
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.ViewModels;
@@ -24,14 +44,17 @@ public sealed class DialogService(IServiceProvider serviceProvider)
         }
     }
 
-    public async Task<object?> ShowDialog<TDialogViewModel>(DialogContext? context) // context is placeholder
-        where TDialogViewModel : DialogViewModel
+    public TDialog GetUnmanagedDialog<TDialog>()
+        where TDialog : DialogViewModel =>  _serviceProvider.GetRequiredService<TDialog>();
+
+    public async Task<object?> ShowDialog<TDialog>(DialogContext? context) // context is placeholder
+        where TDialog : DialogViewModel
     {
         if (_dialogProvider == null)
             throw new InvalidOperationException("DialogProvider has not been registered yet.");
         
         // Get the dialog
-        var dialogViewModel = _serviceProvider.GetRequiredService<TDialogViewModel>();
+        var dialogViewModel = _serviceProvider.GetRequiredService<TDialog>();
 
         // Atomically push the dialog and set the provider
         lock (_stackLock)

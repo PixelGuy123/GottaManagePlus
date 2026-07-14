@@ -146,7 +146,7 @@
                     </HyperlinkButton>
                     <Button
                         Grid.Column="1"
-                        Command="{Binding Ok}"
+                        Command="{Binding ConfirmCommand}"
                         IsDefault="True"
                         Content="Ok"
                         Classes="DialogBtn GenericDialogBtn"/>

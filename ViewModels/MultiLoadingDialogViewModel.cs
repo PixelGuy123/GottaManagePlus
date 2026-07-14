@@ -1,17 +1,38 @@
+/*
+This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManagePlus)
+
+    Copyright (C) 2026 PixelGuy123
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GottaManagePlus.Models.DialogManagement;
+using GottaManagePlus.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
 
-public partial class MultiLoadingDialogViewModel : DialogViewModel
+public partial class MultiLoadingDialogViewModel(DialogService dialogService) : DialogViewModel
 {
     // ========== Dependencies ==========
-    private readonly IServiceScopeFactory _serviceProvider = null!;
+    private readonly DialogService _dialogService = dialogService;
 
     // ========== Observable Properties ==========
     [ObservableProperty]
@@ -38,15 +59,10 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
     private readonly Lock _progressLock = new();
 
     // ========== Constructors ==========
-    public MultiLoadingDialogViewModel()
+    public MultiLoadingDialogViewModel() : this(null!)
     {
         if (!Design.IsDesignMode) return;
         InitializeDesignTimeData();
-    }
-
-    public MultiLoadingDialogViewModel(IServiceScopeFactory serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
     }
 
     // ========== Dialog Lifecycle ==========
@@ -63,7 +79,7 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
         }
         finally
         {
-            await FinalizeDialogAsync();
+            Results = LoadingDialogs.Select(vm => vm.Result).ToList();
         }
 
         return null;
@@ -112,13 +128,12 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
     // ========== Private Methods - Task Management ==========
     private List<Task> CreateLoadingTasks(MultiLoadingDialogContext context)
     {
-        using var scope = _serviceProvider.CreateScope();
         LoadingDialogs.Clear();
 
         var tasks = new List<Task>();
         foreach (var loadingContext in context.LoadingDialogContexts)
         {
-            var loadingViewModel = scope.ServiceProvider.GetRequiredService<LoadingDialogViewModel>();
+            var loadingViewModel = _dialogService.GetUnmanagedDialog<LoadingDialogViewModel>();
             tasks.Add(RunSingleTaskAsync(loadingViewModel, loadingContext));
             LoadingDialogs.Add(loadingViewModel);
         }
@@ -150,10 +165,9 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
     }
 
     // ========== Private Methods - Progress Updates ==========
-    private async Task OnTaskCompletedAsync()
-    {
+    private async Task OnTaskCompletedAsync() =>
         await Dispatcher.UIThread.InvokeAsync(IncrementCompletedCount);
-    }
+    
 
     private void IncrementCompletedCount()
     {
@@ -170,19 +184,5 @@ public partial class MultiLoadingDialogViewModel : DialogViewModel
         ProgressValue = _completedCount;
         Status = $"{_completedCount}/{_totalCount} tasks completed";
     }
-
-    // ========== Private Methods - Finalization ==========
-    private async Task FinalizeDialogAsync()
-    {
-        Results = LoadingDialogs.Select(vm => vm.Result).ToList();
-        await CloseDialogAsync();
-    }
-
-    private async Task CloseDialogAsync()
-    {
-        if (Dispatcher.UIThread.CheckAccess())
-            Close();
-        else
-            await Dispatcher.UIThread.InvokeAsync(Close);
-    }
+   
 }

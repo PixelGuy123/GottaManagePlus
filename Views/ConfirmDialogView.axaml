@@ -77,12 +77,12 @@
                         Content="{CompiledBinding CancelText, Mode=OneWay}"
                         Classes="DialogBtn DangerDialogBtn"
                         IsCancel="True"
-                        Command="{Binding Cancel}"/>
+                        Command="{Binding CancelCommand}"/>
                     <Button
                         IsDefault="True"
                         Content="{CompiledBinding ConfirmText, Mode=OneWay}"
                         Classes="DialogBtn GenericDialogBtn"
-                        Command="{Binding Confirm}"/>
+                        Command="{Binding ConfirmCommand}"/>
                 </StackPanel>
             </Grid>
         </Border>
