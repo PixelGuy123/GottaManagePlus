@@ -18,7 +18,7 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Threading;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;

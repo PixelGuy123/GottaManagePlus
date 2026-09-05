@@ -18,12 +18,12 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
+using System.Net.Http.Headers;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using GottaManagePlus.Interfaces.ProfileManagement;
-using GottaManagePlus.Models;
 using GottaManagePlus.Services;
 using GottaManagePlus.Services.APIServices;
 using GottaManagePlus.Services.ExplorerServices;
@@ -99,9 +99,9 @@ public partial class App
             client.BaseAddress = new Uri("https://gamebanana.com/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(
-                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json", 1.0d));
+                new MediaTypeWithQualityHeaderValue("application/json", 1.0d));
             client.DefaultRequestHeaders.Accept.Add(
-                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("images/*", 0.9d));
+                new MediaTypeWithQualityHeaderValue("images/*", 0.9d));
         });
         
         collection.AddScoped<GamebananaApiService>();

@@ -51,9 +51,9 @@ public class ProfileMetadata()
         // If true, exclude the lists
         if (excludeProfileContent) return;
 
-        ConfigurationFiles = new List<string>(toCopy.ConfigurationFiles);
-        PatcherFiles = new List<string>(toCopy.PatcherFiles);
-        ModDataFiles = new List<ModManifest>(toCopy.ModDataFiles);
+        ConfigurationFiles = [.. toCopy.ConfigurationFiles];
+        PatcherFiles = [.. toCopy.PatcherFiles];
+        ModDataFiles = [.. toCopy.ModDataFiles];
     }
     
     // [Basic Info]

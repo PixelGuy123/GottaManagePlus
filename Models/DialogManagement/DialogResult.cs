@@ -23,5 +23,6 @@ namespace GottaManagePlus.Models.DialogManagement;
 /// <summary>
 /// Represents an action by the user in any dialog that supports confirmation/cancellation.
 /// </summary>
-/// <param name="confirmedOrCanceled"></param>
-public record UserChoice(bool confirmedOrCanceled);
+/// <param name="Confirmed"><see langword="true"/> means the user has confirmed, otherwise <see langword="false"/>.</param>
+/// <param name="Result">Any result that is returned by the dialog.</param>
+public record DialogResult(bool Confirmed, object? Result = null);

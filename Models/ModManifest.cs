@@ -23,6 +23,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using GottaManagePlus.Utils.Collections;
+
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace GottaManagePlus.Models;

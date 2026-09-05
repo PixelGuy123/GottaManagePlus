@@ -143,13 +143,11 @@ public sealed class PatcherIndexManager(ILogger logger, GameEnvironmentControlle
             _logger.Information("Patcher '{Patcher}' counter reached {Count}, can be deleted", patcherFileName, count);
             return true; // Can delete the patcher file
         }
-        else
-        {
-            // Update counter
-            File.WriteAllText(indexFilePath, count.ToString());
-            _logger.Debug("Decremented patcher counter for '{Patcher}' to {Count}", patcherFileName, count);
-            return false; // Keep the patcher file
-        }
+
+        // Update counter
+        File.WriteAllText(indexFilePath, count.ToString());
+        _logger.Debug("Decremented patcher counter for '{Patcher}' to {Count}", patcherFileName, count);
+        return false; // Keep the patcher file
     }
 
     /// <summary>

@@ -20,7 +20,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 using Avalonia;
 using Avalonia.Platform.Storage;
-using GottaManagePlus.Models;
 
 namespace GottaManagePlus;
 

@@ -20,7 +20,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.ModManagement;
-using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
 using Serilog;

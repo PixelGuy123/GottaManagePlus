@@ -24,7 +24,6 @@ using GottaManagePlus.Utils;
 using Serilog;
 using SharpCompress.Common;
 using SharpCompress.Writers;
-
 using ProgressReport = GottaManagePlus.Models.ProgressReport; // Avoid ambiguity
 
 namespace GottaManagePlus.Services.ProfileServices.Writers;

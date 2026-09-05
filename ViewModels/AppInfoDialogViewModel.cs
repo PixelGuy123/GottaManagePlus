@@ -22,9 +22,9 @@ using GottaManagePlus.Models.DialogManagement;
 
 namespace GottaManagePlus.ViewModels;
 
-public partial class AppInfoDialogViewModel : DialogViewModel
+public class AppInfoDialogViewModel : DialogViewModel
 {
     // Does nothing currently
-    protected override async Task<object?> OnShow(DialogContext? context) =>
+    protected override async Task<DialogResult?> OnShow(DialogContext? context) =>
         await WaitForCompletionAsync();
 }

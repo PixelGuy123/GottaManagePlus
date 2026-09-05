@@ -18,8 +18,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using System.Collections;
-
 namespace GottaManagePlus.Utils;
 
 public static class CollectionUtils

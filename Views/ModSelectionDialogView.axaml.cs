@@ -18,15 +18,11 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using Avalonia;
-using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using GottaManagePlus.Models.UI;
 using GottaManagePlus.ViewModels;
 
 namespace GottaManagePlus.Views;

@@ -130,14 +130,14 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
     public void Confirm()
     {
         Confirmed = true;
-        Close();
+        Complete(true);
     }
     
     [RelayCommand]
     public void Cancel()
     {
         Confirmed = false;
-        Close();
+        Complete(false);
     }
 
     private void Validate()
@@ -163,23 +163,12 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
         return name.IndexOfAny(InvalidPathChars) < 0;
     }
     
-    // Setup method
-    /// <summary>
-    /// Set up the dialog with the following parameters:
-    /// <list type="number">
-    ///     <item><description><see cref="FilePicker"/> filesService</description></item>
-    ///     <item><description><see cref="IEnumerable{string}"/> Existing Profiles</description></item>
-    /// </list>
-    /// </summary>
-    /// <param name="args">The positional arguments as defined in the summary.</param>
-    protected override void Setup(params object?[]? args)
+    protected override async Task<DialogResult?> OnShow(DialogContext? context)
     {
+        var dialogContext = ExpectContext<CreateProfileDialogContext>(context);
         Confirmed = false;
-        
-        // _filesService
-        _filesService = GetValueOrException<FilePicker>(args, 0);
-        // _existingProfiles
-        ExistingProfiles = new ObservableCollection<string>(GetValueOrException<IEnumerable<string>>(args, 1));
+        _filesService = dialogContext.FilePicker;
+        ExistingProfiles = [.. dialogContext.ExistingProfiles];
         
         // Update profile name
         ProfileName = "My Profile";
@@ -189,5 +178,7 @@ public partial class CreateProfileDialogViewModel : DialogViewModel
             ProfileName = $"My Profile #{counter++}";
         
         Validate();
+        var result = await WaitForCompletionAsync();
+        return result with { Result = this };
     }
 }

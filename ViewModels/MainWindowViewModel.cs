@@ -18,17 +18,18 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-﻿using Avalonia.Controls;
+using System.Collections.ObjectModel;
+using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Factories;
 using GottaManagePlus.Interfaces;
-using GottaManagePlus.Services;
-using System.Collections.ObjectModel;
-using Avalonia.Threading;
 using GottaManagePlus.Interfaces.ProfileManagement;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Models.UI;
+using GottaManagePlus.Services;
 using GottaManagePlus.Services.ExplorerServices;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Services.ProfileServices;
@@ -154,10 +155,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         _profileRepository = profileRepository;
 
         // Cache on start
-        _dialogService.GetDialog<AppInfoDialogViewModel>();
 
         // Profile Update
-        ProfileMetadataCollection = new ObservableCollection<ProfileMetadata>(_profileRepository.GetAll());
+        ProfileMetadataCollection = [.. _profileRepository.GetAll()];
 
         // **** Settings Setup ****
         gameEnvironmentController.OnEnvironmentUpdate += (newEnvironment, _) =>
@@ -200,7 +200,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             {
                 // Update profile count
                 SelectedProfile = newProfile;
-                ProfileMetadataCollection = new ObservableCollection<ProfileMetadata>(_profileRepository.GetAll());
+                ProfileMetadataCollection = [.. _profileRepository.GetAll()];
 
                 // Update settings
                 _settingsService.Update(settings =>
@@ -219,11 +219,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         
         // Loading dialog for saving active profile
         if (!(_profileRepository.IsEmpty || // Or, if there are no profiles to save, skip this dialog
-              await _dialogService.GenerateBooleanLoadingProcess(
-                  "Failed to save the active profile!",
-                  null,
-                  "Saving current active profile...", null,
-                  (Delegate)_profileManager.SaveActiveProfile)))
+              await _dialogService.GenerateBooleanLoadingProcess("Saving current active profile...", null,
+                  _profileManager.SaveActiveProfile)))
         {
             // If the option is not available, just return true and close anyway.
             if (!promptCancelOption) return true;
@@ -234,10 +231,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         }
 
         // Then, one for saving settings
-        return promptCancelOption | await _dialogService.GenerateBooleanLoadingProcess(
-            !promptCancelOption ? null : "Failed to save the settings. You can try again.",
-            null,
-            "Saving settings...", null, (Delegate)_settingsService.SaveAsync
+        return promptCancelOption | await _dialogService.GenerateBooleanLoadingProcess("Saving settings...", null, (Delegate)_settingsService.SaveAsync
         );
     }
 
@@ -257,9 +251,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     /// </summary>
     private async Task RevealAboutSectionUi()
     {
-        var dialog = _dialogService.GetDialog<AppInfoDialogViewModel>();
-        dialog.Prepare();
-        await _dialogService.ShowDialog(dialog);
+        await _dialogService.ShowDialog<AppInfoDialogViewModel>(null);
     }
     
     /// <summary>
@@ -267,9 +259,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
     /// </summary>
     private async Task RevealLicenseUi()
     {
-        var dialog = _dialogService.GetDialog<LicenseDialogViewModel>();
-        dialog.Prepare();
-        await _dialogService.ShowDialog(dialog);
+        await _dialogService.ShowDialog<LicenseDialogViewModel>(null);
     }
 
     /// <summary>
@@ -290,11 +280,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         while (true)
         {
             // If the update fails, prompt the user a question.
-            if (!await _dialogService.GenerateBooleanLoadingProcess(
-                    null,
-                    null,
-                    "Profile Repository Update", "Updating Profile Repository...",
-                    (Delegate)_profileManager.UpdateProfileRepository,
+            if (!await _dialogService.GenerateBooleanLoadingProcess("Profile Repository Update", "Updating Profile Repository...",
+                    _profileManager.UpdateProfileRepository,
                     _settingsService.CurrentSettings.CurrentProfileSet,
                     updateProfileDataBeforeSwitch   
                 ))
@@ -329,22 +316,23 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                                 """;
         
         // If the snapshot returns true, there's a difference to be solved.
-        var result = await _dialogService.GenerateGenericLoadingProcess(
-                null,
-                null,
-                "Updating Environment", "Checking for snapshot differences...",
-                (Delegate)_gameEnvironmentController.UpdateEnvironmentSnapshot
-            );
+        var result = await _dialogService.ShowDialog<LoadingDialogViewModel>(
+            new LoadingDialogContext(
+                _gameEnvironmentController.UpdateEnvironmentSnapshot,
+                Title: "Updating Environment",
+                Status: "Checking for snapshot differences..."));
 
-        if (result.Result is not SnapshotChangeReport { HasChanges: true } report ||
+        if (result?.Result is not SnapshotChangeReport { HasChanges: true } report ||
             !raiseQuestionIfDifferencesDetected) return true;
         // Show the snapshot changes in a dialog with TreeDataGrid
         var logContainer = report.ToLogContainer();
-        var confirmViewModel = _dialogService.GetDialog<ConfirmDialogViewModel>();
-        confirmViewModel.Prepare(false, Constants.WarningDialog, question, "Adapt", "Ignore", null, logContainer);
-        await _dialogService.ShowDialog(confirmViewModel);
+        var context = new ConfirmDialogContext(
+            DialogServiceUtils.QuestionAnswerType.AdaptOrIgnore,
+            Constants.WarningDialog, question, logContainer: logContainer
+            );
+        var confirmResult = await _dialogService.ShowDialog<ConfirmDialogViewModel>(context);
             
-        return confirmViewModel.Confirmed; // True = Adapt, False = Ignore
+        return confirmResult?.Confirmed ?? false; // True = Adapt, False = Ignore
 
     }
 
@@ -358,11 +346,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 $"Export '{profile.Name}'?",
                 $"Are you sure you want to export '{profile.Name}'?")) return;
 
-        if (!await _dialogService.GenerateBooleanLoadingProcess(
-                failDialogDescription:
-                $"Failed to export the profile! If you're still having issues, try this:\n{Constants.CommonIssuesSolution}",
-                successDialogDescription: null,
-                "Profile Export", "Exporting profile...", (Delegate)_profileExportController.ExportProfile, profile
+        if (!await _dialogService.GenerateBooleanLoadingProcess("Profile Export", "Exporting profile...", _profileExportController.ExportProfile, profile
             ))
             return;
 
@@ -379,19 +363,19 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             return;
 
         // Attempts to delete the profile.
-        await _dialogService.GenerateBooleanLoadingProcess(
-            $"Failed to delete the profile '{profile.Name}'.",
-            $"Successfully deleted the profile '{profile.Name}'.",
-            "Deleting profile...", null, (Delegate)_profileDestructor.DeleteProfile, profile
+        await _dialogService.GenerateBooleanLoadingProcess("Deleting profile...", null, _profileDestructor.DeleteProfile, profile
         );
     }
 
     private async Task CreateProfileUiAsync()
     {
         // Create the dialog to make profiles.
-        var creatingPfDialog = _dialogService.GetDialog<CreateProfileDialogViewModel>();
-        creatingPfDialog.Prepare(_filePicker, ProfileMetadataCollection!.Select(p => p.Name));
-        await _dialogService.ShowDialog(creatingPfDialog);
+        var createResult = await _dialogService.ShowDialog<CreateProfileDialogViewModel>(
+            new CreateProfileDialogContext(
+                _filePicker,
+                ProfileMetadataCollection!.Select(p => p.Name)));
+        if (createResult?.Result is not CreateProfileDialogViewModel creatingPfDialog)
+            return;
 
         // If not confirmed, cancel.
         if (!creatingPfDialog.Confirmed) return;
@@ -401,10 +385,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
         {
             case 0: // Create New
             {
-                await _dialogService.GenerateBooleanLoadingProcess(
-                    "Failed to create the profile!",
-                    $"Created \'{creatingPfDialog.ProfileName}\' successfully!",
-                    "Creating new profile...", null, (Delegate)_profileCreator.CreateProfile,
+                await _dialogService.GenerateBooleanLoadingProcess("Creating new profile...", null, _profileCreator.CreateProfile,
                     new ProfileMetadata { Name = creatingPfDialog.ProfileName ?? "New Profile" });
                 break;
             }
@@ -419,19 +400,13 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
                 if (sourceProfile == null) return;
 
                 // Clone profile.
-                await _dialogService.GenerateBooleanLoadingProcess(
-                    "Failed to clone the profile!",
-                    $"Cloned to \'{creatingPfDialog.CloneProfileName}\' successfully!",
-                    "Cloning profile...", "Selecting profile and cloning it...",
+                await _dialogService.GenerateBooleanLoadingProcess("Cloning profile...", "Selecting profile and cloning it...",
                     (Delegate)_profileCloner.CloneProfile, sourceProfile, creatingPfDialog.CloneProfileName);
                 break;
             }
             case 2: // Import
             {
-                await _dialogService.GenerateBooleanLoadingProcess(
-                    "Failed to import the profile!",
-                    $"Imported \'{Path.GetFileName(creatingPfDialog.ProfileImportPath)}\' successfully!",
-                    "Importing profile...", "Selecting profile and importing it...",
+                await _dialogService.GenerateBooleanLoadingProcess("Importing profile...", "Selecting profile and importing it...",
                     (Delegate)_profileExportController.ExtractExportedProfile, creatingPfDialog.ProfileImportPath);
                 break;
             }
@@ -452,10 +427,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDialogProvider
             return;
 
         // Loading process
-        await _dialogService.GenerateBooleanLoadingProcess(
-            $"Failed to switch the profile \'{profile.Name}\' due to an unknown reason.\nIf this issue persists, you can try:\n{Constants.CommonIssuesSolution}",
-            $"Successfully switched to \'{profile.Name}\'.",
-            null, null, (Delegate)_profileManager.SetActiveProfile, profile
+        await _dialogService.GenerateBooleanLoadingProcess(null, null, _profileManager.SetActiveProfile, profile
         );
     }
 

@@ -26,6 +26,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 using GottaManagePlus.Services.APIServices;
@@ -162,22 +163,20 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
 
     #region Setup and Initialization
 
-    /// <summary>
-    /// Initializes the ViewModel with required services and loads the first page of mods.
-    /// </summary>
-    /// <param name="args">Expected: DialogService, GamebananaApiService, GameEnvironmentController.</param>
-    protected override void Setup(params object?[]? args)
+    protected override async Task<DialogResult?> OnShow(DialogContext? context)
     {
+        var dialogContext = ExpectContext<ModSelectionDialogContext>(context);
         try
         {
-            _dialogService = GetValueOrException<DialogService>(args, 0);
-            _gamebananaApiService = GetValueOrException<GamebananaApiService>(args, 1);
-            _gameEnvironmentController = GetValueOrException<GameEnvironmentController>(args, 2);
-            _modInstaller = GetValueOrException<ModInstaller>(args, 3);
+            _dialogService = dialogContext.DialogService;
+            _gamebananaApiService = dialogContext.GamebananaApiService;
+            _gameEnvironmentController = dialogContext.GameEnvironmentController;
+            _modInstaller = dialogContext.ModInstaller;
             _cancellationTokenForClosing = new CancellationTokenSource(); // Reset token cancellation
 
             // If the counter is not 1, then this is not the first time that this dialog loads.
-            if (_incrementalPageCounter != 1) return;
+            if (_incrementalPageCounter != 1)
+                return await WaitForCompletionAsync();
             
             Dispatcher.UIThread.Post(async void () =>
             {
@@ -201,6 +200,8 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         {
             Log.Logger.Error(e, "Found error during mod selection dialog setup.");
         }
+
+        return await WaitForCompletionAsync();
     }
 
     #endregion
@@ -271,7 +272,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
         // Populate again with dependencies.
         try
         {
-            if (EnqueuedModsToInstall.Any((modKvp) => modKvp.Key.Requirements.Count != 0))
+            if (EnqueuedModsToInstall.Any(modKvp => modKvp.Key.Requirements.Count != 0))
             {
                 async Task LoadDependencies(IProgress<ProgressReport>? progress)
                 {
@@ -309,8 +310,10 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 }
 
                 // Do a loading screen to display them
-                await _dialogService.GenerateGenericLoadingProcess(null, null,
-                    args: ["Loading dependencies", null, (Delegate)LoadDependencies]);
+                await _dialogService.ShowDialog<LoadingDialogViewModel>(
+                    new LoadingDialogContext(
+                        (Delegate)LoadDependencies,
+                        Title: "Loading dependencies"));
             }
         }
         catch (Exception e)
@@ -318,7 +321,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             Log.Logger.Error(e, "Failed to gather dependencies!");
         }
 
-        if (await _dialogService.PromptUserQuestion(
+        if (await ShowConfirmationAsync(
                 "Confirm Installation",
                 $"You are about to install {modsToInstall.Count} mod(s). Proceed?",
                 DialogServiceUtils.QuestionAnswerType.ProceedOrCancel,
@@ -336,23 +339,23 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                 installationLogContainer);
 
             // Execute all tasks concurrently using the multi-loading dialog.
-            var results = await _dialogService.GenerateBooleanMultiLoadingProcess(
-                failDialogDescription: null, // Let the dialog handle failure messages.
-                successDialogDescription: $"{modsToInstall.Count} mod(s) have been installed successfully.",
-                title: "Installing Mods",
-                status: null,
-                showResultScreen: false,
-                loadingViewModels);
+            var multiContext = new MultiLoadingDialogContext(
+                Title: "Installing Mods",
+                LoadingDialogContexts: loadingViewModels);
+            var multiResult = await _dialogService.ShowDialog<MultiLoadingDialogViewModel>(multiContext);
+            var results = multiResult?.Result as IEnumerable<object?> ?? [];
 
             // Check if any task failed.
-            var postInstallationMsg = results.Any(b => b == false)
+            var postInstallationMsg = results.Any(b => b is false)
                 ? "Some mods failed to install. Check the logs for details."
                 : "All mods installed successfully.";
             
-            await _dialogService.NotifyUser(
-                "Installation Completed",
-                postInstallationMsg,
-                container: installationLogContainer);
+            await _dialogService.ShowDialog<ConfirmDialogViewModel>(
+                new ConfirmDialogContext(
+                    Title: "Installation Completed",
+                    Message: postInstallationMsg,
+                    CancelText: null,
+                    LogContainer: installationLogContainer));
         }
     }
 
@@ -360,7 +363,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     public async Task CancelAsync()
     {
         // If the dialog can install, prompt user for an "are you sure" question.
-        if (EnqueuedModsToInstall.Count != 0 && !await _dialogService.PromptUserQuestion(
+        if (EnqueuedModsToInstall.Count != 0 && !await ShowConfirmationAsync(
                 "Cancel Installation",
                 "You have selected mods that will not be installed. Are you sure?"))
             return;
@@ -368,6 +371,17 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     }
 
     #endregion
+
+    private async Task<bool> ShowConfirmationAsync(
+        string title,
+        string message,
+        DialogServiceUtils.QuestionAnswerType answerType = DialogServiceUtils.QuestionAnswerType.YesOrNo,
+        LogContainer? logContainer = null)
+    {
+        var result = await _dialogService.ShowDialog<ConfirmDialogViewModel>(
+            new ConfirmDialogContext(answerType, title, message, logContainer: logContainer));
+        return result?.Confirmed ?? false;
+    }
 
     #region Public Methods
 
@@ -452,7 +466,7 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             List<IndexMod> toRetry;
             lock (_failedRecordsQueue)
             {
-                toRetry = new List<IndexMod>(_failedRecordsQueue);
+                toRetry = [.. _failedRecordsQueue];
                 _failedRecordsQueue.Clear();
             }
 
@@ -516,9 +530,13 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
             var index = result.Value!;
 
             // Start all record tasks in parallel.
-            conversionTasks = index.Records.Select(record =>
-                record.ToModItem(_gamebananaApiService, _gameEnvironmentController, _cancellationTokenForClosing.Token)
-            ).ToList();
+            conversionTasks =
+            [
+                .. index.Records.Select(record =>
+                    record.ToModItem(_gamebananaApiService, _gameEnvironmentController,
+                        _cancellationTokenForClosing.Token)
+                )
+            ];
 
             // Wait for the result of all tasks.
             tasks = conversionTasks.Select(t =>
@@ -611,57 +629,53 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
     private void ApplyFilterAndUpdateDisplay(FilterTypes filterType)
     {
         // Using LINQ, filter the collection
-        Mods = new ObservableCollection<ModItem>(filterType switch
-        {
-            FilterTypes.NameAscending =>
-                AllMods.OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase),
-            FilterTypes.NameDescending =>
-                AllMods.OrderByDescending(m => m.Name, StringComparer.OrdinalIgnoreCase),
-            FilterTypes.AuthorAscending =>
-                AllMods.OrderBy(m => m.Author, StringComparer.OrdinalIgnoreCase),
-            FilterTypes.AuthorDescending =>
-                AllMods.OrderByDescending(m => m.Author, StringComparer.OrdinalIgnoreCase),
-            FilterTypes.DateAddedAscending =>
-                AllMods.OrderBy(m => m.DateAdded),
-            FilterTypes.DateAddedDescending =>
-                AllMods.OrderByDescending(m => m.DateAdded),
-            FilterTypes.DateModifiedAscending =>
-                AllMods.OrderBy(m => m.DateModified),
-            FilterTypes.DateModifiedDescending =>
-                AllMods.OrderByDescending(m => m.DateModified),
-            FilterTypes.DateUpdatedAscending =>
-                AllMods.OrderBy(m => m.DateUpdated),
-            FilterTypes.DateUpdatedDescending =>
-                AllMods.OrderByDescending(m => m.DateUpdated),
-            FilterTypes.DownloadCountAscending =>
-                AllMods.OrderBy(m => m.DownloadCount ?? 0),
-            FilterTypes.DownloadCountDescending =>
-                AllMods.OrderByDescending(m => m.DownloadCount ?? 0),
-            FilterTypes.ViewCountAscending =>
-                AllMods.OrderBy(m => m.ViewCount ?? 0),
-            FilterTypes.ViewCountDescending =>
-                AllMods.OrderByDescending(m => m.ViewCount ?? 0),
-            _ => AllMods   // FilterTypes.None -> preserve original insertion order
-        });
+        Mods =
+        [
+            .. filterType switch
+            {
+                FilterTypes.NameAscending =>
+                    AllMods.OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase),
+                FilterTypes.NameDescending =>
+                    AllMods.OrderByDescending(m => m.Name, StringComparer.OrdinalIgnoreCase),
+                FilterTypes.AuthorAscending =>
+                    AllMods.OrderBy(m => m.Author, StringComparer.OrdinalIgnoreCase),
+                FilterTypes.AuthorDescending =>
+                    AllMods.OrderByDescending(m => m.Author, StringComparer.OrdinalIgnoreCase),
+                FilterTypes.DateAddedAscending =>
+                    AllMods.OrderBy(m => m.DateAdded),
+                FilterTypes.DateAddedDescending =>
+                    AllMods.OrderByDescending(m => m.DateAdded),
+                FilterTypes.DateModifiedAscending =>
+                    AllMods.OrderBy(m => m.DateModified),
+                FilterTypes.DateModifiedDescending =>
+                    AllMods.OrderByDescending(m => m.DateModified),
+                FilterTypes.DateUpdatedAscending =>
+                    AllMods.OrderBy(m => m.DateUpdated),
+                FilterTypes.DateUpdatedDescending =>
+                    AllMods.OrderByDescending(m => m.DateUpdated),
+                FilterTypes.DownloadCountAscending =>
+                    AllMods.OrderBy(m => m.DownloadCount ?? 0),
+                FilterTypes.DownloadCountDescending =>
+                    AllMods.OrderByDescending(m => m.DownloadCount ?? 0),
+                FilterTypes.ViewCountAscending =>
+                    AllMods.OrderBy(m => m.ViewCount ?? 0),
+                FilterTypes.ViewCountDescending =>
+                    AllMods.OrderByDescending(m => m.ViewCount ?? 0),
+                _ => AllMods.AsEnumerable() // FilterTypes.None -> preserve original insertion order
+            }
+        ];
     }
 
     // Creates installation tasks for InstallAsync
-    private LoadingDialogViewModel[] CreateInstallationTasks(
+    private LoadingDialogContext[] CreateInstallationTasks(
         IEnumerable<(ModItem, ModItem.ModFile)> modsToInstall,
         LogContainer logContainer)
     {
-        var tasks = new List<LoadingDialogViewModel>();
+        var tasks = new List<LoadingDialogContext>();
 
         foreach (var (mod, file) in modsToInstall)
         {
-            // Create a LoadingDialogViewModel for this specific mod.
-            var loadingVm = _dialogService.GetDialog<LoadingDialogViewModel>();
-
-            // Prepare the loading dialog with a title, status, and a delegate that installs the mod.
-            // The delegate must accept IProgress<ProgressReport> and CancellationToken.
-            loadingVm.Prepare(
-                $"Installing '{mod.Name}'",
-                "Downloading and installing...",
+            var loadingContext = new LoadingDialogContext(
                 new Func<IProgress<ProgressReport>, CancellationToken, Task<bool>>(
                     async (progress, ct) =>
                     {
@@ -734,10 +748,11 @@ public partial class ModSelectionDialogViewModel : DialogViewModel
                             return false;
                         }
                     }
-                )
-            );
+                ),
+                Title: $"Installing '{mod.Name}'",
+                Status: "Downloading and installing...");
 
-            tasks.Add(loadingVm);
+            tasks.Add(loadingContext);
         }
 
         return [.. tasks];

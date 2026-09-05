@@ -18,8 +18,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 
 namespace GottaManagePlus.Models.UI;

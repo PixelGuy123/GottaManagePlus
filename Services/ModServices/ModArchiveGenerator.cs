@@ -18,14 +18,14 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using Serilog;
-using SharpCompress.Writers;
-using SharpCompress.Common;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
 using GottaManagePlus.Models;
 using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
+using Serilog;
+using SharpCompress.Common;
+using SharpCompress.Writers;
 using ModManifestContext = GottaManagePlus.Utils.SourceGenerators.ModManifestContext;
 using ProgressReport = GottaManagePlus.Models.ProgressReport;
 

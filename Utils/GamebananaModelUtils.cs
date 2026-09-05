@@ -18,7 +18,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services.APIServices;
 using GottaManagePlus.Services.GameEnvironmentServices;
@@ -267,7 +266,7 @@ public static class GamebananaModelUtils
             
             // If the URL is not gamebanana, add an arbitrary mod item
             // with a label and a null dependency.
-            var fakeModItem = new ModItem() { Name = name };
+            var fakeModItem = new ModItem { Name = name };
             dependencies[fakeModItem] = null;
         }
         

@@ -35,13 +35,14 @@ public class TemporaryDirectoryInfo(DirectoryInfo directoryInfo, ILogger? logger
     /// The active directory info.
     /// </summary>
     public DirectoryInfo DirectoryInfo { get; } = directoryInfo;
-    
+
     public void Dispose()
     {
         try
         {
             _logger?.Information("Cleaning up temporary directory '{dir}'.", DirectoryInfo.FullName);
             if (DirectoryInfo.Exists) DirectoryInfo.Delete();
+            GC.SuppressFinalize(this);
         }
         catch { /* Suppress */ }
     }

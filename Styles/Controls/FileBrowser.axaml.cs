@@ -20,10 +20,9 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 using System.Windows.Input;
 using Avalonia;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
-using Avalonia.Input;
 using Avalonia.Media;
 
 namespace GottaManagePlus.Styles.Controls;

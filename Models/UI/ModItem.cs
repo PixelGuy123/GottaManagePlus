@@ -249,8 +249,10 @@ public partial class ModItem : ObservableObject, IDisposable
                 envValidFiles.Add(file);
         }
 
-        AllEnvironmentallyValidFiles = new ObservableCollection<ModFile>(
-            envValidFiles.OrderBy(f => System.Version.TryParse(f.Version, out var v) ? v : new Version("0.0.0")));
+        AllEnvironmentallyValidFiles =
+        [
+            .. envValidFiles.OrderBy(f => System.Version.TryParse(f.Version, out var v) ? v : new Version("0.0.0"))
+        ];
     }
 
     public override bool Equals(object? obj) =>
@@ -313,14 +315,20 @@ public partial class ModItem : ObservableObject, IDisposable
         item.HasTodos = root.TryGetProperty("_bHasTodos", out var hasTodos) && hasTodos.GetBoolean();
         item.PostCount = root.TryGetProperty("_nPostCount", out var posts) ? posts.GetInt32() : 0;
         item.Tags = root.TryGetProperty("_aTags", out var tags) && tags.ValueKind == JsonValueKind.Array
-            ? tags.EnumerateArray()
-                .Select(tagElem => new ModTag
-                {
-                    Title = tagElem.TryGetProperty("_sTitle", out var title) ? title.GetString() ?? string.Empty : string.Empty,
-                    Value = tagElem.TryGetProperty("_sValue", out var value) ? value.GetString() ?? string.Empty : string.Empty
-                })
-                .Where(tag => !string.IsNullOrEmpty(tag.Title) || !string.IsNullOrEmpty(tag.Value))
-                .ToList()
+            ?
+            [
+                .. tags.EnumerateArray()
+                    .Select(tagElem => new ModTag
+                    {
+                        Title = tagElem.TryGetProperty("_sTitle", out var title)
+                            ? title.GetString() ?? string.Empty
+                            : string.Empty,
+                        Value = tagElem.TryGetProperty("_sValue", out var value)
+                            ? value.GetString() ?? string.Empty
+                            : string.Empty
+                    })
+                    .Where(tag => !string.IsNullOrEmpty(tag.Title) || !string.IsNullOrEmpty(tag.Value))
+            ]
             : [];
         item.ThanksCount = root.TryGetProperty("_nThanksCount", out var thanks) ? thanks.GetInt32() : 0;
         item.InitialVisibility = root.TryGetProperty("_sInitialVisibility", out var vis)
@@ -583,7 +591,7 @@ public partial class ModItem : ObservableObject, IDisposable
             {
                 ToolId = el.TryGetProperty("_idToolRow", out var tool) ? tool.GetInt32() : 0,
                 GameIds = el.TryGetProperty("_aGameRowIds", out var gameIds)
-                    ? gameIds.EnumerateArray().Select(g => g.GetInt32()).ToList()
+                    ? [.. gameIds.EnumerateArray().Select(g => g.GetInt32())]
                     : [],
                 ModManagerAlias = el.TryGetProperty("_sModManagerAlias", out var alias)
                     ? alias.GetString() ?? string.Empty

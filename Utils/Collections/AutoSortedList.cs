@@ -57,7 +57,7 @@ public class AutoSortedList<T> : IList<T>
     /// </summary>
     /// <param name="list">The list to be wrapped up.</param>
     /// <returns>A new instance of <see cref="AutoSortedList{T}"/>.</returns>
-    public static implicit operator AutoSortedList<T>(List<T> list) => new(list);
+    public static implicit operator AutoSortedList<T>(List<T> list) => [.. list];
 
     // --- Private Methods ---
 

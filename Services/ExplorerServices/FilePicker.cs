@@ -18,7 +18,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Serilog;
 
@@ -93,7 +92,7 @@ public class FilePicker(ILogger logger, ApplicationManager applicationManager)
         IStorageFile? fileSaved = null;
         await _applicationManager.FreezeWindowAsync(async () =>
         {
-            fileSaved = await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions()
+            fileSaved = await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
                 Title = title,
                 SuggestedStartLocation = folder,

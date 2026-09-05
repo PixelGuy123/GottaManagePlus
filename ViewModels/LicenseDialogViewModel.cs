@@ -19,14 +19,11 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 */
 
 using Avalonia.Controls;
-using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models.DialogManagement;
-using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
 using GottaManagePlus.Services.ExplorerServices;
-using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.ViewModels;
 
@@ -52,6 +49,8 @@ public partial class LicenseDialogViewModel(FileLauncher fileLauncher, DialogSer
     [RelayCommand]
     public async Task OpenLicense()
     {
+        // TODO: Finish this method.
+
         if (!await _fileLauncher.TryLaunchFileInfo(new FileInfo(Constants.LicensePath)))
         {
             var context = new ConfirmDialogContext(
@@ -63,6 +62,6 @@ public partial class LicenseDialogViewModel(FileLauncher fileLauncher, DialogSer
         }
     }
 
-    protected override async Task<object?> OnShow(DialogContext? context) =>
+    protected override async Task<DialogResult?> OnShow(DialogContext? context) =>
         await WaitForCompletionAsync();
 }

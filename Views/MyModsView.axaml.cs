@@ -19,14 +19,10 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 */
 
 using System.ComponentModel;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using GottaManagePlus.Models;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.ViewModels;
 

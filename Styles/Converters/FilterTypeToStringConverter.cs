@@ -18,7 +18,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using GottaManagePlus.ViewModels;

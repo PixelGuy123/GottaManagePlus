@@ -18,7 +18,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace GottaManagePlus.Models;

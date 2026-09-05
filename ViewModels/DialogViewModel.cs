@@ -31,9 +31,9 @@ public abstract partial class DialogViewModel : ViewModelBase
     protected DialogViewModel()
     {
         ConfirmCommand = new RelayCommand(() => 
-            _completionSource?.TrySetResult(new UserChoice(confirmedOrCanceled: true)));
+            _completionSource?.TrySetResult(new DialogResult(Confirmed: true)));
         CancelCommand = new RelayCommand(() => 
-            _completionSource?.TrySetResult(new UserChoice(confirmedOrCanceled: false)));
+            _completionSource?.TrySetResult(new DialogResult(Confirmed: false)));
     }
 
     #endregion
@@ -47,7 +47,7 @@ public abstract partial class DialogViewModel : ViewModelBase
 
     #region Private Fields
 
-    private TaskCompletionSource<UserChoice>? _completionSource;
+    private TaskCompletionSource<DialogResult>? _completionSource;
 
     #endregion
     
@@ -60,22 +60,37 @@ public abstract partial class DialogViewModel : ViewModelBase
 
     #region Public Methods
 
-    public async Task<object?> Show(DialogContext? context)
+    public async Task<DialogResult?> Show(DialogContext? context)
     {
         if (IsDialogOpen)
             return null;
 
         IsDialogOpen = true;
-        var result = await OnShow(context);
-        IsDialogOpen = false;
-        return result;
+        try
+        {
+            return await OnShow(context);
+        }
+        finally
+        {
+            IsDialogOpen = false;
+            OnClose();
+        }
     }
 
     #endregion
 
     #region Protected Abstract Methods
 
-    protected abstract Task<object?> OnShow(DialogContext? context);
+    protected abstract Task<DialogResult?> OnShow(DialogContext? context);
+
+    protected virtual void OnClose()
+    {
+    }
+
+    protected void Complete(bool confirmed) =>
+        _completionSource?.TrySetResult(new DialogResult(confirmed));
+
+    protected void Close() => Complete(false);
     
     protected static T ExpectContext<T>(DialogContext? context) where T : DialogContext
     {
@@ -103,9 +118,9 @@ public abstract partial class DialogViewModel : ViewModelBase
     /// Returns a task that completes when a user action is done.
     /// Typical usage: await this inside <see cref="OnShow"/>.
     /// </summary>
-    protected Task<UserChoice> WaitForCompletionAsync()
+    protected Task<DialogResult> WaitForCompletionAsync()
     {
-        _completionSource = new TaskCompletionSource<UserChoice>();
+        _completionSource = new TaskCompletionSource<DialogResult>();
         return _completionSource.Task;
     }
 

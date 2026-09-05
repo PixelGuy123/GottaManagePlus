@@ -57,7 +57,7 @@ public class LogTreeNode
     /// <summary>
     /// Child nodes (for hierarchical display).
     /// </summary>
-    public ObservableCollection<LogTreeNode> Children { get; } = new();
+    public ObservableCollection<LogTreeNode> Children { get; } = [];
 
     /// <summary>
     /// Creates a category header node.
@@ -95,7 +95,7 @@ public class LogTreeNode
     /// <summary>
     /// The count of logs in a category (used for category headers only).
     /// </summary>
-    public int Count { get; } = 0;
+    public int Count { get; }
 
     /// <summary>
     /// Generates the display text for this node based on its type.
@@ -108,9 +108,9 @@ public class LogTreeNode
         {
             var typeName = LogType.Value switch
             {
-                GottaManagePlus.Models.UI.LogType.Warning => "Warnings",
-                GottaManagePlus.Models.UI.LogType.Error => "Errors",
-                GottaManagePlus.Models.UI.LogType.Information => "Information",
+                UI.LogType.Warning => "Warnings",
+                UI.LogType.Error => "Errors",
+                UI.LogType.Information => "Information",
                 _ => "Unknown"
             };
             return $"({Count}) {typeName}";
@@ -121,9 +121,9 @@ public class LogTreeNode
         {
             var prefix = LogType!.Value switch
             {
-                GottaManagePlus.Models.UI.LogType.Warning => "(WARNING)",
-                GottaManagePlus.Models.UI.LogType.Error => "(ERROR)",
-                GottaManagePlus.Models.UI.LogType.Information => "(INFO)",
+                UI.LogType.Warning => "(WARNING)",
+                UI.LogType.Error => "(ERROR)",
+                UI.LogType.Information => "(INFO)",
                 _ => "(UNKNOWN)"
             };
             return $"{prefix} {Title}";

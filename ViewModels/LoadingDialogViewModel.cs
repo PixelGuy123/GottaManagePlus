@@ -22,11 +22,9 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models;
 using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Models.ModManagement;
-using GottaManagePlus.Models.UI;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
@@ -141,6 +139,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 case Task<bool> boolTask:
                 {
                     var success = await boolTask;
+                    Result = success;
                     cancellationDone = _cts.IsCancellationRequested;
                     return success && !cancellationDone;
                 }
@@ -148,9 +147,11 @@ public partial class LoadingDialogViewModel : DialogViewModel
                 // Check for a default task
                 case Task task:
                     await task;
+                    Result = task.GetType().GetProperty("Result")?.GetValue(task);
                     cancellationDone = _cts.IsCancellationRequested;
                     return !cancellationDone;
                 default:
+                    Result = result;
                     return true;
             }
         }
@@ -168,7 +169,6 @@ public partial class LoadingDialogViewModel : DialogViewModel
             if (Progress != null)
                 Progress.ProgressChanged -= OnProgressChanged;
             
-            Close();
         }
     }
 
@@ -184,36 +184,7 @@ public partial class LoadingDialogViewModel : DialogViewModel
     [RelayCommand]
     public void Cancel() => _cts.Cancel();
 
-    /// <summary>
-    /// Set up the dialog with the following parameters:
-    /// <list type="number">
-    ///     <item><description><see cref="string"/> Title (optional)</description></item>
-    ///     <item><description><see cref="string"/> Status (optional)</description></item>
-    ///     <item><description><see cref="Delegate"/> loadingFunc</description></item>
-    ///     <item><description><see cref="object"/>[] args (Optional)</description></item>
-    /// </list>
-    /// </summary>
-    /// <param name="args">The positional arguments as defined in the summary.</param>
-    protected override void Setup(params object?[]? args)
-    {
-        // Throw if null, since there are two required arguments afterward
-        ArgumentNullException.ThrowIfNull(args);
-        
-       
-
-       
-
-        
-
-        if (!HideProgressBar) // If there's progress bar, there's progress instance
-            Progress = new Progress<ProgressReport>();
-
-        // Update UI Elements
-        Title = TryGetValue(args, 0, out string? text) ? text : "Loading...";
-        Status = TryGetValue(args, 1, out text) ? text : "Loading...";
-    }
-
-    protected override async Task<object?> OnShow(DialogContext? context)
+    protected override async Task<DialogResult?> OnShow(DialogContext? context)
     {
         if (context is not LoadingDialogContext loadingContext) return null;
         
@@ -246,5 +217,13 @@ public partial class LoadingDialogViewModel : DialogViewModel
         // Dynamic UI State Detection
         AllowCancellation = parameters.Any(p => p.ParameterType == typeof(CancellationToken) || p.ParameterType == typeof(CancellationToken?));
         HideProgressBar = !parameters.Any(p => typeof(IProgress<ProgressReport>).IsAssignableFrom(p.ParameterType));
+
+        Title = loadingContext.Title ?? "Loading...";
+        Status = loadingContext.Status ?? "Loading...";
+        if (!HideProgressBar)
+            Progress = new Progress<ProgressReport>();
+
+        var success = await StartTask();
+        return new DialogResult(success, Result);
     }
 }

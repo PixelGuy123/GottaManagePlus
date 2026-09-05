@@ -24,7 +24,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Services;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace GottaManagePlus.ViewModels;
@@ -66,7 +65,7 @@ public partial class MultiLoadingDialogViewModel(DialogService dialogService) : 
     }
 
     // ========== Dialog Lifecycle ==========
-    protected override async Task<object?> OnShow(DialogContext? context)
+    protected override async Task<DialogResult?> OnShow(DialogContext? context)
     {
         if (context is not MultiLoadingDialogContext multiContext) return null;
 
@@ -79,10 +78,10 @@ public partial class MultiLoadingDialogViewModel(DialogService dialogService) : 
         }
         finally
         {
-            Results = LoadingDialogs.Select(vm => vm.Result).ToList();
+            Results = [.. LoadingDialogs.Select(vm => vm.Result)];
         }
 
-        return null;
+        return new DialogResult(true, Results);
     }
 
     // ========== Private Methods - Initialization ==========

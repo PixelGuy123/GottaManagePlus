@@ -52,7 +52,7 @@ public sealed class GameEnvironmentSnapshotReader(ILogger logger) : IGameEnviron
             _logger.Information("Snapshot loaded from {Path} (taken at {Time})", indexFilePath, snapshot?.CreationTimeUtc);
             return snapshot;
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             _logger.Error(ex, "Failed to read snapshot from {Path}", indexFilePath);
             return null;

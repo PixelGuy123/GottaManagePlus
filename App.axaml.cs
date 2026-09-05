@@ -21,7 +21,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using GottaManagePlus.Services;
 using GottaManagePlus.ViewModels;

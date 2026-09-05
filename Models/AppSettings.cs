@@ -48,5 +48,5 @@ public class AppSettings
             settings.Theme,
             settings.CancelOnSecurityIssues) 
         { }
-    };
+    }
 }

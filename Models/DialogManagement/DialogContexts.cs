@@ -18,17 +18,21 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using Avalonia.Controls;
 using Avalonia.Media;
-using GottaManagePlus.Models.GameEnvironments;
 using GottaManagePlus.Models.UI;
+using GottaManagePlus.Services;
+using GottaManagePlus.Services.APIServices;
+using GottaManagePlus.Services.ExplorerServices;
+using GottaManagePlus.Services.GameEnvironmentServices;
+using GottaManagePlus.Services.ModServices;
+using GottaManagePlus.Utils;
 
 namespace GottaManagePlus.Models.DialogManagement;
 
 /// <summary>
 /// Base record for all dialog contexts. Provides a common type for dialog parameter passing.
 /// </summary>
-public abstract record DialogContext();
+public abstract record DialogContext;
 
 /// <summary>
 /// Context for dialogs that display a title.
@@ -59,17 +63,6 @@ public record ConfirmDialogContext(
 ) : TitleMessageContext(Title, Message)
 {
     /// <summary>
-    /// The type of answers a prompted user can respond.
-    /// </summary>
-    public enum QuestionAnswerType
-    {
-        YesOrNo = 0,
-        AllowOrDisallow,
-        ProceedOrCancel,
-        AdaptOrIgnore
-    }
-
-    /// <summary>
     /// Creates a confirmation dialog with only a confirm button using a predefined answer type.
     /// </summary>
     /// <param name="answerType">The type of confirmation button to display.</param>
@@ -78,7 +71,7 @@ public record ConfirmDialogContext(
     /// <param name="descriptionAlignment">Text alignment for the description.</param>
     /// <param name="logContainer">Optional log container for displaying categorized logs.</param>
     public ConfirmDialogContext(
-        QuestionAnswerType answerType,
+        DialogServiceUtils.QuestionAnswerType answerType,
         string? title = null,
         string? message = null,
         TextAlignment descriptionAlignment = TextAlignment.Center,
@@ -89,16 +82,16 @@ public record ConfirmDialogContext(
 
     // ---- Private -----
     /// <summary>
-    /// Converts a <see cref="QuestionAnswerType"/> to its <see langword="string"/> form.
+    /// Converts a <see cref="DialogServiceUtils.QuestionAnswerType"/> to its <see langword="string"/> form.
     /// </summary>
     /// <param name="answerType">The answer type for conversion.</param>
     /// <returns>A <see cref="Tuple{string, string}"/> for a <c>Yes</c> and a <c>No</c>.</returns>
-    private static (string Yes, string No) AnswerToString(QuestionAnswerType answerType) => answerType switch
+    private static (string Yes, string No) AnswerToString(DialogServiceUtils.QuestionAnswerType answerType) => answerType switch
     {
-        QuestionAnswerType.YesOrNo => ("Yes", "No"), // TODO: Here needs localization
-        QuestionAnswerType.AllowOrDisallow => ("Allow", "Disallow"),
-        QuestionAnswerType.ProceedOrCancel => ("Proceed", "Cancel"),
-        QuestionAnswerType.AdaptOrIgnore => ("Adapt", "Ignore"),
+        DialogServiceUtils.QuestionAnswerType.YesOrNo => ("Yes", "No"), // TODO: Here needs localization
+        DialogServiceUtils.QuestionAnswerType.AllowOrDisallow => ("Allow", "Disallow"),
+        DialogServiceUtils.QuestionAnswerType.ProceedOrCancel => ("Proceed", "Cancel"),
+        DialogServiceUtils.QuestionAnswerType.AdaptOrIgnore => ("Adapt", "Ignore"),
         _ => ("Yes", "No")
     };
 }
@@ -134,7 +127,7 @@ public record MultiLoadingDialogContext(
 /// <param name="FilePicker">The file picker service for browsing files.</param>
 /// <param name="ExistingProfiles">Collection of existing profile names.</param>
 public record CreateProfileDialogContext(
-    Services.ExplorerServices.FilePicker FilePicker,
+    FilePicker FilePicker,
     IEnumerable<string> ExistingProfiles
 ) : DialogContext;
 
@@ -146,10 +139,10 @@ public record CreateProfileDialogContext(
 /// <param name="GameEnvironmentController">The game environment controller.</param>
 /// <param name="ModInstaller">The mod installer service.</param>
 public record ModSelectionDialogContext(
-    Services.DialogService DialogService,
-    Services.APIServices.GamebananaApiService GamebananaApiService,
-    Services.GameEnvironmentServices.GameEnvironmentController GameEnvironmentController,
-    Services.ModServices.ModInstaller ModInstaller
+    DialogService DialogService,
+    GamebananaApiService GamebananaApiService,
+    GameEnvironmentController GameEnvironmentController,
+    ModInstaller ModInstaller
 ) : DialogContext;
 
 /// <summary>
@@ -163,7 +156,7 @@ public record ModSelectionDialogContext(
 public record PreviewProfileDialogContext(
     ProfileMetadata Profile,
     bool AllowProfileDeletion = false,
-    Services.ExplorerServices.DirectoryLauncher? DirectoryLauncher = null,
-    Services.DialogService? DialogService = null,
-    Services.GameEnvironmentServices.GameEnvironmentController? GameEnvironmentController = null
+    DirectoryLauncher? DirectoryLauncher = null,
+    DialogService? DialogService = null,
+    GameEnvironmentController? GameEnvironmentController = null
 ) : DialogContext;

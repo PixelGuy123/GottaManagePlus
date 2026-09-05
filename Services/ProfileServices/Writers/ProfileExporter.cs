@@ -23,7 +23,6 @@ using GottaManagePlus.Services.GameEnvironmentServices;
 using GottaManagePlus.Utils;
 using Serilog;
 using SharpCompress.Common;
-using SharpCompress.Compressors.Deflate;
 using SharpCompress.Writers;
 
 namespace GottaManagePlus.Services.ProfileServices.Writers;

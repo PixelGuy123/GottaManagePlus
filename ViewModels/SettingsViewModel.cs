@@ -18,7 +18,7 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -62,7 +62,7 @@ public partial class SettingsViewModel : PageViewModel
     internal void DisplayGameFolderRequirementFolder()
     {
         // Display the warning dialog to remind the user
-        Dispatcher.UIThread.InvokeAsync(async () =>
+        Dispatcher.UIThread.InvokeAsync<Task>(async () =>
         {
             await _dialogService.NotifyUser(Constants.WarningDialog, """
                                                                      The Baldi's Basics Plus (BB+) folder is not set.
@@ -174,14 +174,7 @@ public partial class SettingsViewModel : PageViewModel
         });
         
         // Saving dialog
-        await _dialogService.GenerateBooleanLoadingProcess(
-            $"""
-             Failed to save the settings. You can try again.
-             If it doesn't work, you can try:
-             {Constants.CommonIssuesSolution}
-             """,
-            null,
-            "Saving settings...", "Saving...", (Delegate)_settingsService.SaveAsync);
+        await _dialogService.GenerateBooleanLoadingProcess("Saving settings...", "Saving...", (Delegate)_settingsService.SaveAsync);
         
         // Quit if necessary dialog
         if (CurrentSaveState.HasChangesThatRequiresRestart(previousSettings) && await _dialogService.PromptUserQuestion("Restart Required", "To see the changes, you'll need to restart the application.\nYou can still use the mod manager normally.", DialogServiceUtils.QuestionAnswerType.ProceedOrCancel))

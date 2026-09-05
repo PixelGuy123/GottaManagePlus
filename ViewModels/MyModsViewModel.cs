@@ -18,13 +18,14 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models;
+using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Models.ModManagement;
 using GottaManagePlus.Models.UI;
 using GottaManagePlus.Services;
@@ -121,9 +122,12 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     [RelayCommand]
     public async Task OpenGamebananaModSelector()
     {
-        var selectModDialog = _dialogService.GetDialog<ModSelectionDialogViewModel>();
-        selectModDialog.Prepare(_dialogService, _gamebananaApiService, _gameEnvironmentController, _modInstaller);
-        await _dialogService.ShowDialog(selectModDialog);
+        await _dialogService.ShowDialog<ModSelectionDialogViewModel>(
+            new ModSelectionDialogContext(
+                _dialogService,
+                _gamebananaApiService,
+                _gameEnvironmentController,
+                _modInstaller));
     }
 
     [RelayCommand]
@@ -192,7 +196,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                     // ReSharper enable StringLiteralTypo
             }
         ]);
-        ObservableMods = new ObservableCollection<ObservableModManifest>(ObservableUnchangedMods);
+        ObservableMods = [.. ObservableUnchangedMods];
         ManifestInPreview = ObservableUnchangedMods[1];
     }
 
@@ -250,15 +254,19 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
     {
         if (highlightedItem != null)
         {
-            ObservableMods = new ObservableCollection<ObservableModManifest>(
-                ObservableUnchangedMods.OrderByDescending(mod =>
-                    highlightedItem.Name.ManyStartWith(mod.InnerManifest.Name)));
+            ObservableMods =
+            [
+
+                .. ObservableUnchangedMods.OrderByDescending(mod =>
+                    highlightedItem.Name.ManyStartWith(mod.InnerManifest.Name))
+            ];
             return;
         }
 
         ObservableMods =
-            new ObservableCollection<ObservableModManifest>(
-                ObservableUnchangedMods.OrderBy(mod => mod.InnerManifest.Name));
+        [
+            .. ObservableUnchangedMods.OrderBy(mod => mod.InnerManifest.Name)
+        ];
     }
 
     private void ResetListVisibleConfigurations()
@@ -323,10 +331,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                     Path.GetFileNameWithoutExtension(dllFile) + ".bin");
 
                 // Now, actually wrap the files in a temporary zip file.
-                if (!await _dialogService.GenerateBooleanLoadingProcess(
-                        "Failed to generate an archive for the mod!",
-                        null,
-                        "Generating Archive for Plugin",
+                if (!await _dialogService.GenerateBooleanLoadingProcess("Generating Archive for Plugin",
                         null,
                         (Delegate)_archiveGenerator.GenerateArchive,
                         new[] { dllFile },
@@ -358,14 +363,11 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             }
 
             // Install archive generated here.
-            var result = (await _dialogService.GenerateGenericLoadingProcess(
+            var result = (await _dialogService.GenerateGenericLoadingProcess("Installing Mod",
                 null,
-                null,
-                "Installing Mod",
-                null,
-                (Delegate)_modInstaller.InstallModArchiveAsync,
+                _modInstaller.InstallModArchiveAsync,
                 archiveToInstall
-            )).Result;
+            ))?.Result;
 
             if (result is ModInstallationResult installationResult)
             {
@@ -396,10 +398,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
                     FillUpAllMods(_profileManager.ActiveProfile?.ModDataFiles);
                     
                     // Save profile first.
-                    await _dialogService.GenerateBooleanLoadingProcess(
-                        null,
-                        null,
-                        "Saving Profile",
+                    await _dialogService.GenerateBooleanLoadingProcess("Saving Profile",
                         null,
                         (Delegate)_profileManager.SaveActiveProfile);
                     
@@ -445,10 +444,7 @@ public partial class MyModsViewModel : PageViewModel, IDisposable
             }
         }
 
-        await _dialogService.GenerateBooleanLoadingProcess(
-            $"Failed to save the changes. If this issue persists, try:\n{Constants.CommonIssuesSolution}",
-            null,
-            "Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);
+        await _dialogService.GenerateBooleanLoadingProcess("Saving changes...", null, (Delegate)_profileManager.SaveActiveProfile);
     }
 
     private async Task OpenModAssetsPathUiAsync(ModManifest mod)

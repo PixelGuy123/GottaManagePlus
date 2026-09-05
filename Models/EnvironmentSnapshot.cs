@@ -21,6 +21,7 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 using ByteSizeLib;
 using GottaManagePlus.Interfaces.GameEnvironment;
 using Tomlyn.Serialization;
+
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace GottaManagePlus.Models;
@@ -88,7 +89,7 @@ public class EnvironmentSnapshot : IEquatable<EnvironmentSnapshot>
             return HashCode.Combine(RelativePath, LastWriteTimeUtc, SizeBytes);
         }
 
-        public static bool operator ==(SnapshotFileEntry? left, SnapshotFileEntry? right) => EqualityComparer<SnapshotFileEntry>.Equals(left, right);
+        public static bool operator ==(SnapshotFileEntry? left, SnapshotFileEntry? right) => Equals(left, right);
         public static bool operator !=(SnapshotFileEntry? left, SnapshotFileEntry? right) => !(left == right);
 
         public bool Equals(SnapshotFileEntry other) => RelativePath == other.RelativePath && LastWriteTimeUtc.Equals(other.LastWriteTimeUtc) && SizeBytes == other.SizeBytes;

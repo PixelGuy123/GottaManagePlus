@@ -20,6 +20,8 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 using GottaManagePlus.Interfaces;
 using GottaManagePlus.Models.DialogManagement;
+using GottaManagePlus.Models.UI;
+using GottaManagePlus.Utils;
 using GottaManagePlus.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,7 +49,7 @@ public sealed class DialogService(IServiceProvider serviceProvider)
     public TDialog GetUnmanagedDialog<TDialog>()
         where TDialog : DialogViewModel =>  _serviceProvider.GetRequiredService<TDialog>();
 
-    public async Task<object?> ShowDialog<TDialog>(DialogContext? context) // context is placeholder
+    public async Task<DialogResult?> ShowDialog<TDialog>(DialogContext? context)
         where TDialog : DialogViewModel
     {
         if (_dialogProvider == null)
@@ -69,7 +71,7 @@ public sealed class DialogService(IServiceProvider serviceProvider)
         }
         catch
         {
-            return false;
+            return null;
         }
         finally
         {

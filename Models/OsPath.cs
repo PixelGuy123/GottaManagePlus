@@ -18,8 +18,8 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using GottaManagePlus.Utils.JsonConverters;
 using System.Text.Json.Serialization;
+using GottaManagePlus.Utils.JsonConverters;
 
 namespace GottaManagePlus.Models;
 
@@ -28,7 +28,7 @@ namespace GottaManagePlus.Models;
 /// Represents an operating system path with automatic normalization for Windows long paths.
 /// </summary>
 [JsonConverter(typeof(OsPathJsonConverter))]
-public readonly partial struct OsPath : IEquatable<OsPath>
+public readonly struct OsPath : IEquatable<OsPath>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OsPath"/> struct with the specified path.

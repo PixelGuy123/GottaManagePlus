@@ -21,7 +21,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using GottaManagePlus.Models.DialogManagement;
 using GottaManagePlus.Models.UI;
 
@@ -88,7 +87,7 @@ public partial class ConfirmDialogViewModel : DialogViewModel
     /// </summary>
     public HierarchicalTreeDataGridSource<LogTreeNode>? LogsTreeSource => LogsTreeContainer?.Source;
 
-    protected override async Task<object?> OnShow(DialogContext? context)
+    protected override async Task<DialogResult?> OnShow(DialogContext? context)
     {
         var confirmDialogContext = ExpectContext<ConfirmDialogContext>(context);
 
@@ -96,7 +95,7 @@ public partial class ConfirmDialogViewModel : DialogViewModel
         (Title, Message, ConfirmText, CancelText) =
             (confirmDialogContext.Title ?? Title,
                 confirmDialogContext.Message ?? Message,
-                confirmDialogContext.ConfirmText ?? ConfirmText,
+                confirmDialogContext.ConfirmText,
                 confirmDialogContext.CancelText ?? CancelText);
         DescriptionAlignment = confirmDialogContext.DescriptionAlignment;
         LogContainer = confirmDialogContext.LogContainer;

@@ -20,7 +20,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 
 namespace GottaManagePlus.Views;
 

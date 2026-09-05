@@ -18,8 +18,6 @@ This file is part of GottaManagePlus (https://github.com/PixelGuy123/GottaManage
 
 */
 
-using GottaManagePlus.Models;
-
 namespace GottaManagePlus.Models.UI;
 
 /// <summary>
@@ -94,8 +92,8 @@ public class SnapshotChangeReport
         var currentDirs = new HashSet<string>(currentSnapshot.Directories);
         var previousDirs = new HashSet<string>(previousSnapshot.Directories);
 
-        AddedDirectories = currentDirs.Except(previousDirs).ToList();
-        RemovedDirectories = previousDirs.Except(currentDirs).ToList();
+        AddedDirectories = [.. currentDirs.Except(previousDirs)];
+        RemovedDirectories = [.. previousDirs.Except(currentDirs)];
 
         // Compare files
         var currentFiles = currentSnapshot.Files.ToDictionary(f => f.RelativePath!);
