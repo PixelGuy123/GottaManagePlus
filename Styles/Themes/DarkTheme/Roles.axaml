@@ -1,0 +1,81 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=netstandard">
+
+    <!-- 
+        ROLE LAYER - Dark Theme
+        Semantic color roles that components should reference.
+        Values are theme-specific mappings from the palette.
+    -->
+
+    <!-- Primary button colors (Generic-Button family) -->
+    <Color x:Key="Color.Primary">#0D4D1A</Color>
+    <Color x:Key="Color.Primary.Hover">#1A6F2E</Color>
+    <Color x:Key="Color.Primary.Press">#08340F</Color>
+
+    <!-- Danger button colors -->
+    <Color x:Key="Color.Danger">#8B0000</Color>
+    <Color x:Key="Color.Danger.Hover">#C41A1A</Color>
+    <Color x:Key="Color.Danger.Press">#4A0000</Color>
+
+    <!-- Surface and text colors -->
+    <Color x:Key="Color.Surface">#121212</Color>
+    <Color x:Key="Color.OnSurface">LightGray</Color>
+
+    <!-- Border colors -->
+    <Color x:Key="Color.Border">#0E1C16</Color>
+    <Color x:Key="Color.Border.Subtle">#050A08</Color>
+
+    <!-- Accent background gradients (YctpBg family) - using SolidColorBrush for gradient brushes defined in ProfileResources -->
+    <!-- These reference the gradient brushes, not solid colors -->
+    
+    <!-- Warning and Danger backgrounds -->
+    <!-- These reference the gradient brushes from ProfileResources.axaml -->
+
+    <!-- ScrollViewer colors -->
+    <Color x:Key="Color.Scroll.Thumb">rgba(100, 150, 120, 1)</Color>
+    <Color x:Key="Color.Scroll.Track">rgba(20, 40, 30, 1)</Color>
+
+    <!-- Tab selected background -->
+    <Color x:Key="Color.Tab.Selected">#0A3B0E</Color>
+
+    <!-- Progress bar fill -->
+    <Color x:Key="Color.Progress.Fill">#6ABF6A</Color>
+
+    <!-- Menu colors -->
+    <Color x:Key="Color.Menu.Header.Bg">#132B1F</Color>
+
+    <!-- Menu background gradient colors (Dark theme) -->
+    <Color x:Key="Color.Menu.Bg.Start">#1A3B2A</Color>
+    <Color x:Key="Color.Menu.Bg.End">#0A1A12</Color>
+    <Color x:Key="Color.Menu.Top.0">#1E4D33</Color>
+    <Color x:Key="Color.Menu.Top.12">#1A402A</Color>
+    <Color x:Key="Color.Menu.Top.185">#173D28</Color>
+    <Color x:Key="Color.Menu.Top.25">#143B25</Color>
+    <Color x:Key="Color.Menu.Top.50">#0F2E1D</Color>
+    <Color x:Key="Color.Menu.Top.59">#0D2A1B</Color>
+    <Color x:Key="Color.Menu.Top.65">#0C271A</Color>
+    <Color x:Key="Color.Menu.Top.75">#0B2418</Color>
+    <Color x:Key="Color.Menu.Top.85">#06120D</Color>
+
+    <!-- YCTP Button specific colors -->
+    <Color x:Key="Color.YCTP.Bg">#8c0d93</Color>
+    <Color x:Key="Color.YCTP.Shadow">#3f043e</Color>
+    <Color x:Key="Color.YCTP.OnBg">#FFFFFF</Color>
+    <Color x:Key="Color.YCTP.Hover.Bg">#75e170</Color>
+    <Color x:Key="Color.YCTP.Hover.Shadow">#bef0c0</Color>
+    <Color x:Key="Color.YCTP.Hover.OnBg">#949794</Color>
+
+    <!-- AutoCompleteBox colors (theme-specific) -->
+    <Color x:Key="Color.AutoComplete.Bg">#004D10</Color>
+    <Color x:Key="Color.AutoComplete.Border">#063112</Color>
+    <Color x:Key="Color.AutoComplete.Fg">#5EC458</Color>
+    <Color x:Key="Color.AutoComplete.Hover.Fg">#40BE2C</Color>
+    <Color x:Key="Color.AutoComplete.Hover.Bg">#026012</Color>
+    <Color x:Key="Color.AutoComplete.Hover.Border">#10591D</Color>
+    <Color x:Key="Color.AutoComplete.Focus.Fg">#81DB7F</Color>
+
+    <!-- ToolTip colors -->
+    <Color x:Key="Color.ToolTip.Bg">#2D2D2D</Color>
+
+</ResourceDictionary>

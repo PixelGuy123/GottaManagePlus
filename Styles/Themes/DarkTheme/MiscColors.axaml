@@ -9,6 +9,6 @@
     <Color x:Key="ScrollBar-ThumbColor">rgba(100, 150, 120, 1)</Color>
 
     <!-- Text / background base color -->
-    <Color x:Key="WhiteColor">#121212</Color>
-    <Color x:Key="BlackColor">LightGray</Color>
+    <!-- WhiteColor and BlackColor are now aliases to Color.OnSurface in Aliases.axaml -->
+    <!-- These definitions are kept for backwards compatibility but should not be used directly -->
 </ResourceDictionary>
