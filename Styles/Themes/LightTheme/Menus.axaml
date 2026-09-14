@@ -7,8 +7,8 @@
                          RadiusX="375%"
                          RadiusY="285%">
         <RadialGradientBrush.GradientStops>
-            <GradientStop Color="#68e29b" Offset="0"/>
-            <GradientStop Color="#286554" Offset="0.85"/>
+            <GradientStop Color="{StaticResource Color.Menu.Bg.Start}" Offset="0"/>
+            <GradientStop Color="{StaticResource Color.Menu.Bg.End}" Offset="0.85"/>
         </RadialGradientBrush.GradientStops>
     </RadialGradientBrush>
 
@@ -19,20 +19,20 @@
                          RadiusX="100%"
                          RadiusY="135%">
         <RadialGradientBrush.GradientStops>
-            <GradientStop Color="#46bb77" Offset="0"/>
-            <GradientStop Color="#3ba065" Offset="0.12"/>
-            <GradientStop Color="#3b9665" Offset="0.185"/>
-            <GradientStop Color="#36945d" Offset="0.25"/>
-            <GradientStop Color="#287347" Offset="0.5"/>
-            <GradientStop Color="#286447" Offset="0.59"/>
-            <GradientStop Color="#285f47" Offset="0.65"/>
-            <GradientStop Color="#285847" Offset="0.75"/>
-            <GradientStop Color="#164d42" Offset="0.85"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.0}" Offset="0"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.12}" Offset="0.12"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.185}" Offset="0.185"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.25}" Offset="0.25"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.50}" Offset="0.5"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.59}" Offset="0.59"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.65}" Offset="0.65"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.75}" Offset="0.75"/>
+            <GradientStop Color="{StaticResource Color.Menu.Top.85}" Offset="0.85"/>
         </RadialGradientBrush.GradientStops>
     </RadialGradientBrush>
 
     <!-- Other Menu Resources -->
-    <SolidColorBrush x:Key="Menu-Header-Bg" Color="#2f6441"/>
-    <SolidColorBrush x:Key="Generic-Border" Color="#1E443A"/>
-    <SolidColorBrush x:Key="Generic-Border-Shadow" Color="#1C272B"/>
+    <SolidColorBrush x:Key="Menu-Header-Bg" Color="{StaticResource Color.Menu.Header.Bg}"/>
+    <SolidColorBrush x:Key="Generic-Border" Color="{StaticResource Color.Border}"/>
+    <SolidColorBrush x:Key="Generic-Border-Shadow" Color="{StaticResource Color.Border.Subtle}"/>
 </ResourceDictionary>

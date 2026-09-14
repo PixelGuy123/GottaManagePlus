@@ -11,7 +11,7 @@
     
     <!-- Default Textblock Color -->
     <Style Selector="TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource BlackColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Color.OnSurface}"/>
         
         <!-- Header Title Properties-->
         <Style Selector="^#HeaderTitle">

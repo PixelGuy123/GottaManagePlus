@@ -1,0 +1,48 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 
+        ALIASES - Dark Theme
+        Legacy key names that map to new semantic role keys.
+        This maintains compatibility with Views and C# code that reference these keys.
+    -->
+
+    <!-- Text color aliases (replacing WhiteColor/BlackColor) -->
+    <StaticResource x:Key="WhiteColor" ResourceKey="Color.OnSurface"/>
+    <StaticResource x:Key="BlackColor" ResourceKey="Color.OnSurface"/>
+
+    <!-- Primary button aliases -->
+    <SolidColorBrush x:Key="Generic-Button" Color="{StaticResource Color.Primary}"/>
+    <SolidColorBrush x:Key="Generic-Button-Pointed" Color="{StaticResource Color.Primary.Hover}"/>
+    <SolidColorBrush x:Key="Generic-Button-Pressed" Color="{StaticResource Color.Primary.Press}"/>
+
+    <!-- Danger button aliases -->
+    <SolidColorBrush x:Key="Danger-Button" Color="{StaticResource Color.Danger}"/>
+    <SolidColorBrush x:Key="Danger-Button-Pointed" Color="{StaticResource Color.Danger.Hover}"/>
+    <SolidColorBrush x:Key="Danger-Button-Pressed" Color="{StaticResource Color.Danger.Press}"/>
+
+    <!-- Border aliases -->
+    <SolidColorBrush x:Key="Generic-Border" Color="{StaticResource Color.Border}"/>
+    <SolidColorBrush x:Key="Generic-Border-Shadow" Color="{StaticResource Color.Border.Subtle}"/>
+
+    <!-- ScrollViewer aliases -->
+    <SolidColorBrush x:Key="ScrollBar-BgColor" Color="{StaticResource Color.Scroll.Track}"/>
+    <SolidColorBrush x:Key="ScrollBar-ThumbColor" Color="{StaticResource Color.Scroll.Thumb}"/>
+
+    <!-- Misc aliases -->
+    <SolidColorBrush x:Key="TabSelectedBg" Color="{StaticResource Color.Tab.Selected}"/>
+    <SolidColorBrush x:Key="ProgressBar-Foreground" Color="{StaticResource Color.Progress.Fill}"/>
+
+    <!-- Menu aliases - MainMenus-Bg and TopMenu-Bg are RadialGradientBrushes in Menus.axaml -->
+    <!-- They remain as-is, no alias needed since they're already defined with correct keys -->
+    <SolidColorBrush x:Key="Menu-Header-Bg" Color="{StaticResource Color.Menu.Header.Bg}"/>
+
+    <!-- Background image aliases (these are ImageBrushes defined in Backgrounds.axaml) -->
+    <!-- MainWindowBg, SettingsBg, ModsListBg remain as-is in Backgrounds.axaml -->
+
+    <!-- YCTP gradient brush aliases (defined in ProfileResources.axaml) -->
+    <!-- YctpBg, YctpBg-Warning, YctpBg-Error remain as gradient brushes -->
+
+    <!-- ListInnerBg gradient alias (defined in ProfileResources.axaml) -->
+
+</ResourceDictionary>

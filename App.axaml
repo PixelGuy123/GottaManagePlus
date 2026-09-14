@@ -21,6 +21,9 @@
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
                     <ResourceDictionary.MergedDictionaries>
+                        <ResourceInclude Source="Styles/Themes/Palette.axaml" />
+                        <ResourceInclude Source="Styles/Themes/LightTheme/Roles.axaml" />
+                        <ResourceInclude Source="Styles/Themes/LightTheme/Aliases.axaml" />
                         <ResourceInclude Source="Styles/Themes/LightTheme/Backgrounds.axaml" />
                         <ResourceInclude Source="Styles/Themes/LightTheme/Menus.axaml" />
                         <ResourceInclude Source="Styles/Themes/LightTheme/Buttons.axaml" />
@@ -29,6 +32,9 @@
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <ResourceDictionary.MergedDictionaries>
+                        <ResourceInclude Source="Styles/Themes/Palette.axaml" />
+                        <ResourceInclude Source="Styles/Themes/DarkTheme/Roles.axaml" />
+                        <ResourceInclude Source="Styles/Themes/DarkTheme/Aliases.axaml" />
                         <ResourceInclude Source="Styles/Themes/DarkTheme/Backgrounds.axaml" />
                         <ResourceInclude Source="Styles/Themes/DarkTheme/Menus.axaml" />
                         <ResourceInclude Source="Styles/Themes/DarkTheme/Buttons.axaml" />
